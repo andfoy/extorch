@@ -43,13 +43,18 @@ std::unordered_map<std::string, torch::MemoryFormat> memory_fmt_mapping = {
     {"channels_last_3d", torch::MemoryFormat::ChannelsLast3d}};
 
 torch::TensorOptions get_tensor_options(rust::String s_dtype,
-                                        rust::String s_layout, rust::String s_device,
-                                        bool requires_grad, bool pin_memory)
+                                        rust::String s_layout, Device ddevice,
+                                        bool requires_grad, bool pin_memory,
+                                        rust::String s_mem_fmt)
 
 {
+    auto s_device = ddevice.device;
+    auto device_index = ddevice.index;
+
     std::string dtype_str(s_dtype.data(), s_dtype.size());
     std::string layout_str(s_layout.data(), s_layout.size());
     std::string device_str(s_device.data(), s_device.size());
+    std::string mem_fmt_str(s_mem_fmt.data(), s_mem_fmt.size());
 
     auto type = torch::get_default_dtype();
     auto type_search = type_mapping.find(dtype_str);
@@ -61,7 +66,7 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
     auto device = torch::Device(torch::kCPU);
     auto device_search = device_mapping.find(device_str);
     if (device_search != device_mapping.end()) {
-        device = torch::Device(device_search->second);
+        device = torch::Device(device_search->second, device_index);
     } else {
         device = torch::Device(device_str);
     }
@@ -72,11 +77,18 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
         layout = layout_search->second;
     }
 
+    auto mem_format = torch::MemoryFormat::Contiguous;
+    auto mem_fmt_search = memory_fmt_mapping.find(mem_fmt_str);
+    if (mem_fmt_search != memory_fmt_mapping.end()) {
+        mem_format = mem_fmt_search->second;
+    }
+
     torch::TensorOptions tensor_options =
         torch::TensorOptions(type).
         device(device).
         layout(layout).
         requires_grad(requires_grad).
+        memory_format(mem_format).
         pinned_memory(pin_memory);
 
     return tensor_options;
@@ -84,11 +96,12 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
 
 std::shared_ptr<CrossTensor> empty(
     rust::Vec<int64_t> dims, rust::String s_dtype,
-    rust::String s_layout, rust::String s_device,
-    bool requires_grad, bool pin_memory)
+    rust::String s_layout, Device s_device,
+    bool requires_grad, bool pin_memory,
+    rust::String s_mem_fmt)
 {
     const int64_t *ptr = dims.data();
-    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
 
     torch::Tensor tensor = torch::empty(torch::IntArrayRef{ptr, dims.size()}, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
@@ -115,4 +128,20 @@ rust::String dtype(const std::shared_ptr<CrossTensor> &tensor)
     rust::String type_rust(type_name.data(), type_name.size());
     // rust::Slice<const int64_t> slice{sizes.data(), sizes.size()};
     return type_rust;
+}
+
+Device device(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    auto device = cross_tensor.device();
+    auto device_type = device.type();
+    auto device_index = device.index();
+    auto it = std::find_if(
+        device_mapping.begin(), device_mapping.end(),
+        [&device_type](const std::pair<std::string, torch::DeviceType> &p) {
+            return p.second == device_type;
+        });
+    auto device_name = it->first;
+    rust::String device_rust(device_name.data(), device_name.size());
+    Device this_device { device_rust, device_index };
+    return this_device;
 }
