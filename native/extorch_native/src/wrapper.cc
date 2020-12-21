@@ -1,7 +1,118 @@
 #include "extorch_native/include/wrapper.h"
 #include "extorch_native/src/lib.rs.h"
 #include <iostream>
+// #include <string>
 
-void test_cpp() {
-    std::cout << "Testing..." << "\n";
+std::unordered_map<std::string, torch::ScalarType> type_mapping = {
+    {"int", torch::kI32},
+    {"int8", torch::kI8},
+    {"int16", torch::kI16},
+    {"int32", torch::kI32},
+    {"int64", torch::kI64},
+    {"float", torch::kF32},
+    {"float16", torch::kF16},
+    {"float32", torch::kF32},
+    {"float64", torch::kF64},
+    {"bfloat16", torch::kBFloat16},
+    {"half", torch::kHalf},
+    {"short", torch::kShort},
+    {"double", torch::kDouble},
+    {"long", torch::kLong},
+    {"complex32", torch::kComplexHalf},
+    {"complex64", torch::kComplexFloat},
+    {"complex128", torch::kComplexDouble},
+    {"bool", torch::kBool}};
+
+std::unordered_map<std::string, torch::DeviceType> device_mapping = {
+    {"cpu", torch::kCPU},
+    {"cuda", torch::kCUDA},
+    {"hip", torch::kHIP},
+    {"fpga", torch::kFPGA},
+    {"vulkan", torch::kVulkan},
+    {"msnpu", torch::kMSNPU},
+    {"xla", torch::kXLA}};
+
+std::unordered_map<std::string, torch::Layout> layout_mapping = {
+    {"strided", torch::kStrided},
+    {"sparse", torch::kSparse}};
+
+std::unordered_map<std::string, torch::MemoryFormat> memory_fmt_mapping = {
+    {"contiguous", torch::MemoryFormat::Contiguous},
+    {"preserve", torch::MemoryFormat::Preserve},
+    {"channels_last", torch::MemoryFormat::ChannelsLast},
+    {"channels_last_3d", torch::MemoryFormat::ChannelsLast3d}};
+
+torch::TensorOptions get_tensor_options(rust::String s_dtype,
+                                        rust::String s_layout, rust::String s_device,
+                                        bool requires_grad, bool pin_memory)
+
+{
+    std::string dtype_str(s_dtype.data(), s_dtype.size());
+    std::string layout_str(s_layout.data(), s_layout.size());
+    std::string device_str(s_device.data(), s_device.size());
+
+    auto type = torch::get_default_dtype();
+    auto type_search = type_mapping.find(dtype_str);
+    if (type_search != type_mapping.end())
+    {
+        type = torch::scalarTypeToTypeMeta(type_search->second);
+    }
+
+    auto device = torch::Device(torch::kCPU);
+    auto device_search = device_mapping.find(device_str);
+    if (device_search != device_mapping.end()) {
+        device = torch::Device(device_search->second);
+    } else {
+        device = torch::Device(device_str);
+    }
+
+    auto layout = torch::kStrided;
+    auto layout_search = layout_mapping.find(layout_str);
+    if (layout_search != layout_mapping.end()) {
+        layout = layout_search->second;
+    }
+
+    torch::TensorOptions tensor_options =
+        torch::TensorOptions(type).
+        device(device).
+        layout(layout).
+        requires_grad(requires_grad).
+        pinned_memory(pin_memory);
+
+    return tensor_options;
+}
+
+std::shared_ptr<CrossTensor> empty(
+    rust::Vec<int64_t> dims, rust::String s_dtype,
+    rust::String s_layout, rust::String s_device,
+    bool requires_grad, bool pin_memory)
+{
+    const int64_t *ptr = dims.data();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory);
+
+    torch::Tensor tensor = torch::empty(torch::IntArrayRef{ptr, dims.size()}, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
+{
+    CrossTensor cross_tensor = *tensor.get();
+    auto sizes = cross_tensor.sizes();
+    rust::Slice<const int64_t> slice{sizes.data(), sizes.size()};
+    return slice;
+}
+
+rust::String dtype(const std::shared_ptr<CrossTensor> &tensor)
+{
+    CrossTensor cross_tensor = *tensor.get();
+    auto type = cross_tensor.dtype();
+    auto it = std::find_if(
+        type_mapping.begin(), type_mapping.end(),
+        [&type](const std::pair<std::string, torch::ScalarType> &p) {
+            return p.second == type;
+        });
+    auto type_name = it->first;
+    rust::String type_rust(type_name.data(), type_name.size());
+    // rust::Slice<const int64_t> slice{sizes.data(), sizes.size()};
+    return type_rust;
 }
