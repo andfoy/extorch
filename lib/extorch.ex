@@ -50,4 +50,41 @@ defmodule ExTorch do
             ) do
     ExTorch.Native.empty(sizes, dtype, layout, device, requires_grad, pin_memory, memory_format)
   end
+
+  deftensor zeros(
+              sizes,
+              dtype \\ :float,
+              layout \\ :strided,
+              device \\ :cpu,
+              requires_grad \\ false,
+              pin_memory \\ false,
+              memory_format \\ :contiguous
+            ) do
+    ExTorch.Native.zeros(sizes, dtype, layout, device, requires_grad, pin_memory, memory_format)
+  end
+
+  deftensor ones(
+              sizes,
+              dtype \\ :float,
+              layout \\ :strided,
+              device \\ :cpu,
+              requires_grad \\ false,
+              pin_memory \\ false,
+              memory_format \\ :contiguous
+            ) do
+    ExTorch.Native.ones(sizes, dtype, layout, device, requires_grad, pin_memory, memory_format)
+  end
+
+  deftensor full(
+              sizes,
+              scalar,
+              dtype \\ :float,
+              layout \\ :strided,
+              device \\ :cpu,
+              requires_grad \\ false,
+              pin_memory \\ false,
+              memory_format \\ :contiguous
+            ) do
+    ExTorch.Native.full(sizes, scalar, dtype, layout, device, requires_grad, pin_memory, memory_format)
+  end
 end

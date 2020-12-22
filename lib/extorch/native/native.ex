@@ -10,7 +10,21 @@ defmodule ExTorch.Native do
     :erlang.nif_error(:nif_not_loaded)
   end
 
+  def zeros(_sizes, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def ones(_sizes, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  def full(_sizes, _scalar, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
   def dtype(_a), do: :erlang.nif_error(:nif_not_loaded)
 
   def device(_a), do: :erlang.nif_error(:nif_not_loaded)
+
+  def repr(_a), do: :erlang.nif_error(:nif_not_loaded)
 end

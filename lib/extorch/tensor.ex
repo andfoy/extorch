@@ -29,4 +29,15 @@ defmodule ExTorch.Tensor do
       device: ExTorch.Native.device(resource)
     }
   end
+
+  defimpl Inspect, for: ExTorch.Tensor do
+    import Inspect.Algebra
+
+    def inspect(tensor, opts) do
+      %ExTorch.Tensor{resource: resource, size: size} = tensor
+      repr = ExTorch.Native.repr(resource)
+      # concat(["#Tensor<", to_doc(repr, opts), ">"])
+      doc = concat(["#Tensor<", repr, ">"])
+    end
+  end
 end

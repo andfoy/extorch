@@ -9,12 +9,15 @@ std::unordered_map<std::string, torch::ScalarType> type_mapping = {
     {"int16", torch::kI16},
     {"int32", torch::kI32},
     {"int64", torch::kI64},
+    {"uint8", torch::kUInt8},
     {"float", torch::kF32},
     {"float16", torch::kF16},
     {"float32", torch::kF32},
     {"float64", torch::kF64},
     {"bfloat16", torch::kBFloat16},
+    {"byte", torch::kByte},
     {"half", torch::kHalf},
+    {"char", torch::kChar},
     {"short", torch::kShort},
     {"double", torch::kDouble},
     {"long", torch::kLong},
@@ -94,6 +97,33 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
     return tensor_options;
 }
 
+torch::Scalar get_scalar_type(Scalar scalar) {
+    auto r_entry_used = scalar.entry_used;
+    std::string entry_used(r_entry_used.data(), r_entry_used.size());
+
+    torch::Scalar ret_scalar;
+    if(entry_used == "uint8") {
+        ret_scalar = scalar._ui8;
+    } else if(entry_used == "int8") {
+        ret_scalar = scalar._i8;
+    } else if (entry_used == "int16") {
+        ret_scalar = scalar._i16;
+    } else if (entry_used == "int32") {
+        ret_scalar = scalar._i32;
+    } else if (entry_used == "int64") {
+        ret_scalar = scalar._i64;
+    } else if (entry_used == "float16") {
+        ret_scalar = scalar._f16;
+    } else if (entry_used == "float32") {
+        ret_scalar = scalar._f32;
+    } else if (entry_used == "float64") {
+        ret_scalar = scalar._f64;
+    } else if (entry_used == "bool") {
+        ret_scalar = scalar._bool;
+    }
+    return ret_scalar;
+}
+
 std::shared_ptr<CrossTensor> empty(
     rust::Vec<int64_t> dims, rust::String s_dtype,
     rust::String s_layout, Device s_device,
@@ -104,6 +134,50 @@ std::shared_ptr<CrossTensor> empty(
     torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
 
     torch::Tensor tensor = torch::empty(torch::IntArrayRef{ptr, dims.size()}, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> zeros(
+    rust::Vec<int64_t> dims, rust::String s_dtype,
+    rust::String s_layout, Device s_device,
+    bool requires_grad, bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    const int64_t *ptr = dims.data();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::zeros(torch::IntArrayRef{ptr, dims.size()}, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> ones(
+    rust::Vec<int64_t> dims, rust::String s_dtype,
+    rust::String s_layout, Device s_device,
+    bool requires_grad, bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    const int64_t *ptr = dims.data();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::ones(torch::IntArrayRef{ptr, dims.size()}, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> full(
+    rust::Vec<int64_t> dims,
+    Scalar scalar,
+    rust::String s_dtype,
+    rust::String s_layout,
+    Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    auto torch_scalar = get_scalar_type(scalar);
+    const int64_t *ptr = dims.data();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::full(torch::IntArrayRef{ptr, dims.size()}, torch_scalar, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
@@ -144,4 +218,14 @@ Device device(const std::shared_ptr<CrossTensor> &tensor) {
     rust::String device_rust(device_name.data(), device_name.size());
     Device this_device { device_rust, device_index };
     return this_device;
+}
+
+rust::String repr(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    // auto str_repr = cross_tensor.toString();
+    std::stringstream ss;
+    ss << cross_tensor;
+    auto str_repr = ss.str();
+    rust::String tensor_repr(str_repr.data(), str_repr.size());
+    return tensor_repr;
 }
