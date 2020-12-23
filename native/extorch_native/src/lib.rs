@@ -512,7 +512,7 @@ fn wrap_tensor<'a>(
 
 fn empty<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let sizes = unpack_size_init(0, env, args)?;
-    let options = unpack_tensor_options(1, env, args)?;
+    let options = unpack_tensor_options(0, env, args)?;
     let tensor_ref = torch::empty(
         sizes,
         options.dtype,

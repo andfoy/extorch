@@ -1,4 +1,6 @@
 defmodule ExTorch.Macros do
+  @moduledoc false
+
   defp kwarg_map({:\\, _, [{arg, _, _, }, value]}) do
     %{arg => value}
   end
@@ -60,5 +62,21 @@ defmodule ExTorch.Macros do
     actual_body = body(name, args, new_body)
     :logger.debug("#{Macro.to_string(Macro.expand(actual_body, nil))}")
     actual_body
+  end
+
+  defmacro native_calls(do: body) do
+    :logger.debug("#{inspect body}")
+    docs = Code.fetch_docs(ExTorch.Native)
+    # {:docs_v1, _, :elixir, "text/markdown", :none, _, funcs} = Code.fetch_docs(ExTorch.Native)
+    :logger.debug("#{inspect docs}")
+    # docs =
+    test_spec = quote do
+      @spec function(number, number) :: number
+      def function(x, y) do
+        x + y
+      end
+    end
+    :logger.debug("#{inspect test_spec}")
+    nil
   end
 end

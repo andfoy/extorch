@@ -1,4 +1,19 @@
 defmodule ExTorch.Tensor do
+  @moduledoc """
+  An ``ExTorch.Tensor`` is a multi-dimensional matrix containing elements of a single data type.
+  """
+
+  @typedoc """
+  An ``ExTorch.Tensor`` is a multi-dimensional matrix containing elements of a single data type.
+  """
+  @type t :: %__MODULE__{
+    resource: any(),
+    reference: any(),
+    size: tuple(),
+    dtype: ExTorch.DType.dtype(),
+    device: ExTorch.Device.device()
+  }
+
   defstruct [
     # The actual Tensor NIF resource
     resource: nil,
@@ -20,6 +35,7 @@ defmodule ExTorch.Tensor do
     device: :cpu,
   ]
 
+  @doc false
   def wrap_tensor_ref(resource) do
     %__MODULE__{
       resource: resource,
@@ -33,11 +49,11 @@ defmodule ExTorch.Tensor do
   defimpl Inspect, for: ExTorch.Tensor do
     import Inspect.Algebra
 
-    def inspect(tensor, opts) do
-      %ExTorch.Tensor{resource: resource, size: size} = tensor
+    def inspect(tensor, _opts) do
+      %ExTorch.Tensor{resource: resource} = tensor
       repr = ExTorch.Native.repr(resource)
       # concat(["#Tensor<", to_doc(repr, opts), ">"])
-      doc = concat(["#Tensor<", repr, ">"])
+      concat(["#Tensor<", repr, ">"])
     end
   end
 end
