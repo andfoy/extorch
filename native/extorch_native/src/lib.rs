@@ -10,8 +10,8 @@ use rustler::resource::ResourceArc;
 use rustler::types::tuple::{get_tuple, make_tuple};
 use rustler::types::Atom;
 use rustler::{Encoder, Env, Error, Term};
+use rustler_sys::enif_make_ref;
 // use std::ptr::NonNull;
-
 
 lazy_static! {
     static ref ALL_TYPES: HashMap<&'static str, &'static str> = {
@@ -41,7 +41,6 @@ lazy_static! {
         m
     };
 }
-
 
 // RUSTFLAGS="-C link-args=-Wl,-rpath,/home/andfoy/anaconda3/lib/python3.7/site-packages/torch/lib"
 mod atoms {
@@ -77,7 +76,7 @@ mod torch {
         _f32: f32,
         _f64: f64,
         _bool: bool,
-        entry_used: String
+        entry_used: String,
     }
 
     extern "Rust" {}
@@ -158,6 +157,16 @@ struct TensorOptions {
     memory_format: String,
 }
 
+#[derive(NifStruct)]
+#[module = "ExTorch.Tensor"]
+struct TensorStruct<'a> {
+    resource: ResourceArc<torch::CrossTensorRef>,
+    reference: Term<'a>,
+    size: Term<'a>,
+    dtype: Term<'a>,
+    device: Term<'a>,
+}
+
 rustler::rustler_export_nifs! {
     "Elixir.ExTorch.Native",
     [
@@ -187,9 +196,18 @@ fn add<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
 }
 
 fn size<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<torch::CrossTensorRef> = args[0].decode()?;
+    let wrapper: TensorStruct = args[0].decode()?;
+    let resource = wrapper.resource;
+    // let resource: ResourceArc<torch::CrossTensorRef> = args[0].decode()?;
     let cross_tensor_ref = &*resource;
     let tensor_ref = &cross_tensor_ref.tensor;
+    size_ref(env, tensor_ref)
+}
+
+fn size_ref<'a>(
+    env: Env<'a>,
+    tensor_ref: &SharedPtr<torch::CrossTensor>,
+) -> Result<Term<'a>, Error> {
     let sizes = torch::size(tensor_ref);
     let enc_sizes: Vec<Term<'a>> = sizes.iter().map(|size| size.encode(env)).collect();
     let tuple_sizes = make_tuple(env, &enc_sizes);
@@ -197,19 +215,34 @@ fn size<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
 }
 
 fn dtype<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<torch::CrossTensorRef> = args[0].decode()?;
+    let wrapper: TensorStruct = args[0].decode()?;
+    let resource = wrapper.resource;
     let cross_tensor_ref = &*resource;
     let tensor_ref = &cross_tensor_ref.tensor;
+    dtype_ref(env, tensor_ref)
+}
+
+fn dtype_ref<'a>(
+    env: Env<'a>,
+    tensor_ref: &SharedPtr<torch::CrossTensor>,
+) -> Result<Term<'a>, Error> {
     let dtype = torch::dtype(tensor_ref);
     let atom_dtype = Atom::from_str(env, &dtype)?;
     Ok(atom_dtype.encode(env))
 }
 
 fn device<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<torch::CrossTensorRef> = args[0].decode()?;
+    let wrapper: TensorStruct = args[0].decode()?;
+    let resource = wrapper.resource;
     let cross_tensor_ref = &*resource;
     let tensor_ref = &cross_tensor_ref.tensor;
+    device_ref(env, tensor_ref)
+}
 
+fn device_ref<'a>(
+    env: Env<'a>,
+    tensor_ref: &SharedPtr<torch::CrossTensor>,
+) -> Result<Term<'a>, Error> {
     let device = torch::device(tensor_ref);
     let device_name = device.device;
     let device_index = device.index;
@@ -224,7 +257,8 @@ fn device<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
 }
 
 fn repr<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-    let resource: ResourceArc<torch::CrossTensorRef> = args[0].decode()?;
+    let wrapper: TensorStruct = args[0].decode()?;
+    let resource = wrapper.resource;
     let cross_tensor_ref = &*resource;
     let tensor_ref = &cross_tensor_ref.tensor;
 
@@ -252,7 +286,12 @@ fn unpack_size_init<'a>(index: usize, _env: Env<'a>, args: &[Term<'a>]) -> Resul
     Ok(sizes)
 }
 
-fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'a>]) -> Result<torch::Scalar, Error> {
+fn unpack_scalar<'a>(
+    index: usize,
+    s_type: String,
+    _env: Env<'a>,
+    args: &[Term<'a>],
+) -> Result<torch::Scalar, Error> {
     let ex_scalar: Term<'a> = args[index];
     let mut type_cast: String = "float32".to_owned();
     if ALL_TYPES.contains_key::<str>(&s_type) {
@@ -274,9 +313,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "int8" => {
             let cast_value: i8 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -289,9 +328,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "int16" => {
             let cast_value: i16 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -304,9 +343,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "int32" => {
             let cast_value: i32 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -319,9 +358,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "int64" => {
             let cast_value: i64 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -334,9 +373,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "float16" => {
             let cast_value: f32 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -349,9 +388,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "bfloat16" => {
             let cast_value: f32 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -364,9 +403,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: "float16".to_owned()
+                entry_used: "float16".to_owned(),
             }
-        },
+        }
         "float32" => {
             let cast_value: f32 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -379,9 +418,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: cast_value,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "float64" => {
             let cast_value: f64 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -394,9 +433,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: cast_value,
                 _bool: false,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         "bool" => {
             let cast_value: bool = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -409,9 +448,9 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: -1.0,
                 _f64: -1.0,
                 _bool: cast_value,
-                entry_used: type_cast
+                entry_used: type_cast,
             }
-        },
+        }
         _ => {
             let cast_value: f32 = ex_scalar.decode()?;
             scalar_result = torch::Scalar {
@@ -424,14 +463,18 @@ fn unpack_scalar<'a>(index: usize, s_type: String, _env: Env<'a>, args: &[Term<'
                 _f32: cast_value,
                 _f64: -1.0,
                 _bool: false,
-                entry_used: "float32".to_owned()
+                entry_used: "float32".to_owned(),
             }
         }
     }
     Ok(scalar_result)
 }
 
-fn unpack_tensor_options<'a>(off: usize, _env: Env<'a>, args: &[Term<'a>]) -> Result<TensorOptions, Error> {
+fn unpack_tensor_options<'a>(
+    off: usize,
+    _env: Env<'a>,
+    args: &[Term<'a>],
+) -> Result<TensorOptions, Error> {
     let ex_dtype: String = args[off + 1].atom_to_string()?;
     let ex_layout: String = args[off + 2].atom_to_string()?;
     // let ex_device: String = args[3].atom_to_string()?;
@@ -495,9 +538,20 @@ fn wrap_tensor<'a>(
 ) -> Result<Term<'a>, Error> {
     match tensor_ref {
         Ok(result) => {
+            let size = size_ref(env, &result)?;
+            let dtype = dtype_ref(env, &result)?;
+            let device = device_ref(env, &result)?;
             let cross_tensor_ref = torch::CrossTensorRef { tensor: result };
             let resource = ResourceArc::new(cross_tensor_ref);
-            Ok(resource.encode(env))
+            let reference = unsafe { Term::new(env, enif_make_ref(env.as_c_arg())) };
+            let tensor_struct = TensorStruct {
+                resource: resource,
+                reference: reference,
+                size: size,
+                dtype: dtype,
+                device: device,
+            };
+            Ok(tensor_struct.encode(env))
         }
 
         Err(err) => {

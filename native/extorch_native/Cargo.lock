@@ -110,6 +110,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "rustler",
+ "rustler_sys",
 ]
 
 [[package]]

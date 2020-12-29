@@ -13,8 +13,22 @@ defmodule ExTorch.Native do
   # When your NIF is loaded, it will override this function.
   def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
 
+  @doc """
+  Get the size of a tensor.
+
+  ## Arguments
+    - `tensor`: Input tensor
+  """
+  @spec size(ExTorch.Tensor.t()) :: tuple()
   def size(_a), do: :erlang.nif_error(:nif_not_loaded)
 
+  @doc """
+  Get the dtype of a tensor.
+
+  ## Arguments
+    - `tensor`: Input tensor
+  """
+  @spec dtype(ExTorch.Tensor.t()) :: tuple()
   def dtype(_a), do: :erlang.nif_error(:nif_not_loaded)
 
   def device(_a), do: :erlang.nif_error(:nif_not_loaded)
@@ -40,7 +54,7 @@ defmodule ExTorch.Native do
         (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
         for CPU tensor types and the current CUDA device for CUDA tensor types.
 
-    - requires_grad (`bool()`, optional): If autograd should record operations on the
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
         returned tensor. **Default**: `false`.
 
     - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
@@ -65,10 +79,10 @@ defmodule ExTorch.Native do
           ExTorch.DType.dtype(),
           ExTorch.Layout.layout(),
           ExTorch.Device.device(),
-          bool(),
-          bool(),
+          boolean(),
+          boolean(),
           ExTorch.MemoryFormat.memory_format()
-        ) :: any()
+        ) :: ExTorch.Tensor.t()
   def empty(_size, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end
@@ -92,7 +106,7 @@ defmodule ExTorch.Native do
         (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
         for CPU tensor types and the current CUDA device for CUDA tensor types.
 
-    - requires_grad (`bool()`, optional): If autograd should record operations on the
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
         returned tensor. **Default**: `false`.
 
     - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
@@ -120,6 +134,15 @@ defmodule ExTorch.Native do
       0
       [ CPUFloatType{5} ]>
   """
+  @spec zeros(
+          tuple() | [integer()],
+          ExTorch.DType.dtype(),
+          ExTorch.Layout.layout(),
+          ExTorch.Device.device(),
+          boolean(),
+          boolean(),
+          ExTorch.MemoryFormat.memory_format()
+        ) :: ExTorch.Tensor.t()
   def zeros(_sizes, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end
@@ -143,7 +166,7 @@ defmodule ExTorch.Native do
         (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
         for CPU tensor types and the current CUDA device for CUDA tensor types.
 
-    - requires_grad (`bool()`, optional): If autograd should record operations on the
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
         returned tensor. **Default**: `false`.
 
     - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
@@ -176,10 +199,10 @@ defmodule ExTorch.Native do
           ExTorch.DType.dtype(),
           ExTorch.Layout.layout(),
           ExTorch.Device.device(),
-          bool(),
-          bool(),
+          boolean(),
+          boolean(),
           ExTorch.MemoryFormat.memory_format()
-        ) :: any()
+        ) :: ExTorch.Tensor.t()
   def ones(_size, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end

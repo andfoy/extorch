@@ -8,7 +8,7 @@ defmodule ExTorch.Tensor do
   """
   @type t :: %__MODULE__{
     resource: any(),
-    reference: any(),
+    reference: reference(),
     size: tuple(),
     dtype: ExTorch.DType.dtype(),
     device: ExTorch.Device.device()
@@ -50,10 +50,9 @@ defmodule ExTorch.Tensor do
     import Inspect.Algebra
 
     def inspect(tensor, _opts) do
-      %ExTorch.Tensor{resource: resource} = tensor
-      repr = ExTorch.Native.repr(resource)
-      # concat(["#Tensor<", to_doc(repr, opts), ">"])
-      concat(["#Tensor<", repr, ">"])
+      # %ExTorch.Tensor{resource: resource} = tensor
+      repr = ExTorch.Native.repr(tensor)
+      concat(["#Tensor<", "\n", repr, "\n", ">"])
     end
   end
 end
