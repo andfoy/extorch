@@ -8,40 +8,51 @@ defmodule ExTorch do
   It has a CUDA counterpart, that enables you to run your tensor computations on an NVIDIA GPU with compute capability >= 3.0
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> ExTorch.hello()
-      :world
-
-  """
-  def hello do
-    :world
-  end
-
   native_calls do
     # set_num_threads(num_threads :: integer())
-    size(tensor :: ExTorch.Tensor.t())
+    size(tensor)
 
-    empty(sizes :: tuple() | [integer()],
-      dtype \\ :float :: ExTorch.DType.dtype(),
-      layout \\ :strided :: ExTorch.Layout.layout(),
-      device \\ :cpu :: ExTorch.Device.device(),
-      requires_grad \\ false :: boolean(),
-      pin_memory \\ false :: boolean(),
-      memory_format \\ :contiguous :: ExTorch.MemoryFormat.memory_format()
-    ) :: ExTorch.Tensor.t()
+    empty(
+      size,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
 
-    zeros(sizes :: tuple() | [integer()],
-      dtype \\ :float :: ExTorch.DType.dtype(),
-      layout \\ :strided :: ExTorch.Layout.layout(),
-      device \\ :cpu :: ExTorch.Device.device(),
-      requires_grad \\ false :: boolean(),
-      pin_memory \\ false :: boolean(),
-      memory_format \\ :contiguous :: ExTorch.MemoryFormat.memory_format()
-    ) :: ExTorch.Tensor.t()
+    zeros(
+      size,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
+    ones(
+      size,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
+    full(
+      size,
+      scalar,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
   end
 
   # _dtype, _layout, _device, _requires_grad, _pin_memory
