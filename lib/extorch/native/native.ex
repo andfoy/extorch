@@ -265,4 +265,18 @@ defmodule ExTorch.Native do
   def full(_sizes, _scalar, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  @spec eye(
+    integer(),
+    integer(),
+    ExTorch.DType.dtype(),
+    ExTorch.Layout.layout(),
+    ExTorch.Device.device(),
+    boolean(),
+    boolean(),
+    ExTorch.MemoryFormat.memory_format()
+  ) :: ExTorch.Tensor.t()
+  def eye(_n, _m, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end

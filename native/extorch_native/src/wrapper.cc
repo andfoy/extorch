@@ -181,6 +181,25 @@ std::shared_ptr<CrossTensor> full(
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
+std::shared_ptr<CrossTensor> eye(
+    int64_t n,
+    int64_t m,
+    rust::String s_dtype,
+    rust::String s_layout,
+    Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    // auto torch_scalar = get_scalar_type(scalar);
+    // const int64_t *ptr = dims.data();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::eye(n, m, opts);
+    // torch::Tensor tensor = torch::full(torch::IntArrayRef{ptr, dims.size()}, torch_scalar, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
 {
     CrossTensor cross_tensor = *tensor.get();

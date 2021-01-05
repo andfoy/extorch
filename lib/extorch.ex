@@ -53,6 +53,16 @@ defmodule ExTorch do
       memory_format \\ :contiguous
     )
 
+    eye(
+      n,
+      m,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
   end
 
   # _dtype, _layout, _device, _requires_grad, _pin_memory

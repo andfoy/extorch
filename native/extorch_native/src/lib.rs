@@ -52,6 +52,39 @@ mod atoms {
     }
 }
 
+// macro_rules! unpack_arg {
+//     ($pos:literal, $arg:ident:Tensor) => {
+//         wrapper_$arg: TensorStruct = args[$pos].decode()?;
+//         // let wrapper: TensorStruct = args[0].decode()?;
+//         let resource_$arg = wrapper_$arg.resource;
+//         // let resource: ResourceArc<torch::CrossTensorRef> = args[0].decode()?;
+//         let cross_tensor_ref_$arg = &*resource_$arg;
+//         let $arg = &cross_tensor_ref_$arg.tensor;
+//     };
+// }
+
+// macro_rules! unpack_args {
+//     ($arg:expr) => {
+//         unpack_arg!($arg)
+//     }
+//     ($arg:expr, $(args:expr),+) => {
+//         unpack_arg!($arg)
+//         unpack_args!($($args),+)
+//     };
+// }
+
+// macro_rules! nif_impl {
+//     ($func_name:ident, Tensor, $args:expr) => {
+//         fn $func_name<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+//             unpack_args!($args)
+//             tensor_ref = torch::$func_name(
+//                 args_without_type!($args)
+//             )
+//             wrap_tensor(tensor_ref, env, args)
+//         }
+//     };
+// }
+
 #[cxx::bridge]
 mod torch {
     /// Shared interface to a tensor pointer in memory.
@@ -141,6 +174,17 @@ mod torch {
             pin_memory: bool,
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
+
+        fn eye(
+            n: i64,
+            m: i64,
+            s_dtype: String,
+            s_layout: String,
+            s_device: Device,
+            requires_grad: bool,
+            pin_memory: bool,
+            s_mem_fmt: String,
+        ) -> Result<SharedPtr<CrossTensor>>;
     }
 }
 
@@ -175,6 +219,7 @@ rustler::rustler_export_nifs! {
         ("zeros", 7, zeros),
         ("ones", 7, ones),
         ("full", 8, full),
+        ("eye", 8, eye),
         ("repr", 1, repr),
         ("size", 1, size),
         ("dtype", 1, dtype),
@@ -619,6 +664,23 @@ fn full<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let tensor_ref = torch::full(
         sizes,
         scalar,
+        options.dtype,
+        options.layout,
+        options.device,
+        options.requires_grad,
+        options.pin_memory,
+        options.memory_format,
+    );
+    wrap_tensor(tensor_ref, env, args)
+}
+
+fn eye<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let n: i64 = args[0].decode()?;
+    let m: i64 = args[1].decode()?;
+    let options = unpack_tensor_options(1, env, args)?;
+    let tensor_ref = torch::eye(
+        n,
+        m,
         options.dtype,
         options.layout,
         options.device,

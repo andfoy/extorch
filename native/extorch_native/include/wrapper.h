@@ -47,6 +47,17 @@ std::shared_ptr<CrossTensor> full(
     bool pin_memory,
     rust::String s_mem_fmt);
 
+
+std::shared_ptr<CrossTensor> eye(
+    int64_t n,
+    int64_t m,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt);
+
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor);
 rust::String dtype(const std::shared_ptr<CrossTensor> &tensor);
 Device device(const std::shared_ptr<CrossTensor> &tensor);
