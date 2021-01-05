@@ -87,7 +87,7 @@ defmodule ExTorch.Macros do
     {arg, value}
   end
 
-  defp body(name, args, [], extended_body, single_spec, kwarg_spec, doc) when length(args) > 0 do
+  defp body(name, args, [], extended_body, single_spec, _kwarg_spec, doc) when length(args) > 0 do
     quote do
       # @spec unquote(name)(any(), [{:key, integer()} | {:key2, integer()}]) :: ExTorch.Tensor.t()
       @doc unquote(doc)
@@ -144,7 +144,7 @@ defmodule ExTorch.Macros do
     typespecs = get_specs()
 
     {name, _, args} = fn_name_args
-    :logger.debug("#{inspect(args)}")
+    # :logger.debug("#{inspect(args)}")
     kwargs = Enum.filter(args, fn e -> match?({:\\, _, _}, e) end)
     args = Enum.filter(args, fn e -> !match?({:\\, _, _}, e) end)
 
@@ -152,12 +152,12 @@ defmodule ExTorch.Macros do
     # fn_kwargs = Enum.reduce(kwargs, %{}, fn x, acc -> Map.merge(x, acc) end)
     fn_kwargs = Enum.into(kwargs, %{})
 
-    :logger.debug("#{inspect(args)}")
-    :logger.debug("#{inspect(kwargs)}")
-    :logger.debug("#{inspect(fn_kwargs)}")
+    # :logger.debug("#{inspect(args)}")
+    # :logger.debug("#{inspect(kwargs)}")
+    # :logger.debug("#{inspect(fn_kwargs)}")
 
-    :logger.debug("#{inspect(Map.get(typespecs, name, nil))}")
-    :logger.debug("#{inspect(Map.get(docs, name, ""))}")
+    # :logger.debug("#{inspect(Map.get(typespecs, name, nil))}")
+    # :logger.debug("#{inspect(Map.get(docs, name, ""))}")
 
     kwarg_names = Enum.map(kwargs, fn {kwarg_name, _} -> kwarg_name end)
     func_typespec = Map.get(typespecs, name, nil)
@@ -165,10 +165,10 @@ defmodule ExTorch.Macros do
 
     func_doc = Map.get(docs, name, "")
 
-    :logger.debug("#{inspect single_spec}")
-    :logger.debug("#{inspect kwarg_spec}")
-    :logger.debug("#{Macro.to_string(single_spec)}")
-    :logger.debug("#{Macro.to_string(kwarg_spec)}")
+    # :logger.debug("#{inspect single_spec}")
+    # :logger.debug("#{inspect kwarg_spec}")
+    # :logger.debug("#{Macro.to_string(single_spec)}")
+    # :logger.debug("#{Macro.to_string(kwarg_spec)}")
 
 
     # {:"::", [line: 145],
@@ -210,9 +210,10 @@ defmodule ExTorch.Macros do
         # ExTorch.Tensor.wrap_tensor_ref(unquote(Macro.var(:tensor_result, nil)))
       end
 
-    actual_body = body(name, args, kwarg_names, new_body, single_spec, kwarg_spec, func_doc)
-    :logger.debug("#{Macro.to_string(Macro.expand(actual_body, nil))}")
-    actual_body
+    # actual_body = body(name, args, kwarg_names, new_body, single_spec, kwarg_spec, func_doc)
+    # :logger.debug("#{Macro.to_string(Macro.expand(actual_body, nil))}")
+    # actual_body
+    body(name, args, kwarg_names, new_body, single_spec, kwarg_spec, func_doc)
   end
 
   defmacro native_calls(do: body) do

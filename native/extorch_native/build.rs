@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::process::Command;
-use std::{env, str};
+use std::str;
 use cxx_build::CFG;
 
 
@@ -16,19 +16,19 @@ fn command_output(cmd: &mut Command) -> String {
 }
 
 fn main() {
-    let mut torch_include_path = env::current_dir().unwrap();
-    let mut inner_torch_include_path = env::current_dir().unwrap();
-    let mut torch_lib = env::current_dir().unwrap();
+    // let mut torch_include_path = env::current_dir().unwrap();
+    // let mut inner_torch_include_path = env::current_dir().unwrap();
+    // let mut torch_lib = env::current_dir().unwrap();
 
     if command_ok(Command::new("python").arg("--version")) {
         let torch_location =
             command_output(Command::new("python").args(&["-c", "import torch; print(torch.__file__)"]));
         let torch_path = Path::new(&torch_location).parent().unwrap();
 
-        torch_include_path = torch_path.join("include");
-        inner_torch_include_path = torch_path.join("include/torch/csrc/api/include");
+        let torch_include_path = torch_path.join("include");
+        let inner_torch_include_path = torch_path.join("include/torch/csrc/api/include");
 
-        torch_lib = torch_path.join("lib");
+        let torch_lib = torch_path.join("lib");
         println!(
             "cargo:rustc-link-search=native={}",
             torch_lib.to_str().unwrap()
