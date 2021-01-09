@@ -43,8 +43,8 @@ defmodule ExTorch.Macros do
     {Enum.reverse(acc), kwargs_spec}
   end
 
-  defp consume_args_spec([_arg|rest], [spec|args], acc) do
-    consume_args_spec(rest, args, [spec|acc])
+  defp consume_args_spec([_arg | rest], [spec | args], acc) do
+    consume_args_spec(rest, args, [spec | acc])
   end
 
   defp get_new_specs(_args, _kwargs, nil) do
@@ -58,12 +58,17 @@ defmodule ExTorch.Macros do
     new_sig_spec = args_spec ++ [keyword_list_kwargs]
     kwarg_spec = {:"::", [], [{name, [], new_sig_spec}, return_spec]}
     single_spec = {:"::", [], [{name, [], args_spec}, return_spec]}
-    kwarg_spec = quote do
-      @spec unquote(kwarg_spec)
-    end
-    single_spec = quote do
-      @spec unquote(single_spec)
-    end
+
+    kwarg_spec =
+      quote do
+        @spec unquote(kwarg_spec)
+      end
+
+    single_spec =
+      quote do
+        @spec unquote(single_spec)
+      end
+
     {single_spec, kwarg_spec}
   end
 
@@ -87,11 +92,12 @@ defmodule ExTorch.Macros do
     {arg, value}
   end
 
-  defp body(name, args, [], extended_body, single_spec, _kwarg_spec, doc) when length(args) > 0 do
+  defp body(name, args, [], nil, extended_body, single_spec, _kwarg_spec, doc) when length(args) > 0 do
     quote do
       # @spec unquote(name)(any(), [{:key, integer()} | {:key2, integer()}]) :: ExTorch.Tensor.t()
       @doc unquote(doc)
       unquote(single_spec)
+
       def unquote(name)(unquote_splicing(args)) do
         unquote(Macro.var(:kwargs, nil)) = %{}
         unquote(extended_body)
@@ -99,18 +105,21 @@ defmodule ExTorch.Macros do
     end
   end
 
-  defp body(name, args, _kwargs, extended_body, single_spec, kwarg_spec, doc) when length(args) > 0 do
+  defp body(name, args, _kwargs, nil, extended_body, single_spec, kwarg_spec, doc)
+       when length(args) > 0 do
     quote do
       # @spec unquote(name)(any(), [{:key, integer()} | {:key2, integer()}]) :: ExTorch.Tensor.t()
       @doc unquote(doc)
       unquote(kwarg_spec)
-      def unquote(name)(unquote_splicing(args), unquote(Macro.var(:kwargs, nil))) do
+
+      def unquote(name)(unquote_splicing(args), unquote(Macro.var(:kwargs, nil))) when is_list(unquote(Macro.var(:kwargs, nil))) do
         unquote(extended_body)
       end
 
       # @doc false
       # @spec unquote(name)(any()) :: ExTorch.Tensor.t()
       unquote(single_spec)
+
       def unquote(name)(unquote_splicing(args)) do
         unquote(Macro.var(:kwargs, nil)) = %{}
         unquote(extended_body)
@@ -118,9 +127,58 @@ defmodule ExTorch.Macros do
     end
   end
 
-  defp body(name, args, _, extended_body, _, _, _) when length(args) == 0 do
+  defp body(name, args, _, nil, extended_body, _, _, _) when length(args) == 0 do
     quote do
       def unquote(name)(unquote(Macro.var(:kwargs, nil))) do
+        unquote(extended_body)
+      end
+
+      @doc false
+      def unquote(name)() do
+        unquote(Macro.var(:kwargs, nil)) = %{}
+        unquote(extended_body)
+      end
+    end
+  end
+
+  defp body(name, args, [], guards, extended_body, single_spec, _kwarg_spec, doc) when length(args) > 0 do
+    quote do
+      # @spec unquote(name)(any(), [{:key, integer()} | {:key2, integer()}]) :: ExTorch.Tensor.t()
+      # @doc unquote(doc)
+      unquote(single_spec)
+
+      def unquote(name)(unquote_splicing(args)) when unquote(guards) do
+        unquote(Macro.var(:kwargs, nil)) = %{}
+        unquote(extended_body)
+      end
+    end
+  end
+
+  defp body(name, args, _kwargs, guards, extended_body, single_spec, kwarg_spec, doc)
+       when length(args) > 0 do
+    quote do
+      # @spec unquote(name)(any(), [{:key, integer()} | {:key2, integer()}]) :: ExTorch.Tensor.t()
+      # @doc unquote(doc)
+      unquote(kwarg_spec)
+
+      def unquote(name)(unquote_splicing(args), unquote(Macro.var(:kwargs, nil))) when unquote(guards) and is_list(unquote(Macro.var(:kwargs, nil))) do
+        unquote(extended_body)
+      end
+
+      # @doc false
+      # @spec unquote(name)(any()) :: ExTorch.Tensor.t()
+      unquote(single_spec)
+
+      def unquote(name)(unquote_splicing(args)) when unquote(guards) do
+        unquote(Macro.var(:kwargs, nil)) = %{}
+        unquote(extended_body)
+      end
+    end
+  end
+
+  defp body(name, args, _, guards, extended_body, _, _, _) when length(args) == 0 do
+    quote do
+      def unquote(name)(unquote(Macro.var(:kwargs, nil))) when unquote(guards) do
         unquote(extended_body)
       end
 
@@ -143,7 +201,12 @@ defmodule ExTorch.Macros do
     docs = get_doc_map()
     typespecs = get_specs()
 
-    {name, _, args} = fn_name_args
+    # :logger.debug("#{inspect(fn_name_args)}")
+    {name, args, guards} =
+      case fn_name_args do
+        {:when, _, [{name, _, args}, guards]} -> {name, args, guards}
+        {name, _, args} -> {name, args, nil}
+      end
     # :logger.debug("#{inspect(args)}")
     kwargs = Enum.filter(args, fn e -> match?({:\\, _, _}, e) end)
     args = Enum.filter(args, fn e -> !match?({:\\, _, _}, e) end)
@@ -159,32 +222,27 @@ defmodule ExTorch.Macros do
     # :logger.debug("#{inspect(Map.get(typespecs, name, nil))}")
     # :logger.debug("#{inspect(Map.get(docs, name, ""))}")
 
+    # {:when, [line: 90],
+    #  [
+    #    {:arange, [line: 81],
+    #     [
+    #       {:end_bound, [line: 82], nil},
+    #       {:\\, [line: 83], [{:step, [line: 83], nil}, 1]},
+    #       {:\\, [line: 84], [{:dtype, [line: 84], nil}, :float]},
+    #       {:\\, [line: 85], [{:layout, [line: 85], nil}, :strided]},
+    #       {:\\, [line: 86], [{:device, [line: 86], nil}, :cpu]},
+    #       {:\\, [line: 87], [{:requires_grad, [line: 87], nil}, false]},
+    #       {:\\, [line: 88], [{:pin_memory, [line: 88], nil}, false]},
+    #       {:\\, [line: 89], [{:memory_format, [line: 89], nil}, :contiguous]}
+    #     ]},
+    #    {:is_integer, [line: 90], [{:end_bound, [line: 90], nil}]}
+    #  ]}
+
     kwarg_names = Enum.map(kwargs, fn {kwarg_name, _} -> kwarg_name end)
     func_typespec = Map.get(typespecs, name, nil)
     {single_spec, kwarg_spec} = get_new_specs(args, kwarg_names, func_typespec)
 
     func_doc = Map.get(docs, name, "")
-
-    # :logger.debug("#{inspect single_spec}")
-    # :logger.debug("#{inspect kwarg_spec}")
-    # :logger.debug("#{Macro.to_string(single_spec)}")
-    # :logger.debug("#{Macro.to_string(kwarg_spec)}")
-
-
-    # {:"::", [line: 145],
-    #  [
-    #    {:zeros, [line: 145],
-    #     [
-    #       {:|, [line: 138], [{:tuple, [line: 138], []}, [{:integer, [line: 138], []}]]},
-    #       {{:., [line: 139], [ExTorch.DType, :dtype]}, [line: 139], []},
-    #       {{:., [line: 140], [ExTorch.Layout, :layout]}, [line: 140], []},
-    #       {{:., [line: 141], [ExTorch.Device, :device]}, [line: 141], []},
-    #       {:boolean, [line: 142], []},
-    #       {:boolean, [line: 143], []},
-    #       {{:., [line: 144], [ExTorch.MemoryFormat, :memory_format]}, [line: 144], []}
-    #     ]},
-    #    {{:., [line: 145], [ExTorch.Tensor, :t]}, [line: 145], []}
-    #  ]}
 
     fn_kwargs_var = Macro.escape(fn_kwargs)
     args_reassignment = Enum.map(fn_kwargs, fn {k, _} -> {k, Macro.var(k, nil)} end)
@@ -211,9 +269,9 @@ defmodule ExTorch.Macros do
       end
 
     # actual_body = body(name, args, kwarg_names, new_body, single_spec, kwarg_spec, func_doc)
-    # :logger.debug("#{Macro.to_string(Macro.expand(actual_body, nil))}")
-    # actual_body
-    body(name, args, kwarg_names, new_body, single_spec, kwarg_spec, func_doc)
+    actual_body = body(name, args, kwarg_names, guards, new_body, single_spec, kwarg_spec, func_doc)
+    :logger.debug("#{Macro.to_string(Macro.expand(actual_body, nil))}")
+    actual_body
   end
 
   defmacro native_calls(do: body) do
@@ -221,18 +279,36 @@ defmodule ExTorch.Macros do
 
     native_module = {:__aliases__, [alias: false], [:ExTorch, :Native]}
 
+    :logger.debug("#{inspect native_defs}")
     redefinitions =
-      Enum.map(native_defs, fn fun_def = {fun_name, _, fun_args} ->
-        all_args = get_args(fun_args)
-        native_call = {:., [], [native_module, fun_name]}
-
-        quote do
-          deftensor unquote(fun_def) do
-            unquote(native_call)(unquote_splicing(all_args))
+      Enum.map(native_defs, fn
+        deftensor = {:deftensor, _, _} ->
+          quote do
+            unquote(deftensor)
           end
-        end
+
+        {:when, _, [(fun_def = {fun_name, _, fun_args}), guards]} ->
+          all_args = get_args(fun_args)
+          native_call = {:., [], [native_module, fun_name]}
+          :logger.debug("#{inspect guards}")
+          quote do
+            deftensor unquote(fun_def) when unquote(guards) do
+              unquote(native_call)(unquote_splicing(all_args))
+            end
+          end
+        fun_def = {fun_name, _, fun_args} ->
+          all_args = get_args(fun_args)
+          native_call = {:., [], [native_module, fun_name]}
+
+          quote do
+            deftensor unquote(fun_def) do
+              unquote(native_call)(unquote_splicing(all_args))
+            end
+          end
       end)
 
-    {:__block__, [], redefinitions}
+    ast = {:__block__, [], redefinitions}
+    :logger.debug("#{Macro.to_string(Macro.expand(ast, nil))}")
+    ast
   end
 end

@@ -9,7 +9,7 @@ use rustler::resource::ResourceArc;
 // use rustler::types::list::ListIterator;
 use rustler::types::tuple::{get_tuple, make_tuple};
 use rustler::types::Atom;
-use rustler::{Encoder, Env, Error, Term};
+use rustler::{Encoder, Env, Error, Term, NifResult};
 use rustler_sys::enif_make_ref;
 // use std::ptr::NonNull;
 
@@ -185,6 +185,30 @@ mod torch {
             pin_memory: bool,
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
+
+        fn arange(
+            start: Scalar,
+            end: Scalar,
+            step: Scalar,
+            s_dtype: String,
+            s_layout: String,
+            s_device: Device,
+            requires_grad: bool,
+            pin_memory: bool,
+            s_mem_fmt: String
+        ) -> Result<SharedPtr<CrossTensor>>;
+
+        fn linspace(
+            start: Scalar,
+            end: Scalar,
+            steps: i64,
+            s_dtype: String,
+            s_layout: String,
+            s_device: Device,
+            requires_grad: bool,
+            pin_memory: bool,
+            s_mem_fmt: String
+        ) -> Result<SharedPtr<CrossTensor>>;
     }
 }
 
@@ -220,6 +244,8 @@ rustler::rustler_export_nifs! {
         ("ones", 7, ones),
         ("full", 8, full),
         ("eye", 8, eye),
+        ("arange", 9, arange),
+        ("linspace", 9, linspace),
         ("repr", 1, repr),
         ("size", 1, size),
         ("dtype", 1, dtype),
@@ -331,7 +357,7 @@ fn unpack_size_init<'a>(index: usize, _env: Env<'a>, args: &[Term<'a>]) -> Resul
     Ok(sizes)
 }
 
-fn unpack_scalar<'a>(
+fn unpack_scalar_typed<'a>(
     index: usize,
     s_type: String,
     _env: Env<'a>,
@@ -515,6 +541,152 @@ fn unpack_scalar<'a>(
     Ok(scalar_result)
 }
 
+fn find_scalar<'a>(value: Term<'a>) -> Result<torch::Scalar, Error> {
+    let bool_value: NifResult<bool> = value.decode();
+    match bool_value {
+        Ok(value) => {
+            let scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: value,
+                entry_used: "bool".to_owned(),
+            };
+            Ok(scalar_result)
+        }
+        Err(_err) => {
+            find_ui8(value)
+        }
+    }
+}
+
+fn find_ui8<'a>(value: Term<'a>) -> Result<torch::Scalar, Error> {
+    let u8_value: NifResult<u8> = value.decode();
+    match u8_value {
+        Ok(value) => {
+            let scalar_result = torch::Scalar {
+                _ui8: value,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: "uint8".to_owned(),
+            };
+            Ok(scalar_result)
+        }
+        Err(_err) => {
+            find_i32(value)
+        }
+    }
+}
+
+fn find_i32<'a>(value: Term<'a>) -> Result<torch::Scalar, Error> {
+    let i32_value: NifResult<i32> = value.decode();
+    match i32_value {
+        Ok(value) => {
+            let scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: value,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: "int32".to_owned(),
+            };
+            Ok(scalar_result)
+        }
+        Err(_err) => {
+            find_i64(value)
+        }
+    }
+}
+
+fn find_i64<'a>(value: Term<'a>) -> Result<torch::Scalar, Error> {
+    let i64_value: NifResult<i64> = value.decode();
+    match i64_value {
+        Ok(value) => {
+            let scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: value,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: "int64".to_owned(),
+            };
+            Ok(scalar_result)
+        }
+        Err(_err) => {
+            find_f32(value)
+        }
+    }
+}
+
+fn find_f32<'a>(value: Term<'a>) -> Result<torch::Scalar, Error> {
+    let f32_value: NifResult<f32> = value.decode();
+    match f32_value {
+        Ok(value) => {
+            let scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: value,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: "float32".to_owned(),
+            };
+            Ok(scalar_result)
+        }
+        Err(_err) => {
+            find_f64(value)
+        }
+    }
+}
+
+fn find_f64<'a>(value: Term<'a>) -> Result<torch::Scalar, Error> {
+    let f64_value: f64 = value.decode()?;
+    let scalar_result = torch::Scalar {
+        _ui8: 0,
+        _i8: -1,
+        _i16: -1,
+        _i32: -1,
+        _i64: -1,
+        _f16: -1.0,
+        _f32: -1.0,
+        _f64: f64_value,
+        _bool: false,
+        entry_used: "float64".to_owned(),
+    };
+    Ok(scalar_result)
+}
+
+fn unpack_scalar<'a>(
+    index: usize,
+    _env: Env<'a>,
+    args: &[Term<'a>],
+) -> Result<torch::Scalar, Error> {
+    let ex_scalar: Term<'a> = args[index];
+    find_scalar(ex_scalar)
+}
+
 fn unpack_tensor_options<'a>(
     off: usize,
     _env: Env<'a>,
@@ -659,8 +831,9 @@ fn ones<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
 
 fn full<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let sizes = unpack_size_init(0, env, args)?;
+    let scalar = unpack_scalar(1, env, args)?;
     let options = unpack_tensor_options(1, env, args)?;
-    let scalar = unpack_scalar(1, options.dtype.clone(), env, args)?;
+    // let scalar = unpack_scalar_typed(1, options.dtype.clone(), env, args)?;
     let tensor_ref = torch::full(
         sizes,
         scalar,
@@ -681,6 +854,44 @@ fn eye<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
     let tensor_ref = torch::eye(
         n,
         m,
+        options.dtype,
+        options.layout,
+        options.device,
+        options.requires_grad,
+        options.pin_memory,
+        options.memory_format,
+    );
+    wrap_tensor(tensor_ref, env, args)
+}
+
+fn arange<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let start = unpack_scalar(0, env, args)?;
+    let end = unpack_scalar(1, env, args)?;
+    let step = unpack_scalar(2, env, args)?;
+    let options = unpack_tensor_options(2, env, args)?;
+    let tensor_ref = torch::arange(
+        start,
+        end,
+        step,
+        options.dtype,
+        options.layout,
+        options.device,
+        options.requires_grad,
+        options.pin_memory,
+        options.memory_format,
+    );
+    wrap_tensor(tensor_ref, env, args)
+}
+
+fn linspace<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
+    let start = unpack_scalar(0, env, args)?;
+    let end = unpack_scalar(1, env, args)?;
+    let steps: i64 = args[2].decode()?;
+    let options = unpack_tensor_options(2, env, args)?;
+    let tensor_ref = torch::linspace(
+        start,
+        end,
+        steps,
         options.dtype,
         options.layout,
         options.device,

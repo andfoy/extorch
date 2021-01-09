@@ -58,6 +58,29 @@ std::shared_ptr<CrossTensor> eye(
     bool pin_memory,
     rust::String s_mem_fmt);
 
+std::shared_ptr<CrossTensor> arange(
+    struct Scalar start,
+    struct Scalar end,
+    struct Scalar step,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt);
+
+std::shared_ptr<CrossTensor> linspace(
+    struct Scalar start,
+    struct Scalar end,
+    int64_t steps,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt);
+
+
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor);
 rust::String dtype(const std::shared_ptr<CrossTensor> &tensor);
 Device device(const std::shared_ptr<CrossTensor> &tensor);

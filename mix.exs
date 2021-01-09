@@ -8,6 +8,7 @@ defmodule ExTorch.MixProject do
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      docs: docs(),
       compilers: [:rustler] ++ Mix.compilers(),
       rustler_crates: [extorch_native: []]
     ]
@@ -29,4 +30,35 @@ defmodule ExTorch.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
+
+  defp docs do
+    [
+      main: "ExTorch",
+      # You can specify a function for adding
+      # custom content to the generated HTML.
+      # This is useful for custom JS/CSS files you want to include.
+      before_closing_body_tag: &before_closing_body_tag/1
+      # ...
+    ]
+  end
+
+  # In our case we simply add a <script> tag
+  # that loads MathJax from CDN and specify the configuration.
+  # Once loaded, the script will dynamically turn any LaTeX
+  # expressions on the page into SVG images.
+  defp before_closing_body_tag(:html) do
+    """
+    <script>
+      window.MathJax = {
+        tex: {
+          inlineMath: [['$', '$']],
+          displayMath: [['$$','$$']],
+        },
+      };
+    </script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    """
+  end
+
+  defp before_closing_body_tag(_), do: ""
 end

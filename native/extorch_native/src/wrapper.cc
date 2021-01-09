@@ -200,6 +200,48 @@ std::shared_ptr<CrossTensor> eye(
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
+std::shared_ptr<CrossTensor> arange(
+    struct Scalar start,
+    struct Scalar end,
+    struct Scalar step,
+    rust::String s_dtype,
+    rust::String s_layout,
+    Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    // auto torch_scalar = get_scalar_type(scalar);
+    // const int64_t *ptr = dims.data();
+    auto start_scalar = get_scalar_type(start);
+    auto end_scalar = get_scalar_type(end);
+    auto step_scalar = get_scalar_type(step);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::arange(start_scalar, end_scalar, step_scalar, opts);
+    // torch::Tensor tensor = torch::full(torch::IntArrayRef{ptr, dims.size()}, torch_scalar, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> linspace(
+    struct Scalar start,
+    struct Scalar end,
+    int64_t steps,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    auto start_scalar = get_scalar_type(start);
+    auto end_scalar = get_scalar_type(end);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::linspace(start_scalar, end_scalar, steps, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
 {
     CrossTensor cross_tensor = *tensor.get();

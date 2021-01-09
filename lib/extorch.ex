@@ -1,4 +1,5 @@
 defmodule ExTorch do
+  # require ExTorch.Native
   import ExTorch.Macros
 
   @moduledoc """
@@ -9,7 +10,7 @@ defmodule ExTorch do
   """
 
   native_calls do
-    # set_num_threads(num_threads :: integer())
+    # set_num_threads(num_threads)
     size(tensor)
 
     empty(
@@ -63,55 +64,66 @@ defmodule ExTorch do
       pin_memory \\ false,
       memory_format \\ :contiguous
     )
+
+    deftensor arange(
+      end_bound,
+      step \\ 1,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+    when is_integer(end_bound) do
+      ExTorch.Native.arange(
+        0,
+        end_bound,
+        step,
+        dtype,
+        layout,
+        device,
+        requires_grad,
+        pin_memory,
+        memory_format
+      )
+    end
+
+    arange(
+      start,
+      end_bound,
+      step \\ 1,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
+    arange(
+      start,
+      end_bound,
+      step,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+    when is_number(step)
+
+    linspace(
+      start,
+      end_bound,
+      steps,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
   end
-
-  # _dtype, _layout, _device, _requires_grad, _pin_memory
-  # deftensor empty(
-  #             sizes,
-  #             dtype \\ :float,
-  #             layout \\ :strided,
-  #             device \\ :cpu,
-  #             requires_grad \\ false,
-  #             pin_memory \\ false,
-  #             memory_format \\ :contiguous
-  #           ) do
-  #   ExTorch.Native.empty(sizes, dtype, layout, device, requires_grad, pin_memory, memory_format)
-  # end
-
-  # deftensor zeros(
-  #             sizes,
-  #             dtype \\ :float,
-  #             layout \\ :strided,
-  #             device \\ :cpu,
-  #             requires_grad \\ false,
-  #             pin_memory \\ false,
-  #             memory_format \\ :contiguous
-  #           ) do
-  #   ExTorch.Native.zeros(sizes, dtype, layout, device, requires_grad, pin_memory, memory_format)
-  # end
-
-  # deftensor ones(
-  #             sizes,
-  #             dtype \\ :float,
-  #             layout \\ :strided,
-  #             device \\ :cpu,
-  #             requires_grad \\ false,
-  #             pin_memory \\ false,
-  #             memory_format \\ :contiguous
-  #           ) do
-  #   ExTorch.Native.ones(sizes, dtype, layout, device, requires_grad, pin_memory, memory_format)
-  # end
-
-  # deftensor full(
-  #             sizes,
-  #             scalar,
-  #             dtype \\ :float,
-  #             layout \\ :strided,
-  #             device \\ :cpu,
-  #             requires_grad \\ false,
-  #             pin_memory \\ false,
-  #             memory_format \\ :contiguous
-  #           ) do
-  #   ExTorch.Native.full(sizes, scalar, dtype, layout, device, requires_grad, pin_memory, memory_format)
-  # end
 end
