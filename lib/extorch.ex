@@ -54,6 +54,27 @@ defmodule ExTorch do
       memory_format \\ :contiguous
     )
 
+    deftensor eye(
+      n,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    ) do
+      ExTorch.Native.eye(
+        n,
+        n,
+        dtype,
+        layout,
+        device,
+        requires_grad,
+        pin_memory,
+        memory_format
+      )
+    end
+
     eye(
       n,
       m,
@@ -63,7 +84,7 @@ defmodule ExTorch do
       requires_grad \\ false,
       pin_memory \\ false,
       memory_format \\ :contiguous
-    )
+    ) when is_integer(m)
 
     deftensor arange(
       end_bound,
