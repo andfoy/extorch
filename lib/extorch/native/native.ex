@@ -487,6 +487,39 @@ defmodule ExTorch.Native do
 
     - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
         returned Tensor. **Default**: `:contiguous`
+
+  ## Examples
+      # Returns a tensor with 10 evenly-spaced values between -2 and 10
+      iex> ExTorch.linspace(-2, 10, 10)
+      #Tensor<
+      -2.0000
+      -0.6667
+       0.6667
+       2.0000
+       3.3333
+       4.6667
+       6.0000
+       7.3333
+       8.6667
+      10.0000
+      [ CPUFloatType{10} ]
+      >
+
+      # Returns a tensor with 10 evenly-spaced int32 values between -2 and 10
+      iex> ExTorch.linspace(-2, 10, 10, dtype: :int32)
+      #Tensor<
+      -2
+       0
+       0
+       1
+       3
+       4
+       6
+       7
+       8
+      10
+      [ CPUIntType{10} ]
+      >
   """
   @spec linspace(
     number(),
@@ -500,6 +533,98 @@ defmodule ExTorch.Native do
     ExTorch.MemoryFormat.memory_format()
   ) :: ExTorch.Tensor.t()
   def linspace(_start, _end, _steps, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  @doc ~S"""
+  Creates a one-dimensional tensor of size `steps` whose values are evenly
+  spaced from ${{\text{{base}}}}^{{\text{{start}}}}$ to
+  ${{\text{{base}}}}^{{\text{{end}}}}$, inclusive, on a logarithmic scale
+  with base `base`. That is, the values are:
+
+  $$(\text{base}^{\text{start}},
+    \text{base}^{(\text{start} + \frac{\text{end} - \text{start}}{ \text{steps} - 1})},
+    \ldots,
+    \text{base}^{(\text{start} + (\text{steps} - 2) * \frac{\text{end} - \text{start}}{ \text{steps} - 1})},
+    \text{base}^{\text{end}})$$
+
+  ## Arguments
+    - `start`: the starting value for the set of points.
+    - `end`: the ending value for the set of points.
+    - `steps`: size of the constructed tensor.
+    - `base`: base of the logarithm function. Default: ``10.0``.
+
+  ## Keyword args
+    - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+      **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+
+    - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+      **Default**: `:strided`.
+
+    - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: if `nil`, uses the current device for the default tensor type
+        (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
+        returned tensor. **Default**: `false`.
+
+    - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+        the pinned memory. Works only for CPU tensors. Default: `false`.
+
+    - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+        returned Tensor. **Default**: `:contiguous`
+
+  ## Examples
+      iex> ExTorch.logspace(-10, 10, 5)
+      #Tensor<
+      1.0000e-10
+      1.0000e-05
+      1.0000e+00
+      1.0000e+05
+      1.0000e+10
+      [ CPUFloatType{5} ]
+      >
+
+      iex> ExTorch.logspace(0.1, 1.0, 5)
+      #Tensor<
+        1.2589
+        2.1135
+        3.5481
+        5.9566
+       10.0000
+      [ CPUFloatType{5} ]
+      >
+
+      iex> ExTorch.logspace(0.1, 1.0, 3, base: 2)
+      #Tensor<
+      1.0718
+      1.4641
+      2.0000
+      [ CPUFloatType{3} ]
+      >
+
+      iex> ExTorch.logspace(0.1, 1.0, 3, base: 2, dtype: :float64)
+      #Tensor<
+      1.0718
+      1.4641
+      2.0000
+      [ CPUDoubleType{3} ]
+      >
+  """
+  @spec logspace(
+    number(),
+    number(),
+    integer(),
+    number(),
+    ExTorch.DType.dtype(),
+    ExTorch.Layout.layout(),
+    ExTorch.Device.device(),
+    boolean(),
+    boolean(),
+    ExTorch.MemoryFormat.memory_format()
+  ) :: ExTorch.Tensor.t()
+  def logspace(_start, _end, _steps, _base, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end
 end

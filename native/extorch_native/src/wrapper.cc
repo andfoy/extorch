@@ -242,6 +242,28 @@ std::shared_ptr<CrossTensor> linspace(
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
+std::shared_ptr<CrossTensor> logspace(
+    struct Scalar start,
+    struct Scalar end,
+    int64_t steps,
+    struct Scalar base,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    auto start_scalar = get_scalar_type(start);
+    auto end_scalar = get_scalar_type(end);
+    auto base_scalar = get_scalar_type(base);
+
+    auto base_double = base_scalar.toDouble();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::logspace(start_scalar, end_scalar, steps, base_double, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
 {
     CrossTensor cross_tensor = *tensor.get();

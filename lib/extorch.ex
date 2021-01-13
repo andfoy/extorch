@@ -96,7 +96,7 @@ defmodule ExTorch do
       pin_memory \\ false,
       memory_format \\ :contiguous
     )
-    when is_integer(end_bound) do
+    when is_number(end_bound) do
       ExTorch.Native.arange(
         0,
         end_bound,
@@ -139,6 +139,19 @@ defmodule ExTorch do
       start,
       end_bound,
       steps,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
+    logspace(
+      start,
+      end_bound,
+      steps,
+      base \\ 10,
       dtype \\ :float,
       layout \\ :strided,
       device \\ :cpu,
