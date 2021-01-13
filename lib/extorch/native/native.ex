@@ -336,6 +336,90 @@ defmodule ExTorch.Native do
     :erlang.nif_error(:nif_not_loaded)
   end
 
+  @doc ~S"""
+  Returns a tensor filled with random numbers from a normal distribution
+  with mean `0` and variance `1` (also called the standard normal
+  distribution).
+
+  $$\text{{out}}_{{i}} \sim \mathcal{{N}}(0, 1)$$
+
+  The shape of the tensor is defined by the variable argument :attr:`size`.
+
+  ## Arguments
+    - `size`: a tuple/list of integers defining the shape of the output tensor.
+
+  ## Keyword args
+    - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+      **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+
+    - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+      **Default**: `:strided`.
+
+    - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: if `nil`, uses the current device for the default tensor type
+        (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
+        returned tensor. **Default**: `false`.
+
+    - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+        the pinned memory. Works only for CPU tensors. Default: `false`.
+
+    - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+        returned Tensor. **Default**: `:contiguous`
+
+  ## Examples
+      iex> ExTorch.randn({3, 3, 5})
+      #Tensor<
+      (1,.,.) =
+        0.0784 -0.3355 -0.0159 -0.0606 -1.2691
+      -0.6146  0.2346  0.8563  0.8795  0.0645
+      -1.9992  0.6692  0.2269  1.9263  0.1033
+
+      (2,.,.) =
+        0.2647  0.7078  0.0270 -1.1330 -0.4143
+        1.2061 -1.1191  0.7465  0.2140  0.7406
+        0.3587 -0.6102  0.3359 -0.4517 -0.5276
+
+      (3,.,.) =
+        1.7122  0.3814 -0.6218  0.8047 -0.6067
+        0.1693  0.4957 -0.6139  0.7341  1.4272
+        0.1630 -0.1142  0.8823  0.8026  1.3355
+      [ CPUFloatType{3,3,5} ]
+
+      iex> ExTorch.randn({3, 3, 5}, device: :cpu)
+      #Tensor<
+      (1,.,.) =
+      -0.8990 -0.3449 -1.2916 -0.0318  0.7116
+        0.9068 -0.3159 -0.6416 -1.8414 -0.1421
+      -0.9251 -0.8209  0.0830 -2.5484  0.3731
+
+      (2,.,.) =
+        0.5975  0.0690 -0.2972 -0.0328 -0.2672
+        1.3053  0.7803 -0.1992 -2.1078 -0.7520
+        1.3048  0.6391  0.1137  2.0412  0.2380
+
+      (3,.,.) =
+      -1.1820 -1.9329 -0.3965 -0.0618 -1.1190
+        0.7926 -1.8551  1.1356 -0.7451 -0.6003
+        1.0266  0.5791  0.2724  0.6952 -3.1296
+      [ CPUFloatType{3,3,5} ]
+      >
+  """
+  @spec randn(
+    tuple() | [integer()],
+    ExTorch.DType.dtype(),
+    ExTorch.Layout.layout(),
+    ExTorch.Device.device(),
+    boolean(),
+    boolean(),
+    ExTorch.MemoryFormat.memory_format()
+  ) :: ExTorch.Tensor.t()
+  def randn(_size, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
   @doc """
   Returns a 2-D tensor with ones on the diagonal and zeros elsewhere.
 

@@ -57,6 +57,14 @@ std::shared_ptr<CrossTensor> rand(
     bool pin_memory,
     rust::String s_mem_fmt);
 
+std::shared_ptr<CrossTensor> randn(
+    rust::Vec<int64_t> dims,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt);
 
 std::shared_ptr<CrossTensor> eye(
     int64_t n,

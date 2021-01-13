@@ -197,6 +197,22 @@ std::shared_ptr<CrossTensor> rand(
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
+std::shared_ptr<CrossTensor> randn(
+    rust::Vec<int64_t> dims,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt)
+{
+    const int64_t *ptr = dims.data();
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+
+    torch::Tensor tensor = torch::randn(torch::IntArrayRef{ptr, dims.size()}, opts);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
 std::shared_ptr<CrossTensor> eye(
     int64_t n,
     int64_t m,

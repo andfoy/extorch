@@ -228,6 +228,16 @@ mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        fn randn(
+            dims: Vec<i64>,
+            s_dtype: String,
+            s_layout: String,
+            s_device: Device,
+            requires_grad: bool,
+            pin_memory: bool,
+            s_mem_fmt: String,
+        ) -> Result<SharedPtr<CrossTensor>>;
+
         fn eye(
             n: i64,
             m: i64,
@@ -309,6 +319,7 @@ rustler::rustler_export_nifs! {
         ("zeros", 7, zeros),
         ("ones", 7, ones),
         ("rand", 7, rand),
+        ("randn", 7, randn),
         ("full", 8, full),
         ("eye", 8, eye),
         ("arange", 9, arange),
@@ -659,6 +670,7 @@ nif_impl!(empty, Tensor, sizes => Size, options => TensorOptions);
 nif_impl!(zeros, Tensor, sizes => Size, options => TensorOptions);
 nif_impl!(ones, Tensor, sizes => Size, options => TensorOptions);
 nif_impl!(rand, Tensor, sizes => Size, options => TensorOptions);
+nif_impl!(randn, Tensor, sizes => Size, options => TensorOptions);
 nif_impl!(full, Tensor, sizes => Size, scalar => Scalar, options => TensorOptions);
 nif_impl!(eye, Tensor, n => i64, m => i64, options => TensorOptions);
 nif_impl!(arange, Tensor, start => Scalar, end => Scalar, step => Scalar, options => TensorOptions);

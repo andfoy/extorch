@@ -53,6 +53,16 @@ defmodule ExTorch do
       memory_format \\ :contiguous
     )
 
+    randn(
+      size,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
     full(
       size,
       scalar,
