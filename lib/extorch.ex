@@ -63,6 +63,42 @@ defmodule ExTorch do
       memory_format \\ :contiguous
     )
 
+    deftensor randint(
+                high,
+                size,
+                dtype \\ :float,
+                layout \\ :strided,
+                device \\ :cpu,
+                requires_grad \\ false,
+                pin_memory \\ false,
+                memory_format \\ :contiguous
+              )
+              when is_integer(high) do
+      ExTorch.Native.randint(
+        0,
+        high,
+        size,
+        dtype,
+        layout,
+        device,
+        requires_grad,
+        pin_memory,
+        memory_format
+      )
+    end
+
+    randint(
+      low,
+      high,
+      size,
+      dtype \\ :float,
+      layout \\ :strided,
+      device \\ :cpu,
+      requires_grad \\ false,
+      pin_memory \\ false,
+      memory_format \\ :contiguous
+    )
+
     full(
       size,
       scalar,
@@ -75,14 +111,14 @@ defmodule ExTorch do
     )
 
     deftensor eye(
-      n,
-      dtype \\ :float,
-      layout \\ :strided,
-      device \\ :cpu,
-      requires_grad \\ false,
-      pin_memory \\ false,
-      memory_format \\ :contiguous
-    ) do
+                n,
+                dtype \\ :float,
+                layout \\ :strided,
+                device \\ :cpu,
+                requires_grad \\ false,
+                pin_memory \\ false,
+                memory_format \\ :contiguous
+              ) do
       ExTorch.Native.eye(
         n,
         n,
@@ -104,19 +140,20 @@ defmodule ExTorch do
       requires_grad \\ false,
       pin_memory \\ false,
       memory_format \\ :contiguous
-    ) when is_integer(m)
+    )
+    when is_integer(m)
 
     deftensor arange(
-      end_bound,
-      step \\ 1,
-      dtype \\ :float,
-      layout \\ :strided,
-      device \\ :cpu,
-      requires_grad \\ false,
-      pin_memory \\ false,
-      memory_format \\ :contiguous
-    )
-    when is_number(end_bound) do
+                end_bound,
+                step \\ 1,
+                dtype \\ :float,
+                layout \\ :strided,
+                device \\ :cpu,
+                requires_grad \\ false,
+                pin_memory \\ false,
+                memory_format \\ :contiguous
+              )
+              when is_number(end_bound) do
       ExTorch.Native.arange(
         0,
         end_bound,

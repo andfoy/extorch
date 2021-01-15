@@ -421,6 +421,120 @@ defmodule ExTorch.Native do
   end
 
   @doc """
+  Returns a tensor filled with random integers generated uniformly
+  between `low` (inclusive) and `high` (exclusive).
+
+  The shape of the tensor is defined by the variable argument `size`.
+
+  ## Arguments
+    - `low`: Lowest integer to be drawn from the distribution. Default: `0`.
+    - `high`: One above the highest integer to be drawn from the distribution.
+    - `size`: a tuple/list of integers defining the shape of the output tensor.
+
+  ## Keyword args
+    - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+      **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+
+    - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+      **Default**: `:strided`.
+
+    - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: if `nil`, uses the current device for the default tensor type
+        (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
+        returned tensor. **Default**: `false`.
+
+    - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+        the pinned memory. Works only for CPU tensors. Default: `false`.
+
+    - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+        returned Tensor. **Default**: `:contiguous`
+
+  ## Examples
+      # Sample numbers between 0 and 3
+      iex> ExTorch.randint(3, {3, 3, 4})
+      #Tensor<
+      (1,.,.) =
+        2  2  0  2
+        0  0  1  0
+        1  2  1  0
+
+      (2,.,.) =
+        1  1  2  0
+        0  2  1  2
+        2  0  0  1
+
+      (3,.,.) =
+        0  2  0  2
+        0  1  1  1
+        2  1  1  1
+      [ CPUFloatType{3,3,4} ]
+      >
+
+      # Sample numbers between 0 and 3 of type int64
+      iex> ExTorch.randint(3, {3, 3, 4}, dtype: :int64)
+      #Tensor<
+      (1,.,.) =
+        2  2  1  0
+        0  1  0  1
+        2  2  2  2
+
+      (2,.,.) =
+        1  1  1  1
+        1  1  0  1
+        2  1  0  2
+
+      (3,.,.) =
+        1  2  1  0
+        1  1  2  1
+        1  1  0  1
+      [ CPULongType{3,3,4} ]
+      >
+
+      # Sample numbers between -2 and 4
+      iex> ExTorch.randint(-2, 3, {2, 2, 4})
+      #Tensor<
+      (1,.,.) =
+      -2  2  0 -2
+       0  2  1  2
+
+      (2,.,.) =
+      -2 -1 -1  1
+       0 -1  0  0
+      [ CPUFloatType{2,2,4} ]
+      >
+
+      # Sample numbers between -2 and 4 on cpu
+      iex> ExTorch.randint(-2, 3, {2, 2, 4}, device: :cpu)
+      #Tensor<
+      (1,.,.) =
+      -2  0  0 -2
+        2  1  2 -2
+
+      (2,.,.) =
+        2 -1 -1  1
+        1  2  1 -2
+      [ CPUFloatType{2,2,4} ]
+      >
+  """
+  @spec randint(
+    integer(),
+    integer(),
+    tuple() | [integer()],
+    ExTorch.DType.dtype(),
+    ExTorch.Layout.layout(),
+    ExTorch.Device.device(),
+    boolean(),
+    boolean(),
+    ExTorch.MemoryFormat.memory_format()
+  ) :: ExTorch.Tensor.t()
+  def randint(_low, _high, _size, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
+
+  @doc """
   Returns a 2-D tensor with ones on the diagonal and zeros elsewhere.
 
   ## Arguments
