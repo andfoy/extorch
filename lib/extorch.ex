@@ -216,5 +216,33 @@ defmodule ExTorch do
       pin_memory \\ false,
       memory_format \\ :contiguous
     )
+
+    deftensor tensor(
+                list,
+                dtype \\ nil,
+                layout \\ :strided,
+                device \\ :cpu,
+                requires_grad \\ false,
+                pin_memory \\ false,
+                memory_format \\ :contiguous
+              ) do
+      {wrapped_list, type} = ExTorch.Utils.to_list_wrapper(list)
+
+      dtype =
+        case dtype do
+          nil -> type
+          _ -> dtype
+        end
+
+      ExTorch.Native.tensor(
+        wrapped_list,
+        dtype,
+        layout,
+        device,
+        requires_grad,
+        pin_memory,
+        memory_format
+      )
+    end
   end
 end

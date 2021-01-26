@@ -99,6 +99,9 @@ macro_rules! unpack_arg {
     ($pos:ident, $env:ident, $args:ident, $x:ident, TensorOptions) => {
         let $x = unpack_tensor_options($pos, $env, $args)?;
     };
+    ($pos:ident, $env:ident, $args:ident, $x:ident, ListWrapper) => {
+        let $x = unpack_list_wrapper($pos, $env, $args)?;
+    };
     ($pos:ident, $env:ident, $args:ident, $x:ident, $tt:ident) => {
         let $x: $tt = $args[$pos].decode()?;
     };
@@ -153,6 +156,11 @@ mod torch {
         _f64: f64,
         _bool: bool,
         entry_used: String,
+    }
+
+    struct ScalarList {
+        list: Vec<Scalar>,
+        size: Vec<i64>
     }
 
     extern "Rust" {}
@@ -297,6 +305,16 @@ mod torch {
             pin_memory: bool,
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
+
+        fn tensor(
+            list: ScalarList,
+            s_dtype: String,
+            s_layout: String,
+            s_device: Device,
+            requires_grad: bool,
+            pin_memory: bool,
+            s_mem_fmt: String,
+        ) -> Result<SharedPtr<CrossTensor>>;
     }
 }
 
@@ -323,6 +341,14 @@ struct TensorStruct<'a> {
     device: Term<'a>,
 }
 
+#[derive(NifStruct)]
+#[module = "ExTorch.Utils.ListWrapper"]
+struct ListWrapper<'a> {
+    list: Vec<Term<'a>>,
+    size: Term<'a>,
+    dtype: Term<'a>
+}
+
 rustler::rustler_export_nifs! {
     "Elixir.ExTorch.Native",
     [
@@ -338,6 +364,7 @@ rustler::rustler_export_nifs! {
         ("arange", 9, arange),
         ("linspace", 9, linspace),
         ("logspace", 10, logspace),
+        ("tensor", 7, tensor),
         ("repr", 1, repr),
         ("size", 1, size),
         ("dtype", 1, dtype),
@@ -431,6 +458,10 @@ fn repr<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
 
 fn unpack_size_init<'a>(index: usize, _env: Env<'a>, args: &[Term<'a>]) -> Result<Vec<i64>, Error> {
     let tuple_sizes: Term<'a> = args[index];
+    unpack_size(tuple_sizes)
+}
+
+fn unpack_size<'a>(tuple_sizes: Term<'a>) -> Result<Vec<i64>, Error> {
     let ex_sizes: Vec<Term<'a>>;
 
     match get_tuple(tuple_sizes) {
@@ -585,6 +616,187 @@ fn unpack_scalar<'a>(
     find_scalar(ex_scalar)
 }
 
+fn unpack_scalar_typed<'a>(
+    ex_scalar: Term<'a>,
+    s_type: &str
+) -> Result<torch::Scalar, Error> {
+    let mut type_cast: String = "float32".to_owned();
+    if ALL_TYPES.contains_key::<str>(s_type) {
+        type_cast = ALL_TYPES.get::<str>(s_type).unwrap().to_string();
+    }
+
+    let scalar_result: torch::Scalar;
+    // let ref_cast: &str = &type_cast;
+    match &type_cast[..] {
+        "uint8" => {
+            let cast_value: u8 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: cast_value,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "int8" => {
+            let cast_value: i8 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: cast_value,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "int16" => {
+            let cast_value: i16 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: cast_value,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "int32" => {
+            let cast_value: i32 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: cast_value,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "int64" => {
+            let cast_value: i64 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: cast_value,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "float16" => {
+            let cast_value: f32 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: cast_value,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "bfloat16" => {
+            let cast_value: f32 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: cast_value,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: "float16".to_owned(),
+            }
+        }
+        "float32" => {
+            let cast_value: f32 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: cast_value,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "float64" => {
+            let cast_value: f64 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: cast_value,
+                _bool: false,
+                entry_used: type_cast,
+            }
+        }
+        "bool" => {
+            let cast_value: bool = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: -1.0,
+                _f64: -1.0,
+                _bool: cast_value,
+                entry_used: type_cast,
+            }
+        }
+        _ => {
+            let cast_value: f32 = ex_scalar.decode()?;
+            scalar_result = torch::Scalar {
+                _ui8: 0,
+                _i8: -1,
+                _i16: -1,
+                _i32: -1,
+                _i64: -1,
+                _f16: -1.0,
+                _f32: cast_value,
+                _f64: -1.0,
+                _bool: false,
+                entry_used: "float32".to_owned(),
+            }
+        }
+    }
+    Ok(scalar_result)
+}
+
 fn unpack_tensor_options<'a>(
     off: usize,
     _env: Env<'a>,
@@ -646,6 +858,32 @@ fn unpack_tensor_options<'a>(
     })
 }
 
+fn unpack_scalar_list<'a>(list: Vec<Term<'a>>, dtype: String) -> Result<Vec<torch::Scalar>, Error> {
+    let mut scalar_list: Vec<torch::Scalar> = Vec::new();
+    for term in list {
+        // let scalar = find_scalar(term)?;
+        let scalar = unpack_scalar_typed(term, &dtype)?;
+        scalar_list.push(scalar);
+    }
+    Ok(scalar_list)
+}
+
+fn unpack_list_wrapper<'a>(
+    index: usize,
+    _env: Env<'a>,
+    args: &[Term<'a>],
+) -> Result<torch::ScalarList, Error> {
+    let list_wrapper: ListWrapper = args[index].decode()?;
+    let tensor_size = unpack_size(list_wrapper.size)?;
+    let coerced_type: String = list_wrapper.dtype.atom_to_string()?;
+    let list_scalar = unpack_scalar_list(list_wrapper.list, coerced_type)?;
+    let scalar_list = torch::ScalarList {
+        list: list_scalar,
+        size: tensor_size
+    };
+    Ok(scalar_list)
+}
+
 fn wrap_tensor<'a>(
     tensor_ref: Result<SharedPtr<torch::CrossTensor>, cxx::Exception>,
     env: Env<'a>,
@@ -690,3 +928,4 @@ nif_impl!(eye, Tensor, n => i64, m => i64, options => TensorOptions);
 nif_impl!(arange, Tensor, start => Scalar, end => Scalar, step => Scalar, options => TensorOptions);
 nif_impl!(linspace, Tensor, start => Scalar, end => Scalar, steps => i64, options => TensorOptions);
 nif_impl!(logspace, Tensor, start => Scalar, end => Scalar, steps => i64, base => Scalar, options => TensorOptions);
+nif_impl!(tensor, Tensor, list => ListWrapper, options => TensorOptions);

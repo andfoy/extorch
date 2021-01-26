@@ -15,6 +15,16 @@ defmodule ExTorch.DType do
   @type floating_type :: :float16 | :bfloat16 | :float32 | :float64
 
   @typedoc """
+  Numeric tensor types
+  """
+  @type numeric_type :: integral_type() | floating_type()
+
+  @typedoc """
+  Basic tensor types
+  """
+  @type base_type :: :bool | numeric_type()
+
+  @typedoc """
   Complex number tensor types.
   """
   @type complex_type :: :complex32 | :complex64 | :complex128
@@ -27,6 +37,6 @@ defmodule ExTorch.DType do
   @typedoc """
   A torch.dtype is an object that represents the data type of a torch.Tensor.
   """
-  @type dtype :: :bool | integral_type() | floating_type() | complex_type() | alias_type()
+  @type dtype :: base_type() | complex_type() | alias_type()
 
 end

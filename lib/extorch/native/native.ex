@@ -895,4 +895,67 @@ defmodule ExTorch.Native do
   def logspace(_start, _end, _steps, _base, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  @doc """
+  Constructs a tensor with data.
+
+  ## Arguments
+    - `list`: Initial data for the tensor. Can be a list, tuple or number.
+
+  ## Keyword args
+    - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+      **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+
+    - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+      **Default**: `:strided`.
+
+    - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: if `nil`, uses the current device for the default tensor type
+        (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+    - requires_grad (`boolean()`, optional): If autograd should record operations on the
+        returned tensor. **Default**: `false`.
+
+    - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+        the pinned memory. Works only for CPU tensors. Default: `false`.
+
+    - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+        returned Tensor. **Default**: `:contiguous`
+
+  ## Examples
+      iex> ExTorch.tensor([[0.1, 1.2], [2.2, 3.1], [4.9, 5.2]])
+      #Tensor<
+      0.1000  1.2000
+      2.2000  3.1000
+      4.9000  5.2000
+      [ CPUFloatType{3,2} ]
+      >
+
+      # Type inference
+      iex> ExTorch.tensor([0, 1])
+      #Tensor<
+      0
+      1
+      [ CPUByteType{2} ]
+      >
+
+      iex> ExTorch.tensor([[0.11111, 0.222222, 0.3333333]], dtype: :float64)
+      #Tensor<
+      0.1111  0.2222  0.3333
+      [ CPUDoubleType{1,3} ]
+      >
+  """
+  @spec tensor(
+    list() | tuple() | number(),
+    ExTorch.DType.dtype(),
+    ExTorch.Layout.layout(),
+    ExTorch.Device.device(),
+    boolean(),
+    boolean(),
+    ExTorch.MemoryFormat.memory_format()
+  ) :: ExTorch.Tensor.t()
+  def tensor(_list, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end

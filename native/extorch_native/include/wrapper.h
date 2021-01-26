@@ -8,6 +8,7 @@
 
 struct Device;
 struct Scalar;
+struct ScalarList;
 using CrossTensor = torch::Tensor;
 
 std::shared_ptr<CrossTensor> empty(
@@ -120,6 +121,16 @@ std::shared_ptr<CrossTensor> logspace(
     bool requires_grad,
     bool pin_memory,
     rust::String s_mem_fmt);
+
+std::shared_ptr<CrossTensor> tensor(
+    struct ScalarList list,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt
+);
 
 
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor);

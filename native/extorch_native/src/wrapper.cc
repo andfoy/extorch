@@ -124,6 +124,98 @@ torch::Scalar get_scalar_type(Scalar scalar) {
     return ret_scalar;
 }
 
+template<class T>
+std::vector<T> unpack_torch_scalar_list(std::vector<torch::Scalar> list) {
+    std::vector<T> scalar_typed_list;
+    for(torch::Scalar scalar : list) {
+        T typed_scalar = scalar.to<T>();
+        scalar_typed_list.push_back(typed_scalar);
+    }
+    return scalar_typed_list;
+}
+
+torch::detail::TensorDataContainer get_scalar_list(rust::Vec<Scalar> list) {
+    if(list.size() > 0) {
+        std::vector<torch::Scalar> scalar_vec;
+        Scalar scalar = list[0];
+        auto r_entry_used = scalar.entry_used;
+        std::string entry_used(r_entry_used.data(), r_entry_used.size());
+
+        for(auto elem: list) {
+            torch::Scalar scalar = get_scalar_type(elem);
+            scalar_vec.push_back(scalar);
+        }
+
+        if(entry_used == "uint8") {
+            // torch::ArrayRef<uint8_t> ui8_list = unpack_torch_scalar_list<uint8_t>(scalar_vec);
+            std::vector<uint8_t> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                uint8_t typed_scalar = scalar.toByte();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if(entry_used == "int8") {
+            std::vector<int8_t> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                int8_t typed_scalar = scalar.toChar();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "int16") {
+            std::vector<int16_t> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                int16_t typed_scalar = scalar.toShort();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "int32") {
+            std::vector<int> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                int typed_scalar = scalar.toInt();
+                std::cout << "Int: " << typed_scalar << "\n";
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "int64") {
+            std::vector<int64_t> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                int64_t typed_scalar = scalar.toLong();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "float16") {
+            std::vector<float> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                float typed_scalar = scalar.toFloat();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "float32") {
+            std::vector<float> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                float typed_scalar = scalar.toFloat();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "float64") {
+            std::vector<double> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                double typed_scalar = scalar.toDouble();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        } else if (entry_used == "bool") {
+            std::vector<uint8_t> scalar_typed_list;
+            for(torch::Scalar scalar : scalar_vec) {
+                uint8_t typed_scalar = scalar.toChar();
+                scalar_typed_list.push_back(typed_scalar);
+            }
+            return scalar_typed_list;
+        }
+    }
+    return torch::detail::TensorDataContainer();
+}
+
 std::shared_ptr<CrossTensor> empty(
     rust::Vec<int64_t> dims, rust::String s_dtype,
     rust::String s_layout, Device s_device,
@@ -312,6 +404,25 @@ std::shared_ptr<CrossTensor> logspace(
     torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
     torch::Tensor tensor = torch::logspace(start_scalar, end_scalar, steps, base_double, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> tensor(
+    ScalarList list,
+    rust::String s_dtype,
+    rust::String s_layout,
+    struct Device s_device,
+    bool requires_grad,
+    bool pin_memory,
+    rust::String s_mem_fmt
+)
+{
+    const int64_t *ptr = list.size.data();
+    torch::detail::TensorDataContainer scalar_list = get_scalar_list(std::move(list.list));
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    opts = opts.requires_grad(torch::nullopt);
+    torch::Tensor tensor = torch::tensor(scalar_list, opts);
+    torch::Tensor reshaped_tensor = tensor.reshape(torch::IntArrayRef{ptr, list.size.size()}).contiguous();
+    return std::make_shared<CrossTensor>(std::move(reshaped_tensor));
 }
 
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
