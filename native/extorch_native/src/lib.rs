@@ -14,6 +14,7 @@ use rustler::types::tuple::{get_tuple, make_tuple};
 use rustler::types::Atom;
 use rustler::{Encoder, Env, Error, NifResult, Term};
 use rustler_sys::enif_make_ref;
+
 // use std::ptr::NonNull;
 
 lazy_static! {
@@ -84,12 +85,6 @@ macro_rules! make_call {
 }
 
 macro_rules! unpack_arg {
-    ($pos:ident, $env:ident, $args:ident, $x:ident, Tensor) => {
-        let $x_wrapper: TensorStruct = $args[$pos].decode()?;
-        let $x_resource = $x_wrapper.resource;
-        let $x_cross_tensor_ref = &*$x_resource;
-        let $x = &$x_cross_tensor_ref.tensor;
-    };
     ($pos:ident, $env:ident, $args:ident, $x:ident, Size) => {
         let $x = unpack_size_init($pos, $env, $args)?;
     };
@@ -101,6 +96,16 @@ macro_rules! unpack_arg {
     };
     ($pos:ident, $env:ident, $args:ident, $x:ident, ListWrapper) => {
         let $x = unpack_list_wrapper($pos, $env, $args)?;
+    };
+    ($pos:ident, $env:ident, $args:ident, $x:ident, Tensor) => {
+    //     let wrapper: TensorStruct = args[0].decode()?;
+    // let resource = wrapper.resource;
+    // let cross_tensor_ref = &*resource;
+        let $x = &(&*((($args[$pos].decode::<TensorStruct>()?)).resource)).tensor;
+        // let wrapper: TensorStruct = args[0].decode()?;
+        // let resource = wrapper.resource;
+        // let cross_tensor_ref = &*resource;
+        // let tensor_ref = &cross_tensor_ref.tensor;
     };
     ($pos:ident, $env:ident, $args:ident, $x:ident, $tt:ident) => {
         let $x: $tt = $args[$pos].decode()?;
@@ -180,6 +185,11 @@ mod torch {
         fn device(tensor: &SharedPtr<CrossTensor>) -> Device;
         /// Get a string representation of a tensor
         fn repr(tensor: &SharedPtr<CrossTensor>) -> String;
+
+        fn unsqueeze(
+            tensor: &SharedPtr<CrossTensor>,
+            dim: i64
+        ) -> Result<SharedPtr<CrossTensor>>;
 
         // Tensor creation ops
         /// Create an empty tensor
@@ -368,7 +378,8 @@ rustler::rustler_export_nifs! {
         ("repr", 1, repr),
         ("size", 1, size),
         ("dtype", 1, dtype),
-        ("device", 1, device)
+        ("device", 1, device),
+        ("unsqueeze", 2, unsqueeze)
     ],
     Some(on_load)
 }
@@ -884,6 +895,30 @@ fn unpack_list_wrapper<'a>(
     Ok(scalar_list)
 }
 
+// fn unpack_resource_tensor<'a>(
+//     index: usize,
+//     _env: Env<'a>,
+//     args: &[Term<'a>],
+// ) -> Result<ResourceArc<torch::CrossTensorRef>, Error> {
+//     let wrapper: TensorStruct = args[index].decode()?;
+//     let resource = wrapper.resource;
+//     Ok(resource)
+// }
+
+
+// fn unpack_tensor<'a>(
+//     index: usize,
+//     _env: Env<'a>,
+//     args: &[Term<'a>],
+// ) -> Result<&'a SharedPtr<torch::CrossTensor>, Error> {
+//     let resource = unpack_resource_tensor(index, _env, args)?;
+//     let wrapper = &*resource;
+//     let tensor_ref = &wrapper.tensor;
+//     Ok(tensor_ref)
+// }
+
+
+
 fn wrap_tensor<'a>(
     tensor_ref: Result<SharedPtr<torch::CrossTensor>, cxx::Exception>,
     env: Env<'a>,
@@ -929,3 +964,4 @@ nif_impl!(arange, Tensor, start => Scalar, end => Scalar, step => Scalar, option
 nif_impl!(linspace, Tensor, start => Scalar, end => Scalar, steps => i64, options => TensorOptions);
 nif_impl!(logspace, Tensor, start => Scalar, end => Scalar, steps => i64, base => Scalar, options => TensorOptions);
 nif_impl!(tensor, Tensor, list => ListWrapper, options => TensorOptions);
+nif_impl!(unsqueeze, Tensor, tensor => Tensor, dim => i64);

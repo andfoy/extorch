@@ -37,7 +37,10 @@ defmodule ExTorch.MixProject do
       # You can specify a function for adding
       # custom content to the generated HTML.
       # This is useful for custom JS/CSS files you want to include.
-      before_closing_body_tag: &before_closing_body_tag/1
+      before_closing_body_tag: &before_closing_body_tag/1,
+      # groups_for_functions: [
+      #   Creation: & &1[:kind] == :creation
+      # ]
       # ...
     ]
   end

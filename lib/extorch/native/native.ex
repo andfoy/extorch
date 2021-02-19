@@ -958,4 +958,12 @@ defmodule ExTorch.Native do
   def tensor(_list, _dtype, _layout, _device, _requires_grad, _pin_memory, _mem_fmt) do
     :erlang.nif_error(:nif_not_loaded)
   end
+
+  @spec unsqueeze(
+    ExTorch.Tensor.t(),
+    integer()
+  ) :: ExTorch.Tensor.t()
+  def unsqueeze(_tensor, _dim) do
+    :erlang.nif_error(:nif_not_loaded)
+  end
 end

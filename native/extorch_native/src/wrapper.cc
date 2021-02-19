@@ -473,3 +473,9 @@ rust::String repr(const std::shared_ptr<CrossTensor> &tensor) {
     rust::String tensor_repr(str_repr.data(), str_repr.size());
     return tensor_repr;
 }
+
+std::shared_ptr<CrossTensor> unsqueeze(const std::shared_ptr<CrossTensor> &tensor, int64_t dim) {
+    CrossTensor cross_tensor = *tensor.get();
+    auto ret_tensor = cross_tensor.unsqueeze(dim);
+    return std::make_shared<CrossTensor>(std::move(ret_tensor));
+}

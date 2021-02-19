@@ -244,5 +244,7 @@ defmodule ExTorch do
         memory_format
       )
     end
+
+    unsqueeze(tensor, dim)
   end
 end
