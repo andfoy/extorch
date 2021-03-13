@@ -39,7 +39,7 @@ fn main() {
 
     }
 
-    cxx_build::bridge("src/lib.rs")
+    cxx_build::bridge("src/native.rs")
         .file("src/wrapper.cc")
         // .flag_if_supported("-std=c++17")
         .flag_if_supported("-std=gnu++14")
@@ -52,7 +52,12 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=torch");
     println!("cargo:rustc-link-lib=dylib=torch_cpu");
     println!("cargo:rustc-link-lib=dylib=c10");
+
     println!("cargo:rerun-if-changed=src/lib.rs");
+    println!("cargo:rerun-if-changed=src/native.rs");
+    println!("cargo:rerun-if-changed=src/dtypes.rs");
+    println!("cargo:rerun-if-changed=src/conversion.rs");
+    println!("cargo:rerun-if-changed=src/conversion/scalar_types.rs");
     println!("cargo:rerun-if-changed=src/wrapper.cc");
     println!("cargo:rerun-if-changed=include/wrapper.h");
 }
