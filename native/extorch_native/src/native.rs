@@ -2,6 +2,7 @@
 // use cxx::SharedPtr;
 extern crate cxx;
 
+/// Native access to libtorch (C++) functions and namespaces.
 #[cxx::bridge]
 pub mod torch {
     /// Shared interface to a tensor pointer in memory.
@@ -58,8 +59,8 @@ pub mod torch {
             dim: i64
         ) -> Result<SharedPtr<CrossTensor>>;
 
-        // Tensor creation ops
-        /// Create an empty tensor
+        // Tensor creation operations.
+        /// Create an empty tensor.
         fn empty(
             dims: Vec<i64>,
             s_dtype: String,
@@ -70,7 +71,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
-        /// Create a tensor filled with zeros
+        /// Create a tensor filled with zeros.
         fn zeros(
             dims: Vec<i64>,
             s_dtype: String,
@@ -81,7 +82,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
-        /// Create a tensor filled with ones
+        /// Create a tensor filled with ones.
         fn ones(
             dims: Vec<i64>,
             s_dtype: String,
@@ -92,6 +93,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a tensor filled with a scalar value.
         fn full(
             dims: Vec<i64>,
             value: Scalar,
@@ -103,6 +105,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a tensor initialized with random values.
         fn rand(
             dims: Vec<i64>,
             s_dtype: String,
@@ -113,6 +116,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a tensor initialized with random normal values.
         fn randn(
             dims: Vec<i64>,
             s_dtype: String,
@@ -123,6 +127,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a tensor filled with random values ranging from `low` to `high`
         fn randint(
             low: i64,
             high: i64,
@@ -135,6 +140,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a two-dimensional identity matrix of size nxm.
         fn eye(
             n: i64,
             m: i64,
@@ -146,6 +152,8 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a 1D tensor containing values from `start` to `end` (non-inclusive)
+        /// spaced by `step`.
         fn arange(
             start: Scalar,
             end: Scalar,
@@ -158,6 +166,8 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a 1D tensor containing a `steps` number of values between `start`
+        /// and `end`.
         fn linspace(
             start: Scalar,
             end: Scalar,
@@ -170,6 +180,8 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a 1D tensor containing a `steps` number of values between
+        /// `start` and `end`. The values are spaced on a logarithmic scale.
         fn logspace(
             start: Scalar,
             end: Scalar,
@@ -183,6 +195,7 @@ pub mod torch {
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
 
+        /// Create a n-dimensional tensor from a list of scalars.
         fn tensor(
             list: ScalarList,
             s_dtype: String,
