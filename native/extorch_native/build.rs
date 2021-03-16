@@ -40,7 +40,9 @@ fn main() {
     }
 
     cxx_build::bridge("src/native.rs")
-        .file("src/wrapper.cc")
+        .file("src/csrc/wrapper.cc")
+        .file("src/csrc/utils.cc")
+        .file("src/csrc/creation.cc")
         // .flag_if_supported("-std=c++17")
         .flag_if_supported("-std=gnu++14")
         .define("_GLIBCXX_USE_CXX11_ABI", "0")
