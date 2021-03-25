@@ -1,4 +1,4 @@
-#include "extorch_native/src/lib.rs.h"
+#include "extorch_native/src/native.rs.h"
 #include "extorch_native/include/creation.h"
 
 
