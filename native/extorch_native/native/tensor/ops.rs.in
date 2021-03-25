@@ -1,0 +1,6 @@
+
+/// Add an empty dimension to a tensor at the given dimension.
+fn unsqueeze(
+    tensor: &SharedPtr<CrossTensor>,
+    dim: i64
+) -> Result<SharedPtr<CrossTensor>>;

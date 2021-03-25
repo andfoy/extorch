@@ -1,0 +1,30 @@
+
+/// Shared interface to a tensor pointer in memory.
+struct CrossTensorRef {
+    tensor: SharedPtr<CrossTensor>,
+}
+
+/// Torch tensor device descriptor.
+struct Device {
+    device: String,
+    index: i64,
+}
+
+/// Scalar number representation
+struct Scalar {
+    _ui8: u8,
+    _i8: i8,
+    _i16: i16,
+    _i32: i32,
+    _i64: i64,
+    _f16: f32,
+    _f32: f32,
+    _f64: f64,
+    _bool: bool,
+    entry_used: String,
+}
+
+struct ScalarList {
+    list: Vec<Scalar>,
+    size: Vec<i64>
+}
