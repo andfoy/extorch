@@ -1,5 +1,5 @@
 #include "extorch_native/include/wrapper.h"
-#include "extorch_native/src/lib.rs.h"
+#include "extorch_native/src/native.rs.h"
 #include "extorch_native/include/utils.h"
 #include <iostream>
 
