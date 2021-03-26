@@ -1,7 +1,10 @@
 use std::path::Path;
 use std::process::Command;
 use std::str;
+use std::env;
+use std::fs;
 use cxx_build::CFG;
+use tera::{Tera, Context};
 
 
 fn command_ok(cmd: &mut Command) -> bool {
@@ -19,6 +22,21 @@ fn main() {
     // let mut torch_include_path = env::current_dir().unwrap();
     // let mut inner_torch_include_path = env::current_dir().unwrap();
     // let mut torch_lib = env::current_dir().unwrap();
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let template_path = Path::new(&manifest_dir).join("src").join("native").join("**").join("*.rs.in");
+    let tera = match Tera::new(template_path.to_str().unwrap()) {
+        Ok(t) => t,
+        Err(e) => {
+            println!("Parsing error(s): {}", e);
+            ::std::process::exit(1);
+        }
+    };
+
+    let mut context = Context::new();
+    let rendering = tera.render("native.rs.in", &context).unwrap();
+
+    let ref path = Path::new(&manifest_dir).join("src").join("native.rs");
+    fs::write(path, rendering).unwrap();
 
     if command_ok(Command::new("python").arg("--version")) {
         let torch_location =

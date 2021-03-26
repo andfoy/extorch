@@ -19,6 +19,7 @@ cxx = "1.0.14"
 
 [build-dependencies]
 cxx-build = "1.0.14"
+tera = "1.7.0"
 
 # [profile.dev]
 # rpath = true
