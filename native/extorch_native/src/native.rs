@@ -1,10 +1,9 @@
-// #[macro_use]
-// use cxx::SharedPtr;
 extern crate cxx;
 
 /// Native access to libtorch (C++) functions and namespaces.
 #[cxx::bridge]
 pub mod torch {
+
     /// Shared interface to a tensor pointer in memory.
     struct CrossTensorRef {
         tensor: SharedPtr<CrossTensor>,
@@ -32,7 +31,7 @@ pub mod torch {
 
     struct ScalarList {
         list: Vec<Scalar>,
-        size: Vec<i64>
+        size: Vec<i64>,
     }
 
     extern "Rust" {}
@@ -44,22 +43,26 @@ pub mod torch {
         type CrossTensor;
 
         // Tensor attribute access
+
         /// Get the size of a tensor
         fn size(tensor: &SharedPtr<CrossTensor>) -> &'static [i64];
+
         /// Get the type of a tensor
         fn dtype(tensor: &SharedPtr<CrossTensor>) -> String;
+
         /// Get the device where the tensor lives on
         fn device(tensor: &SharedPtr<CrossTensor>) -> Device;
+
         /// Get a string representation of a tensor
         fn repr(tensor: &SharedPtr<CrossTensor>) -> String;
 
+        // Tensor operations
+
         /// Add an empty dimension to a tensor at the given dimension.
-        fn unsqueeze(
-            tensor: &SharedPtr<CrossTensor>,
-            dim: i64
-        ) -> Result<SharedPtr<CrossTensor>>;
+        fn unsqueeze(tensor: &SharedPtr<CrossTensor>, dim: i64) -> Result<SharedPtr<CrossTensor>>;
 
         // Tensor creation operations.
+
         /// Create an empty tensor.
         fn empty(
             dims: Vec<i64>,
@@ -205,6 +208,7 @@ pub mod torch {
             pin_memory: bool,
             s_mem_fmt: String,
         ) -> Result<SharedPtr<CrossTensor>>;
+
     }
 }
 
