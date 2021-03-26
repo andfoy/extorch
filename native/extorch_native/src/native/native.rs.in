@@ -1,0 +1,30 @@
+extern crate cxx;
+
+/// Native access to libtorch (C++) functions and namespaces.
+/// NOTE: Any change to this file will be overwitten.
+
+#[cxx::bridge]
+pub mod torch {
+    {% include "definitions.rs.in" %}
+
+    extern "Rust" {}
+
+    unsafe extern "C++" {
+        include!("extorch_native/include/wrapper.h");
+
+        /// Reference to a torch tensor in memory
+        type CrossTensor;
+
+        // Tensor attribute access
+        {% include "tensor/info.rs.in" %}
+
+        // Tensor operations
+        {% include "tensor/ops.rs.in" %}
+
+        // Tensor creation operations.
+        {% include "tensor/creation.rs.in" %}
+    }
+}
+
+unsafe impl std::marker::Send for torch::CrossTensorRef {}
+unsafe impl std::marker::Sync for torch::CrossTensorRef {}
