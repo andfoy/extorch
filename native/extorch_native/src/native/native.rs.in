@@ -1,6 +1,8 @@
 extern crate cxx;
 
 /// Native access to libtorch (C++) functions and namespaces.
+/// NOTE: Any change to this file will be overwitten.
+
 #[cxx::bridge]
 pub mod torch {
     {% include "definitions.rs.in" %}
