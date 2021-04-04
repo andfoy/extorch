@@ -75,7 +75,7 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=c10");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
-    println!("cargo:rerun-if-changed=src/native.rs");
+    // println!("cargo:rerun-if-changed=src/native.rs");
     println!("cargo:rerun-if-changed=src/dtypes.rs");
     println!("cargo:rerun-if-changed=src/conversion.rs");
     println!("cargo:rerun-if-changed=src/conversion/scalar_types.rs");

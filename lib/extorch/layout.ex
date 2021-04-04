@@ -16,4 +16,8 @@ defmodule ExTorch.Layout do
   A ``torch.layout`` is an object that represents the memory layout of a ``torch.Tensor``.
   """
   @type layout :: :strided | :sparse
+
+  @layout [:strided, :sparse]
+
+  defguard is_layout(layout) when layout in @layout
 end

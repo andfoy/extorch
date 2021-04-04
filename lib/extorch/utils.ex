@@ -27,11 +27,11 @@ defmodule ExTorch.Utils do
   """
   @spec to_list_wrapper(list() | number()) :: __MODULE__.ListWrapper.t()
   def to_list_wrapper([]) do
-    {%__MODULE__.ListWrapper{
+    %__MODULE__.ListWrapper{
        list: [],
        size: [],
        dtype: :float32
-     }, :float32}
+     }
   end
 
   def to_list_wrapper([_ | _] = input) do
@@ -47,11 +47,11 @@ defmodule ExTorch.Utils do
     new_list = flat_list(new_list)
     # new_list = Enum.flat_map(new_list, fn x -> x end)
 
-    {%__MODULE__.ListWrapper{
+    %__MODULE__.ListWrapper{
        list: new_list,
        size: input_size,
        dtype: coerce_type
-     }, coerce_type}
+    }
   end
 
   def to_list_wrapper(input) when is_tuple(input) do

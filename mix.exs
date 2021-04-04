@@ -25,7 +25,8 @@ defmodule ExTorch.MixProject do
   defp deps do
     [
       {:rustler, "~> 0.21.1"},
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
+      # {:delegate_with_docs, "~> 0.1.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
@@ -38,9 +39,10 @@ defmodule ExTorch.MixProject do
       # custom content to the generated HTML.
       # This is useful for custom JS/CSS files you want to include.
       before_closing_body_tag: &before_closing_body_tag/1,
-      # groups_for_functions: [
-      #   Creation: & &1[:kind] == :creation
-      # ]
+      groups_for_functions: [
+        {:"Tensor creation", & &1[:kind] == :creation},
+        {:"Tensor information", & &1[:kind] == :tensor_info},
+      ]
       # ...
     ]
   end
