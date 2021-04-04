@@ -42,6 +42,7 @@ defmodule ExTorch.MixProject do
       groups_for_functions: [
         {:"Tensor creation", & &1[:kind] == :creation},
         {:"Tensor information", & &1[:kind] == :tensor_info},
+        {:"Tensor manipulation", & &1[:kind] == :tensor_manipulation},
       ]
       # ...
     ]

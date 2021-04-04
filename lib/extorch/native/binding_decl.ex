@@ -17,19 +17,27 @@ defmodule ExTorch.Native.BindingDeclaration do
         inherit_funcs = unquote(caller_module).__info__(:functions)
 
         Enum.map(inherit_funcs, fn {name, arity} ->
-          args =
-            if arity == 0 do
-              []
-            else
-              Enum.map(1..arity, fn i ->
-                {String.to_atom("_#{<<?x, ?A + i - 1>>}"), [], nil}
-              end)
-            end
+          str_name = Atom.to_string(name)
 
-          quote do
-            def unquote(name)(unquote_splicing(args)) do
-              :erlang.nif_error(:nif_not_loaded)
-            end
+          case String.starts_with?(str_name, "__") do
+            false ->
+              args =
+                if arity == 0 do
+                  []
+                else
+                  Enum.map(1..arity, fn i ->
+                    {String.to_atom("_#{<<?x, ?A + i - 1>>}"), [], nil}
+                  end)
+                end
+
+              quote do
+                def unquote(name)(unquote_splicing(args)) do
+                  :erlang.nif_error(:nif_not_loaded)
+                end
+              end
+
+            true ->
+              {:__block__, [], []}
           end
         end)
       end

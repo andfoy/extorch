@@ -10,6 +10,7 @@ defmodule ExTorch do
   import ExTorch.ModuleMixin
   extends(ExTorch.Native.Tensor.Creation)
   extends(ExTorch.Native.Tensor.Info)
+  extends(ExTorch.Native.Tensor.Ops)
 
   # native_calls do
   #   # set_num_threads(num_threads)
