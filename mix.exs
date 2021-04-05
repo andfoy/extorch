@@ -40,8 +40,8 @@ defmodule ExTorch.MixProject do
       # This is useful for custom JS/CSS files you want to include.
       before_closing_body_tag: &before_closing_body_tag/1,
       groups_for_functions: [
-        {:"Tensor creation", & &1[:kind] == :creation},
         {:"Tensor information", & &1[:kind] == :tensor_info},
+        {:"Tensor creation", & &1[:kind] == :tensor_creation},
         {:"Tensor manipulation", & &1[:kind] == :tensor_manipulation},
       ]
       # ...

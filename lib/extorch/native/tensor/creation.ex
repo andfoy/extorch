@@ -4,7 +4,7 @@ defmodule ExTorch.Native.Tensor.Creation do
   use ExTorch.Native.BindingDeclaration
   @doc_section :creation
 
-  defbindings(:creation) do
+  defbindings(:tensor_creation) do
     @doc """
     Returns a tensor filled with uninitialized data. The shape of the tensor is
     defined by the tuple argument `size`.
