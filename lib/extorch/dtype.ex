@@ -1,7 +1,7 @@
 defmodule ExTorch.DType do
   @moduledoc """
   A ``torch.dtype`` is an object that represents the data type of a ``torch.Tensor``.
-  PyTorch has twelve different data types:
+  ExTorch has twelve different data types:
   """
 
   @typedoc """
@@ -38,5 +38,31 @@ defmodule ExTorch.DType do
   A torch.dtype is an object that represents the data type of a torch.Tensor.
   """
   @type dtype :: base_type() | complex_type() | alias_type()
+
+  @dtypes [
+    :uint8,
+    :int8,
+    :int16,
+    :int32,
+    :int64,
+    :float16,
+    :bfloat16,
+    :float32,
+    :float64,
+    :bool,
+    :complex32,
+    :complex64,
+    :complex128,
+    :byte,
+    :char,
+    :short,
+    :int,
+    :long,
+    :half,
+    :float,
+    :double
+  ]
+
+  defguard is_dtype(dtype) when dtype in @dtypes
 
 end

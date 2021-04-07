@@ -28,4 +28,11 @@ defmodule ExTorch.Device do
   The torch.device argument in functions can generally be substituted with a string. This allows for fast prototyping of code.
   """
   @type device :: atomic_device() | composed_device() | binary()
+
+  @devices [:cpu, :cuda, :hip, :fpga, :vulkan, :msnpu, :xla]
+
+  defguard is_device(device)
+           when device in @devices or
+                  (is_tuple(device) and tuple_size(device) == 2 and elem(device, 0) in @devices and
+                     is_integer(elem(device, 1))) or is_binary(device)
 end
