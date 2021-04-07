@@ -9,7 +9,7 @@ fi
 FILENAME="libtorch-cxx11-abi-shared-with-deps-${PYTORCH_VERSION}.zip"
 
 if [[ $DEVICE == "cpu" ]]; then
-    FILENAME="libtorch-cxx11-abi-shared-with-deps-${PYTORCH_VERSION}+cpu.zip"
+    FILENAME="libtorch-cxx11-abi-shared-with-deps-${PYTORCH_VERSION}%2Bcpu.zip"
 fi
 
 BASE_URL="${BASE_URL}/${DEVICE}/${FILENAME}"
