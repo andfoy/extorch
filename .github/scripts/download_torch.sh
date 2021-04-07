@@ -7,6 +7,11 @@ if [[ $PYTORCH_VERSION == "latest" ]]; then
 fi
 
 FILENAME="libtorch-cxx11-abi-shared-with-deps-${PYTORCH_VERSION}.zip"
+
+if [[ $DEVICE == "cpu" ]]; then
+    FILENAME="libtorch-cxx11-abi-shared-with-deps-${PYTORCH_VERSION}+cpu.zip"
+fi
+
 BASE_URL="${BASE_URL}/${DEVICE}/${FILENAME}"
 
 pushd native/extorch_native
