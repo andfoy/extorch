@@ -3,10 +3,10 @@ name: Linux build
 on:
     push:
         branches:
-            - master
+            - main
     pull_request:
         branches:
-            - master
+            - main
 jobs:
     linux:
         name: Linux OTP${{ matrix.OTP_VERSION }} / Elixir ${{ matrix.ELIXIR_VERSION }} (${{ matrix.PYTORCH_VERSION }} - ${{ matrix.DEVICE }})
