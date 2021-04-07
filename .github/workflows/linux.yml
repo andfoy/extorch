@@ -50,6 +50,10 @@ jobs:
             - name: Build extorch
               shell: bash -l {0}
               run: mix compile
+            # Enable this if SSH debugging is required
+            - name: Setup tmate session
+              if: ${{ failure() }}
+              uses: mxschmitt/action-tmate@v3
             # - name: Run tests
             #   shell: bash -l {0}
             #   run: pytest -v -x syntect/tests
