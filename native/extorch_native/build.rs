@@ -42,8 +42,8 @@ fn main() {
     fs::write(path, rendering).unwrap();
 
     let ref libtorch_path = Path::new(&manifest_dir)
-        .parent()?
-        .parent()?
+        .parent().unwrap()
+        .parent().unwrap()
         .join("priv")
         .join("native")
         .join("libtorch");
