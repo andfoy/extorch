@@ -21,6 +21,15 @@ fn main() {
     // let mut torch_include_path = env::current_dir().unwrap();
     // let mut inner_torch_include_path = env::current_dir().unwrap();
     // let mut torch_lib = env::current_dir().unwrap();
+    println!("cargo:rerun-if-changed=src/lib.rs");
+    println!("cargo:rerun-if-changed=src/csrc");
+    println!("cargo:rerun-if-changed=src/native");
+    println!("cargo:rerun-if-changed=src/nifs.rs");
+    println!("cargo:rerun-if-changed=src/conversion.rs");
+    println!("cargo:rerun-if-changed=src/conversion/scalar_types.rs");
+    // println!("cargo:rerun-if-changed=src/wrapper.cc");
+    // println!("cargo:rerun-if-changed=include/wrapper.h");
+
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let template_path = Path::new(&manifest_dir)
         .join("src")
@@ -95,12 +104,4 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=torch");
     println!("cargo:rustc-link-lib=dylib=torch_cpu");
     println!("cargo:rustc-link-lib=dylib=c10");
-
-    println!("cargo:rerun-if-changed=src/lib.rs");
-    // println!("cargo:rerun-if-changed=src/native.rs");
-    println!("cargo:rerun-if-changed=src/dtypes.rs");
-    println!("cargo:rerun-if-changed=src/conversion.rs");
-    println!("cargo:rerun-if-changed=src/conversion/scalar_types.rs");
-    println!("cargo:rerun-if-changed=src/wrapper.cc");
-    println!("cargo:rerun-if-changed=include/wrapper.h");
 }

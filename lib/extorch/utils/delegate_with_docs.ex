@@ -8,7 +8,6 @@ defmodule ExTorch.DelegateWithDocs do
   require Kernel
 
   defmodule Error do
-    @moduledoc false
     defexception [:message]
   end
 
@@ -61,7 +60,7 @@ defmodule ExTorch.DelegateWithDocs do
     signature = {function, length(args)}
 
     {doc_str, doc_attrs} = get_doc(module, signature)
-    specs = get_specs(module, signature, function_alias)
+    specs = get_specs(module, signature)
 
     doc_spec = assemble_doc_specs(function, caller_module, point_to_docs, doc_str, doc_attrs)
 
@@ -139,8 +138,7 @@ defmodule ExTorch.DelegateWithDocs do
   @doc """
   Get the typespecs for a given function as an AST.
   """
-  def get_specs(module, {function, arity}, function_alias \\ nil) do
-    function_alias = function_alias || function
+  def get_specs(module, {function, arity}) do
     assert_module_exists!(module)
 
     {:ok, module_specs} =
@@ -159,46 +157,9 @@ defmodule ExTorch.DelegateWithDocs do
     {:__block__, [], quoted_specs}
   end
 
-  # Line numbers must be recursively stripped out of the spec AST
-  # to prevent errors when we inject the spec into the delegating
-  # module
-  defp remove_line_numbers(ast, acc) when ast in [[], nil], do: Enum.reverse(acc)
-
-  defp remove_line_numbers([ast | tail], acc) do
-    remove_line_numbers(tail, [remove_line_numbers(ast) | acc])
-  end
-
-  defp remove_line_numbers({ast, context, args}) when is_tuple(ast) do
-    {remove_line_numbers(ast), Keyword.drop(context, [:line]), remove_line_numbers(args, [])}
-  end
-
-  defp remove_line_numbers({func, context, args}) when is_list(context) do
-    {func, Keyword.drop(context, [:line]), remove_line_numbers(args, [])}
-  end
-
-  defp remove_line_numbers({func, line, args}) when is_integer(line) do
-    {func, [], remove_line_numbers(args, [])}
-  end
-
-  defp remove_line_numbers(other), do: other
-
-  # Renames the spec to the alias
-  defp rename_function({:"::", sc, [{_function, fc, fargs}, return]}, function_alias) do
-    {:"::", sc, [{function_alias, fc, fargs}, return]}
-  end
-
-  defp rename_function(ast, _as), do: ast
 
   defp assert_module_exists!(module) do
     unless Code.ensure_compiled(module),
       do: raise(Error, "Module #{inspect(module)} is not defined/available")
-
-    # unless Code.get_docs(module, :docs) do
-    #   raise(Error, """
-    #   Module #{inspect(module)} was not compiled with docs.
-    #   You must `use DelegateWithDocs` within #{inspect(module)} to ensure
-    #   that its docs are available to other modules at compile time.
-    #   """)
-    # end
   end
 end

@@ -1,8 +1,5 @@
 defmodule ExTorch.Native.Macros do
   defmacro defbindings(doc_section, [{:do, {:__block__, [], args}}]) do
-    %Macro.Env{module: caller_module} = __CALLER__
-    # doc_section = caller_module.doc_section()
-    # doc_section = Module.get_attribute(caller_module, :doc_section)
     block = compose_block(args, [], [], doc_section)
     {:__block__, [], block}
   end
@@ -157,7 +154,7 @@ defmodule ExTorch.Native.Macros do
 
       doc_headers =
         case func_docstring do
-          docstring when arity == max_arity and length(guards) == 0 ->
+          _docstring when arity == max_arity and length(guards) == 0 ->
             quote do
               @doc kind: unquote(doc_section)
               unquote(func_docstring)
@@ -278,7 +275,7 @@ defmodule ExTorch.Native.Macros do
       {{that_arg, _}, that_arg}, {false, guards} ->
         {false, guards}
 
-      {{this_arg, arg_name}, that_arg}, {false, guards} ->
+      {{this_arg, arg_name}, _that_arg}, {false, guards} ->
         {true, [{arg_name, this_arg} | guards]}
 
       {_, _}, {true, guards} ->
