@@ -8,13 +8,9 @@ defmodule ExTorch do
 
   use ExTorch.DelegateWithDocs
   import ExTorch.ModuleMixin
+
+  # Native operations
   extends(ExTorch.Native.Tensor.Creation)
   extends(ExTorch.Native.Tensor.Info)
   extends(ExTorch.Native.Tensor.Ops)
-
-  # native_calls do
-  #   # set_num_threads(num_threads)
-  #   size(tensor)
-  #   unsqueeze(tensor, dim)
-  # end
 end
