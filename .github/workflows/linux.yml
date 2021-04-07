@@ -21,8 +21,8 @@ jobs:
             fail-fast: false
             matrix:
                 PYTORCH_VERSION: ['1.8.1', 'latest']
-                OTP_VERSION: ['20.3', '21.3', '22.2']
-                ELIXIR_VERSION: ['1.8.2', '1.9.4']
+                OTP_VERSION: ['22.2', '23.2.3']
+                ELIXIR_VERSION: ['1.10.1', '1.11.2']
                 DEVICE: ['cpu']
         steps:
             - name: Checkout branch
