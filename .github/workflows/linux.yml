@@ -49,7 +49,7 @@ jobs:
               run: mix deps.get
             - name: Build extorch
               shell: bash -l {0}
-              run: mix compile
+              run: bash -l .github/scripts/build_extorch.sh
             # Enable this if SSH debugging is required
             - name: Setup tmate session
               if: ${{ failure() }}
