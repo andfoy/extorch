@@ -44,7 +44,7 @@ fn main() {
         }
     };
 
-    let mut context = Context::new();
+    let context = Context::new();
     let rendering = tera.render("native.rs.in", &context).unwrap();
 
     let ref path = Path::new(&manifest_dir).join("src").join("native.rs");
