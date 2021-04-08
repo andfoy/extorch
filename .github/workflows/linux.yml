@@ -47,12 +47,12 @@ jobs:
             - name: Install dependencies
               shell: bash -l {0}
               run: mix deps.get
-            - name: Build extorch
+            - name: Build and test extorch
               shell: bash -l {0}
               run: bash -l .github/scripts/build_extorch.sh
-            - name: Run tests
-              shell: bash -l {0}
-              run: mix test --trace
+            # - name: Run tests
+            #   shell: bash -l {0}
+            #   run: mix test --trace
             # Enable this if SSH debugging is required
             # - name: Setup tmate session
             #   if: ${{ failure() }}
