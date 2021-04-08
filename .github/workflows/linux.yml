@@ -49,7 +49,7 @@ jobs:
               run: mix deps.get
             - name: Build and test extorch
               shell: bash -l {0}
-              run: bash -l .github/scripts/build_extorch.sh
+              run: bash -l .github/scripts/test_extorch.sh
             # - name: Run tests
             #   shell: bash -l {0}
             #   run: mix test --trace
