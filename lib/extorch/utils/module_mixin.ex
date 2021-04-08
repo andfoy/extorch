@@ -1,6 +1,35 @@
 defmodule ExTorch.ModuleMixin do
+  @moduledoc """
+  Utilities used to define a module mixin that inherits documentation and specs.
+  """
+
   @signature_regex ~r/[a-zA-Z_]\w*[(]((\w,? ?)*)[)]/
 
+  @doc """
+  This macro enables a module to import the functions from another module
+  and expose them as they were defined on it.
+
+      defmodule BaseModule do
+        def call1(arg1, arg2) do
+          arg1 + arg2
+        end
+
+        def call2() do
+          :ok
+        end
+      end
+
+      defmodule Mixin do
+        import ExTorch.ModuleMixin
+        extends(BaseModule)
+      end
+
+  By using the `extends/1` macro, the `Mixin` module will have the definitions
+  of `call1/2` and `call2/0`.
+
+  ## Implementation notes
+  The function definitions are given via `defdelegate` internally.
+  """
   defmacro extends(module) do
     module = Macro.expand(module, __CALLER__)
     functions = module.__info__(:functions)
@@ -22,19 +51,8 @@ defmodule ExTorch.ModuleMixin do
 
         case String.starts_with?(str_name, "__") do
           false ->
-            docstring = Map.get(doc_funcs, {name, arity})
-
-            add_max_header =
-              case docstring do
-                nil -> false
-                docstring -> String.contains?(docstring, "Available signature calls")
-              end
-
-            signature = Map.get(signature_args, {name, arity})
-            [_, args, _] = Regex.run(@signature_regex, signature)
-            args = String.split(args, ",", trim: true)
-            args = Enum.map(args, fn arg -> Macro.var(String.to_atom(arg), nil) end)
-
+            add_max_header = is_max_arity_call(doc_funcs, name, arity)
+            args = get_arguments(signature_args, name, arity)
             [{{name, [], args}, add_max_header} | acc]
 
           true ->
@@ -60,6 +78,24 @@ defmodule ExTorch.ModuleMixin do
           ExTorch.DelegateWithDocs.defdelegate(unquote(sig), to: unquote(module))
         end
     end)
+  end
+
+  defp get_arguments(signature_args, name, arity) do
+    signature = Map.get(signature_args, {name, arity})
+    [_, args, _] = Regex.run(@signature_regex, signature)
+
+    args
+    |> String.split(",", trim: true)
+    |> Enum.map(fn arg -> Macro.var(String.to_atom(arg), nil) end)
+  end
+
+  defp is_max_arity_call(doc_funcs, name, arity) do
+    docstring = Map.get(doc_funcs, {name, arity})
+
+    case docstring do
+      nil -> false
+      docstring -> String.contains?(docstring, "Available signature calls")
+    end
   end
 
   defp fetch_signatures({:docs_v1, _, :elixir, "text/markdown", _, %{}, funcs}) do

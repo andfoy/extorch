@@ -171,7 +171,6 @@ torch::detail::TensorDataContainer get_scalar_list(rust::Vec<Scalar> list) {
             std::vector<int> scalar_typed_list;
             for(torch::Scalar scalar : scalar_vec) {
                 int typed_scalar = scalar.toInt();
-                std::cout << "Int: " << typed_scalar << "\n";
                 scalar_typed_list.push_back(typed_scalar);
             }
             return scalar_typed_list;

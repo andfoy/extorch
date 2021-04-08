@@ -1,4 +1,6 @@
 defmodule ExTorch.Native.Tensor.Ops do
+  @moduledoc false
+
   use ExTorch.Native.BindingDeclaration
 
   defbindings(:tensor_manipulation) do

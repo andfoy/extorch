@@ -93,7 +93,7 @@ defmodule ExTorch.Utils.Types do
     MapSet.put(acc, :bool)
   end
 
-  def collect_types(float, acc) when is_float(float) and float <= 3.4028235e38 do
+  def collect_types(float, acc) when is_float(float) and float <= 3.4_028_235e38 do
     MapSet.put(acc, :float32)
   end
 
