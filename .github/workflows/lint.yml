@@ -1,4 +1,4 @@
-name: Linux build
+name: Linting
 
 on:
     push:
@@ -9,7 +9,7 @@ on:
             - main
 jobs:
     linux:
-        name: Linux OTP${{ matrix.OTP_VERSION }} / Elixir ${{ matrix.ELIXIR_VERSION }} (${{ matrix.PYTORCH_VERSION }} - ${{ matrix.DEVICE }})
+        name: Credo linting
         runs-on: ubuntu-latest
         env:
             OTP_VERSION: ${{ matrix.OTP_VERSION }}
@@ -20,9 +20,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                PYTORCH_VERSION: ['1.8.1', 'latest']
-                OTP_VERSION: ['22.2', '23.2.3']
-                ELIXIR_VERSION: ['1.10.1', '1.11.2']
+                PYTORCH_VERSION: ['latest']
+                OTP_VERSION: ['23.2.3']
+                ELIXIR_VERSION: ['1.11.2']
                 DEVICE: ['cpu']
         steps:
             - name: Checkout branch
@@ -47,9 +47,9 @@ jobs:
             - name: Install dependencies
               shell: bash -l {0}
               run: mix deps.get
-            - name: Build and test extorch
+            - name: Run credo
               shell: bash -l {0}
-              run: bash -l .github/scripts/test_extorch.sh
+              run: bash -l .github/scripts/lint_extorch.sh
             # Enable this if SSH debugging is required
             # - name: Setup tmate session
             #   if: ${{ failure() }}

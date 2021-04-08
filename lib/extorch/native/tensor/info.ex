@@ -1,4 +1,6 @@
 defmodule ExTorch.Native.Tensor.Info do
+  @moduledoc false
+
   use ExTorch.Native.BindingDeclaration
 
   defbindings(:tensor_info) do

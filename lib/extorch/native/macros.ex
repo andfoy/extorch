@@ -1,4 +1,86 @@
 defmodule ExTorch.Native.Macros do
+  @moduledoc """
+  General purpose macros to automatically generate binding declarations and calls
+  for both ExTorch callable functions and Rustler signature calls to the NIF library.
+  """
+
+  @doc """
+  Automatic binding generation.
+
+  This macro allow to define a bindings block under a given `doc_section`
+  for a given set of function bindings. All binding declarations should be
+  signaled using the `defbinding` function, which recieves the function
+  signature, alongside an optional keyword list of parameter transformations
+  that must be done before calling the native function
+  (defined in `ExTorch.Native`).
+
+  Each `defbinding` declaration must declare its `@spec` and optionally its
+  docstring `@doc` before the call. Additionally, the function binding
+  signature can declare optional arguments. For example:
+
+        # All function docstrings will be collected under :doc_section_name
+        defbindings(:doc_section_name) do
+          @doc \"\"\"
+          The docstring for func goes here
+          \"\"\"
+          @spec func(type_1(), type_2(), type_3()) :: ret_type()
+          defbinding(
+            func(
+              arg1,                    # Positional argument
+              arg2 \\\\ optional_value,  # Optional argument
+              arg3 \\\\ optional_value   # Optional argument
+            )
+          )
+
+          @doc \"\"\"
+          The docstring for func2 goes here
+          \"\"\"
+          @spec func2(type_1(), type_2(), type_3(), type_4()) :: ret_type()
+          defbinding(
+            func2(
+              arg1 \\\\ optional_value,  # Positional argument with optional value
+              arg2,                    # Positional argument
+              arg3 \\\\ optional_value,  # Optional argument
+              arg4 \\\\ optional_value   # Optional argument
+            )
+          )
+
+          @doc \"\"\"
+          The docstring for func3 goes here
+          \"\"\"
+          @spec func3(type_1(), type_2(), type_3(), type_4()) :: ret_type()
+          defbinding(
+            func3(
+              arg1,                    # Positional argument
+              arg2,                    # Positional argument
+              arg3 \\\\ optional_value,  # Optional argument
+              arg4 \\\\ optional_value   # Optional argument
+            ),
+            arg1: arg1[:value],
+            arg3: call_to_some_transform(arg3, arg2),
+          )
+        end
+
+  In case optional arguments are defined, the macro will expand the declaration
+  to allow optional arguments to be passed as a keyword list. For example, the
+  function `func` will be expanded to the following function calls: `func(arg1)`,
+  `func(arg1, kwargs)`, `func(arg1, arg2)`, `func(arg1, arg2, kwargs)` and
+  `func(arg1, arg2, arg3)`, where kwargs correspond to `arg2: value,
+  arg3: value2` and `arg3: value`, respectively.
+
+  When the first argument is declared as optional, the macro will
+  generate function calls that begin with the first argument as well as the
+  second argument. In case there are multiple calls with the same arity, the
+  macro will try to disambiguate them by computing the corresponding guards
+  that distinguish each call from the others. In the case of `func2`, the
+  expanded definitions would correspond to `func2(arg2)` `func2(arg2, kwargs)`,
+  `func2(arg2, arg3, kwargs)`, `func2(arg2, arg3, arg4)`,
+  `func2(arg1, arg2)`, `func2(arg1, arg2, kwargs)`,
+  `func2(arg1, arg2, arg3)`, etc.
+
+  Finally, if transforms are defined (like `func3`), they will be assigned to
+  the specified arguments before calling the native function.
+  """
   defmacro defbindings(doc_section, [{:do, {:__block__, [], args}}]) do
     block = compose_block(args, [], [], doc_section)
     {:__block__, [], block}
@@ -146,15 +228,14 @@ defmodule ExTorch.Native.Macros do
 
       %{^signature => %{:arity => arity, :body => sig_body, :spec => sig_spec}} = signature_map
 
-
       spec =
         quote do
           @spec unquote(func_name)(unquote_splicing(sig_spec)) :: unquote(ret_type)
         end
 
       doc_headers =
-        case func_docstring do
-          _docstring when arity == max_arity and length(guards) == 0 ->
+        case {func_docstring, guards} do
+          {_docstring, []} when arity == max_arity ->
             quote do
               @doc kind: unquote(doc_section)
               unquote(func_docstring)
@@ -242,19 +323,7 @@ defmodule ExTorch.Native.Macros do
 
   defp compare_and_reduce_signatures(signatures, arg_types) do
     Enum.reduce(signatures, [], fn sig, valid_signatures ->
-      {valid, guards} =
-        Enum.reduce(valid_signatures, {true, []}, fn {valid_sig, _}, {is_valid, guards} ->
-          case is_valid do
-            true ->
-              {valid, diff_sig_guard} = compare_signature_types(sig, valid_sig, arg_types)
-              is_valid = valid and is_valid
-              guards = guards ++ diff_sig_guard
-              {is_valid, guards}
-
-            false ->
-              {is_valid, guards}
-          end
-        end)
+      {valid, guards} = compute_guards_for_signature(valid_signatures, sig, arg_types)
 
       case valid do
         true -> [{sig, guards} | valid_signatures]
@@ -263,8 +332,22 @@ defmodule ExTorch.Native.Macros do
     end)
   end
 
-  defp compare_signature_types(signature, to_compare_sig, arg_types) do
+  defp compute_guards_for_signature(valid_signatures, sig, arg_types) do
+    Enum.reduce(valid_signatures, {true, []}, fn {valid_sig, _}, {is_valid, guards} ->
+      case is_valid do
+        true ->
+          {valid, diff_sig_guard} = compare_signature_types(sig, valid_sig, arg_types)
+          is_valid = valid and is_valid
+          guards = guards ++ diff_sig_guard
+          {is_valid, guards}
 
+        false ->
+          {is_valid, guards}
+      end
+    end)
+  end
+
+  defp compare_signature_types(signature, to_compare_sig, arg_types) do
     sig_arg_types = gather_signature_types(signature, arg_types)
     compare_arg_types = gather_signature_types(to_compare_sig, arg_types)
 
@@ -339,7 +422,6 @@ defmodule ExTorch.Native.Macros do
         unquote(transforms)
         unquote(call_unquote)(unquote_splicing(call_parameters))
       end
-
 
     sig_info = %{:signature => valid_args, :arity => arity, :body => body, :spec => fn_spec}
     [sig_info | signatures]
@@ -418,7 +500,6 @@ defmodule ExTorch.Native.Macros do
         unquote(transforms)
         unquote(call_unquote)(unquote_splicing(call_parameters))
       end
-
 
     kwarg_signature = valid_args ++ [:kwargs]
     kwarg_arity = length(kwarg_signature)
