@@ -393,7 +393,15 @@ defmodule ExTorch.Native.Macros do
     compute_signatures(func_name, arg_types, args, kwargs, defaults, transforms, signatures)
   end
 
-  defp compute_signatures(func_name, arg_types, args, [], _, transforms, signatures) do
+  defp compute_signatures(
+         func_name,
+         arg_types,
+         args,
+         [],
+         _,
+         {transforms, output_transform},
+         signatures
+       ) do
     valid_args = Enum.filter(args, fn x -> is_atom(x) and Map.has_key?(arg_types, x) end)
     arity = length(valid_args)
     native_module = {:__aliases__, [alias: false], [:ExTorch, :Native]}
@@ -417,10 +425,24 @@ defmodule ExTorch.Native.Macros do
           spec_type
       end)
 
-    body =
+    call =
       quote do
-        unquote(transforms)
         unquote(call_unquote)(unquote_splicing(call_parameters))
+      end
+
+    body =
+      case output_transform do
+        nil ->
+          quote do
+            unquote(transforms)
+            unquote(call)
+          end
+
+        _ ->
+          quote do
+            unquote(transforms)
+            unquote(output_transform)(unquote(call))
+          end
       end
 
     sig_info = %{:signature => valid_args, :arity => arity, :body => body, :spec => fn_spec}
@@ -433,7 +455,7 @@ defmodule ExTorch.Native.Macros do
          args,
          [kwarg | rest] = kwargs,
          defaults,
-         transforms,
+         {transforms, output_transform},
          signatures
        ) do
     valid_args = Enum.filter(args, fn x -> is_atom(x) and Map.has_key?(arg_types, x) end)
@@ -478,6 +500,22 @@ defmodule ExTorch.Native.Macros do
         end
       )
 
+    call =
+      quote do
+        unquote(call_unquote)(unquote_splicing(call_parameters))
+      end
+
+    call =
+      case output_transform do
+        nil ->
+          call
+
+        _ ->
+          quote do
+            unquote(output_transform)(unquote(call))
+          end
+      end
+
     kwarg_body =
       quote do
         unquote(Macro.var(:kwargs, nil)) =
@@ -491,14 +529,14 @@ defmodule ExTorch.Native.Macros do
 
         unquote(kwargs_assignment) = unquote(Macro.var(:kwargs, nil))
         unquote(transforms)
-        unquote(call_unquote)(unquote_splicing(call_parameters))
+        unquote(call)
       end
 
     body =
       quote do
         unquote(kwargs_assignment) = unquote(defaults_macro)
         unquote(transforms)
-        unquote(call_unquote)(unquote_splicing(call_parameters))
+        unquote(call)
       end
 
     kwarg_signature = valid_args ++ [:kwargs]
@@ -518,7 +556,15 @@ defmodule ExTorch.Native.Macros do
     args = args ++ [kwarg]
     {_, defaults} = Map.pop(defaults, kwarg)
 
-    compute_signatures(func_name, arg_types, args, rest, defaults, transforms, signatures)
+    compute_signatures(
+      func_name,
+      arg_types,
+      args,
+      rest,
+      defaults,
+      {transforms, output_transform},
+      signatures
+    )
   end
 
   defp split_args_kwargs(arg_info) do
@@ -609,13 +655,23 @@ defmodule ExTorch.Native.Macros do
   end
 
   defp assemble_transforms(transforms) do
-    transforms =
-      Enum.map(transforms, fn {variable, transform} ->
-        quote do
-          unquote(Macro.var(variable, nil)) = unquote(transform)
-        end
+    {transforms, output_transform} =
+      Enum.reduce(transforms, {[], nil}, fn
+        {:output, {transform, [no_parens: true, line: _], _}}, {transforms, _} ->
+          {transforms, transform}
+
+        {:output, transform}, {transforms, _} ->
+          {transforms, transform}
+
+        {variable, transform}, {transforms, output_transform} ->
+          transform =
+            quote do
+              unquote(Macro.var(variable, nil)) = unquote(transform)
+            end
+
+          {[transform | transforms], output_transform}
       end)
 
-    {:__block__, [], transforms}
+    {{:__block__, [], Enum.reverse(transforms)}, output_transform}
   end
 end

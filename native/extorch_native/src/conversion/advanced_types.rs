@@ -5,14 +5,16 @@ use rustler_sys::enif_make_ref;
 
 use cxx::SharedPtr;
 
+use crate::conversion::info_types::{unpack_size, wrap_device, wrap_size, wrap_str_atom};
+use crate::conversion::scalar_types::{wrap_scalar_typed, unpack_scalar_typed};
 use crate::native::torch;
 use crate::rustler::Encoder;
 use crate::shared_types::{ListWrapper, TensorStruct};
-use crate::conversion::info_types::{unpack_size, wrap_size, wrap_device, wrap_str_atom};
-use crate::conversion::scalar_types::unpack_scalar_typed;
 
-
-pub fn unpack_scalar_list<'a>(list: Vec<Term<'a>>, dtype: String) -> Result<Vec<torch::Scalar>, Error> {
+pub fn unpack_scalar_list<'a>(
+    list: Vec<Term<'a>>,
+    dtype: String,
+) -> Result<Vec<torch::Scalar>, Error> {
     let mut scalar_list: Vec<torch::Scalar> = Vec::new();
     for term in list {
         // let scalar = find_scalar(term)?;
@@ -21,7 +23,6 @@ pub fn unpack_scalar_list<'a>(list: Vec<Term<'a>>, dtype: String) -> Result<Vec<
     }
     Ok(scalar_list)
 }
-
 
 pub fn unpack_list_wrapper<'a>(
     index: usize,
@@ -39,6 +40,26 @@ pub fn unpack_list_wrapper<'a>(
     Ok(scalar_list)
 }
 
+pub fn wrap_list_wrapper<'a>(
+    env: Env<'a>,
+    scalar_list: torch::ScalarList,
+) -> Result<Term<'a>, Error> {
+    let list = scalar_list.list;
+    let size = scalar_list.size;
+    // let dtype = scalar_list.dtype;
+    let term_size = wrap_size(env, size.as_slice())?;
+    let mut term_vec: Vec<Term<'a>> = Vec::new();
+    for scalar in list {
+        term_vec.push(wrap_scalar_typed(scalar, env)?);
+    }
+    // let dtype_atom = wrap_str_atom(env, dtype)?;
+    let list_wrapper = ListWrapper {
+        list: term_vec,
+        size: term_size,
+        dtype: "".encode(env),
+    };
+    Ok(list_wrapper.encode(env))
+}
 
 pub fn wrap_tensor<'a>(
     tensor_ref: Result<SharedPtr<torch::CrossTensor>, cxx::Exception>,
