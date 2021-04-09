@@ -96,7 +96,7 @@ pub fn unpack_tensor_options<'a>(
     })
 }
 
-pub fn wrap_size<'a>(env: Env<'a>, sizes: &'static [i64]) -> Result<Term<'a>, Error> {
+pub fn wrap_size<'a>(env: Env<'a>, sizes: &[i64]) -> Result<Term<'a>, Error> {
     let enc_sizes: Vec<Term<'a>> = sizes.iter().map(|size| size.encode(env)).collect();
     let tuple_sizes = make_tuple(env, &enc_sizes);
     Ok(tuple_sizes.encode(env))

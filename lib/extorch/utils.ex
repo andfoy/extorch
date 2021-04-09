@@ -7,10 +7,10 @@ defmodule ExTorch.Utils do
     a representation suitable to be converted into an ExTorch.Tensor
     """
     @type t :: %__MODULE__{
-      list: [number()] | [boolean()],
-      size: [integer()],
-      dtype: ExTorch.DType.base_type()
-    }
+            list: [number()] | [boolean()],
+            size: [integer()],
+            dtype: ExTorch.DType.base_type()
+          }
 
     @moduledoc """
     Struct used to represent a list with elements or lists of elements.
@@ -18,7 +18,22 @@ defmodule ExTorch.Utils do
     defstruct list: [],
               size: [],
               dtype: nil
+  end
 
+  @doc """
+  Given a `ExTorch.Utils.ListWrapper` structure, return a list with elements.
+  """
+  @spec from_list_wrapper(__MODULE__.ListWrapper.t()) :: list()
+  def from_list_wrapper(%__MODULE__.ListWrapper{
+        list: list,
+        size: size
+      }) do
+    # dims =
+    size
+    |> Tuple.to_list()
+    |> Enum.reverse()
+    |> Enum.reduce(list, fn dim, list -> Enum.chunk_every(list, dim) end)
+    |> Enum.at(0)
   end
 
   @doc """
@@ -28,10 +43,10 @@ defmodule ExTorch.Utils do
   @spec to_list_wrapper(list() | number()) :: __MODULE__.ListWrapper.t()
   def to_list_wrapper([]) do
     %__MODULE__.ListWrapper{
-       list: [],
-       size: [],
-       dtype: :float32
-     }
+      list: [],
+      size: [],
+      dtype: :float32
+    }
   end
 
   def to_list_wrapper([_ | _] = input) do
@@ -48,9 +63,9 @@ defmodule ExTorch.Utils do
     # new_list = Enum.flat_map(new_list, fn x -> x end)
 
     %__MODULE__.ListWrapper{
-       list: new_list,
-       size: input_size,
-       dtype: coerce_type
+      list: new_list,
+      size: input_size,
+      dtype: coerce_type
     }
   end
 
@@ -149,6 +164,6 @@ defmodule ExTorch.Utils do
   end
 
   defp flat_list([h | t], acc) do
-    flat_list(t, [h|acc])
+    flat_list(t, [h | acc])
   end
 end

@@ -3,6 +3,7 @@ extern crate rustler;
 use rustler::{NifResult, Term, Error, Env};
 
 use crate::native::{torch};
+use crate::rustler::Encoder;
 use crate::conversion::dtypes::{ALL_TYPES};
 
 
@@ -321,4 +322,59 @@ pub fn unpack_scalar_typed<'a>(
         }
     }
     Ok(scalar_result)
+}
+
+pub fn wrap_scalar_typed<'a>(
+    scalar: torch::Scalar,
+    env: Env<'a>,
+) -> Result<Term<'a>, Error> {
+    // let mut value: f32 = 0.0;
+    let result: Term<'a>;
+    match &scalar.entry_used[..] {
+        "uint8" => {
+            let value = scalar._ui8;
+            result = value.encode(env);
+        }
+        "int8" => {
+            let value = scalar._i8;
+            result = value.encode(env);
+        }
+        "int16" => {
+            let value = scalar._i16;
+            result = value.encode(env);
+        }
+        "int32" => {
+            let value = scalar._i32;
+            result = value.encode(env);
+        }
+        "int64" => {
+            let value = scalar._i64;
+            result = value.encode(env);
+        }
+        "float16" => {
+            let value = scalar._f16;
+            result = value.encode(env);
+        }
+        "bfloat16" => {
+            let value = scalar._f16;
+            result = value.encode(env);
+        }
+        "float32" => {
+            let value = scalar._f32;
+            result = value.encode(env);
+        }
+        "float64" => {
+            let value = scalar._f64;
+            result = value.encode(env);
+        }
+        "bool" => {
+            let value = scalar._bool;
+            result = value.encode(env);
+        }
+        _ => {
+            let value = scalar._f32;
+            result = value.encode(env);
+        }
+    }
+    Ok(result)
 }

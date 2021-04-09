@@ -58,6 +58,7 @@ rustler::rustler_export_nifs! {
         ("size", 1, size),
         ("dtype", 1, dtype),
         ("device", 1, device),
+        ("to_list", 1, to_list),
         ("unsqueeze", 2, unsqueeze)
     ],
     Some(on_load)

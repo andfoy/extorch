@@ -86,6 +86,9 @@ macro_rules! wrap_result {
     ($result:ident, StrAtom, $env:ident, $args:ident) => {
         wrap_str_atom($env, $result)
     };
+    ($result:ident, ListWrapper, $env:ident, $args:ident) => {
+        wrap_list_wrapper($env, $result)
+    };
     ($result:ident, $ret_type:ident, $env:ident, $args:ident) => {
         // wrap_device($env, $result)
         Ok($result.encode($env))

@@ -39,5 +39,14 @@ defmodule ExTorch.Native.Tensor.Info do
     """
     @spec repr(ExTorch.Tensor.t()) :: binary()
     defbinding(repr(tensor))
+
+    @doc """
+    Convert a tensor into a list.
+
+    ## Arguments
+      - tensor (`ExTorch.Tensor`): Input tensor
+    """
+    @spec to_list(ExTorch.Tensor.t()) :: list()
+    defbinding(to_list(tensor), output: ExTorch.Utils.from_list_wrapper)
   end
 end

@@ -36,4 +36,10 @@ defmodule ExTorchTest.Tensor.InfoTest do
     assert ExTorch.repr(tensor) ==
              "(1,.,.) = \n  3.1459  3.1459  3.1459\n  3.1459  3.1459  3.1459\n\n(2,.,.) = \n  3.1459  3.1459  3.1459\n  3.1459  3.1459  3.1459\n[ CPUFloatType{2,2,3} ]"
   end
+
+  test "to_list/1" do
+    tensor_info = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
+    tensor = ExTorch.tensor(tensor_info)
+    assert ExTorch.to_list(tensor) == tensor_info
+  end
 end
