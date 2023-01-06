@@ -65,5 +65,6 @@
         "valarray": "cpp",
         "variant": "cpp",
         "bitset": "cpp"
-    }
+    },
+    "rust-analyzer.linkedProjects": ["native/extorch/Cargo.toml"]
 }

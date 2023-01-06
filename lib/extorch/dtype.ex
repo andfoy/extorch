@@ -30,14 +30,19 @@ defmodule ExTorch.DType do
   @type complex_type :: :complex32 | :complex64 | :complex128
 
   @typedoc """
+  Quantized floating point tensor types.
+  """
+  @type quantized_type :: :quint8 | :quint2x4 | :quint4x2 | :qint8 | :qint32
+
+  @typedoc """
   Alias names to other integral/floating tensor types.
   """
-  @type alias_type :: :byte | :char | :short | :int | :long | :half | :float | :double
+  @type alias_type :: :byte | :char | :short | :int | :long | :half | :float | :double | :chalf | :cfloat | :cdouble
 
   @typedoc """
   A torch.dtype is an object that represents the data type of a torch.Tensor.
   """
-  @type dtype :: base_type() | complex_type() | alias_type()
+  @type dtype :: base_type() | complex_type() | quantized_type() | alias_type()
 
   @dtypes [
     :uint8,
@@ -53,6 +58,11 @@ defmodule ExTorch.DType do
     :complex32,
     :complex64,
     :complex128,
+    :quint8,
+    :quint2x4,
+    :quint4x2,
+    :qint8,
+    :qint32,
     :byte,
     :char,
     :short,
@@ -60,7 +70,10 @@ defmodule ExTorch.DType do
     :long,
     :half,
     :float,
-    :double
+    :double,
+    :chalf,
+    :cfloat,
+    :cdouble,
   ]
 
   defguard is_dtype(dtype) when dtype in @dtypes

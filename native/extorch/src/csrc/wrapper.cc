@@ -1,6 +1,6 @@
-#include "extorch_native/include/wrapper.h"
-#include "extorch_native/src/native.rs.h"
-#include "extorch_native/include/utils.h"
+#include "extorch/include/wrapper.h"
+#include "extorch/src/native.rs.h"
+#include "extorch/include/utils.h"
 #include <iostream>
 
 

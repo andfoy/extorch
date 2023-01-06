@@ -9,8 +9,8 @@ defmodule ExTorch.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      compilers: [:rustler] ++ Mix.compilers(),
-      rustler_crates: [extorch_native: []]
+      # compilers: [:rustler] ++ Mix.compilers(),
+      # rustler_crates: [extorch_native: []]
     ]
   end
 
@@ -24,7 +24,7 @@ defmodule ExTorch.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:rustler, "~> 0.21.1"},
+      {:rustler, "~> 0.26.0"},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
       # {:delegate_with_docs, "~> 0.1.0"}

@@ -1,35 +1,24 @@
 #[doc(hidden)]
 #[macro_export]
-macro_rules! call (
-    ($f: path, $y:ident => $yt:ident) => {
-        make_call!($f, (), $y => $yt)
+macro_rules! call {
+    ($f: path $(, $y:ident : $yt:tt)*) => {
+        make_call!($f, (), ($($y : $yt),*))
     };
-    ($f: path, $($y:ident => $yt:ident),+) => {
-        make_call!($f, (), $($y => $yt),+)
-    };
-);
+}
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! make_call {
-    ($f: path, ($($args:expr)*)) => { $f($($args),*) };
-    ($f: path, ($($args:expr)*), $x:ident => TensorOptions) => {
-        make_call!($f, ($($args)* $x.dtype $x.layout $x.device $x.requires_grad $x.pin_memory $x.memory_format))
+    ($f: path, ($($args:expr)*), ()) => { $f($($args),*) };
+    ($f: path, ($($args:expr)*), ($x:ident : Size $(, $argsf:ident : $argst:tt)*)) => {
+        make_call!($f, ($($args)* $x.size), ($($argsf : $argst),*))
     };
-    ($f: path, (), $x:ident => TensorOptions, $($y:ident => $yt:ident),+) => {
-        make_call!($f, ($x.dtype $x.layout $x.device $x.requires_grad $x.pin_memory $x.memory_format), $($y => $yt),+)
+    ($f: path, ($($args:expr)*), ($x:ident : TensorOptions $(, $argsf:ident : $argst:tt)*)) => {
+        make_call!($f, ($($args)* $x.dtype.name $x.layout.name $x.device $x.requires_grad
+                        $x.pin_memory $x.memory_format.name), ($($argsf : $argst),*))
     };
-    ($f: path, ($($args:expr)*), $x:ident => TensorOptions, $($y:ident => $yt:ident),+) => {
-        make_call!($f, ($($args)* $x.dtype $x.layout $x.device $x.requires_grad $x.pin_memory $x.memory_format), $($y => $yt),+)
-    };
-    ($f: path, ($($args:expr)*), $x:ident => $tt:ident) => {
-        make_call!($f, ($($args)* $x))
-    };
-    ($f: path, (), $x:ident => $tt:ident, $($y:ident => $yt:ident),+) => {
-        make_call!($f, ($x), $($y => $yt),+)
-    };
-    ($f: path, ($($args:expr)*), $x:ident => $tt:ident, $($y:ident => $yt:ident),+) => {
-        make_call!($f, ($($args)* $x), $($y => $yt),+)
+    ($f: path, ($($args:expr)*), ($x:ident : $y:tt $(, $argsf:ident : $argst:tt)*)) => {
+        make_call!($f, ($($args)* $x), ($($argsf : $argst),*))
     };
 }
 
@@ -103,7 +92,7 @@ macro_rules! wrap_result {
 ///
 /// ```
 /// // This exports the torch::ones function as a NIF
-/// nif_impl!(ones, Tensor, sizes => Size, options => TensorOptions);
+/// nif_impl!(ones, Tensor, sizes: Size, options: TensorOptions);
 /// ```
 ///
 /// # Arguments
@@ -130,6 +119,27 @@ macro_rules! wrap_result {
 ///
 #[macro_export]
 macro_rules! nif_impl {
+    ($func_name:ident, $ret_type:ty $(, $argsf:ident : $argst:tt)*) => {
+        #[rustler::nif]
+        pub fn $func_name<'a>($($argsf: $argst),*) -> NifResult<$ret_type> {
+            // unpack_args!($($argsf: $argst),*)
+            let result = call!(torch::$func_name $(, $argsf: $argst)*);
+            match result {
+                Ok(res) => {
+                    let result_wrapped = Into::<$ret_type>::into(res);
+                    Ok(result_wrapped)
+                },
+                Err(err) => {
+                    let err_msg = err.what();
+                    let err_str = err_msg.to_owned();
+                    let err_parts: Vec<&str> = err_str.split("\n").collect();
+                    let main_msg = err_parts[0].to_owned();
+                    Err(Error::RaiseTerm(Box::new(main_msg)))
+                }
+            }
+
+        }
+    };
     ($func_name:ident, $ret_type:ident, $($argsf:ident => $argst:ident),+) => {
         #[allow(unused_mut)]
         pub fn $func_name<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {

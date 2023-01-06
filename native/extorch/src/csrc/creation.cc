@@ -1,5 +1,5 @@
-#include "extorch_native/src/native.rs.h"
-#include "extorch_native/include/creation.h"
+#include "extorch/src/native.rs.h"
+#include "extorch/include/creation.h"
 
 
 std::shared_ptr<CrossTensor> empty(

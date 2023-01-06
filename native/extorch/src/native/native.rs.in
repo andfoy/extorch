@@ -1,5 +1,7 @@
 extern crate cxx;
 
+use rustler::NifUnitEnum;
+
 /// Native access to libtorch (C++) functions and namespaces.
 /// NOTE: Any change to this file will be overwitten.
 
@@ -10,7 +12,7 @@ pub mod torch {
     extern "Rust" {}
 
     unsafe extern "C++" {
-        include!("extorch_native/include/wrapper.h");
+        include!("extorch/include/wrapper.h");
 
         /// Reference to a torch tensor in memory
         type CrossTensor;

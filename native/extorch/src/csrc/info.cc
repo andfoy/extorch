@@ -1,5 +1,5 @@
-#include "extorch_native/src/native.rs.h"
-#include "extorch_native/include/info.h"
+#include "extorch/src/native.rs.h"
+#include "extorch/include/info.h"
 
 
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)

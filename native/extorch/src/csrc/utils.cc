@@ -1,5 +1,5 @@
-#include "extorch_native/src/native.rs.h"
-#include "extorch_native/include/utils.h"
+#include "extorch/src/native.rs.h"
+#include "extorch/include/utils.h"
 
 
 std::unordered_map<std::string, torch::ScalarType> type_mapping = {
@@ -31,7 +31,6 @@ std::unordered_map<std::string, torch::DeviceType> device_mapping = {
     {"hip", torch::kHIP},
     {"fpga", torch::kFPGA},
     {"vulkan", torch::kVulkan},
-    {"msnpu", torch::kMSNPU},
     {"xla", torch::kXLA}};
 
 std::unordered_map<std::string, torch::Layout> layout_mapping = {
