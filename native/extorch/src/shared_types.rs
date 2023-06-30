@@ -1,32 +1,28 @@
-
 extern crate rustler;
-use std::marker::PhantomData;
 
-use rustler::{Term, Atom};
-use rustler::resource::{ResourceArc, ResourceTypeProvider, ResourceType};
+use rustler::resource::ResourceArc;
 use rustler::NifStruct;
-use rustler::wrapper::NIF_RESOURCE_TYPE;
+use rustler::Term;
 
-use crate::native::{torch};
+use crate::native::torch;
 
 pub struct Reference<'a> {
-    pub reference: Option<Term<'a>>
+    pub reference: Option<Term<'a>>,
 }
 
-impl <'a>Reference<'a> {
+impl<'a> Reference<'a> {
     pub fn new() -> Self {
         Reference { reference: None }
     }
 }
 
 pub struct AtomString {
-    pub name: String
+    pub name: String,
 }
 
 pub struct Size {
-    pub size: Vec<i64>
+    pub size: Vec<i64>,
 }
-
 
 #[derive(NifStruct)]
 #[module = "ExTorch.Tensor.Options"]
@@ -54,5 +50,5 @@ pub struct TensorStruct<'a> {
 pub struct ListWrapper<'a> {
     pub list: Vec<Term<'a>>,
     pub size: Term<'a>,
-    pub dtype: Term<'a>
+    pub dtype: Term<'a>,
 }

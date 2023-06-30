@@ -11,6 +11,6 @@ defmodule ExTorch do
 
   # Native operations
   extends(ExTorch.Native.Tensor.Creation)
-  extends(ExTorch.Native.Tensor.Info)
-  extends(ExTorch.Native.Tensor.Ops)
+  # extends(ExTorch.Native.Tensor.Info)
+  # extends(ExTorch.Native.Tensor.Ops)
 end

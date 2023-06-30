@@ -1,8 +1,8 @@
 #[doc(hidden)]
 #[macro_export]
 macro_rules! call {
-    ($f: path $(, $y:ident : $yt:tt)*) => {
-        make_call!($f, (), ($($y : $yt),*))
+    ($f: path $(, $y:ident : $yt:tt$(<$ext:lifetime>)?)*) => {
+        make_call!($f, (), ($($y : $yt$(<$ext>)?),*))
     };
 }
 
@@ -10,15 +10,18 @@ macro_rules! call {
 #[macro_export]
 macro_rules! make_call {
     ($f: path, ($($args:expr)*), ()) => { $f($($args),*) };
-    ($f: path, ($($args:expr)*), ($x:ident : Size $(, $argsf:ident : $argst:tt)*)) => {
-        make_call!($f, ($($args)* $x.size), ($($argsf : $argst),*))
+    ($f: path, ($($args:expr)*), ($x:ident : TensorStruct<'a> $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($($args)* &$x.resource.tensor), ($($argsf : $argst$(<$ext>)?),*))
     };
-    ($f: path, ($($args:expr)*), ($x:ident : TensorOptions $(, $argsf:ident : $argst:tt)*)) => {
+    ($f: path, ($($args:expr)*), ($x:ident : Size $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($($args)* $x.size), ($($argsf : $argst$(<$ext>)?),*))
+    };
+    ($f: path, ($($args:expr)*), ($x:ident : TensorOptions $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
         make_call!($f, ($($args)* $x.dtype.name $x.layout.name $x.device $x.requires_grad
-                        $x.pin_memory $x.memory_format.name), ($($argsf : $argst),*))
+                        $x.pin_memory $x.memory_format.name), ($($argsf : $argst$(<$ext>)?),*))
     };
-    ($f: path, ($($args:expr)*), ($x:ident : $y:tt $(, $argsf:ident : $argst:tt)*)) => {
-        make_call!($f, ($($args)* $x), ($($argsf : $argst),*))
+    ($f: path, ($($args:expr)*), ($x:ident : $y:tt$(<$ext1:lifetime>)? $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($($args)* $x), ($($argsf : $argst$(<$ext>)?),*))
     };
 }
 
@@ -29,7 +32,7 @@ macro_rules! unpack_arg {
         let $x = unpack_size_init($pos, $env, $args)?;
     };
     ($pos:ident, $env:ident, $args:ident, $x:ident, Scalar) => {
-        let $x = unpack_scalar($pos, $env, $args)?;
+        let $x: torch::Scalar = $args[$pos].decode()?;
     };
     ($pos:ident, $env:ident, $args:ident, $x:ident, TensorOptions) => {
         let $x = unpack_tensor_options($pos, $env, $args)?;
@@ -57,30 +60,6 @@ macro_rules! unpack_args {
         unpack_arg!($pos, $env, $args, $x, $tt);
         $pos += 1;
         unpack_args!($pos, $env, $args, $($y => $yt),+);
-    };
-}
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! wrap_result {
-    ($result:ident, Tensor, $env:ident, $args:ident) => {
-        wrap_tensor($result, $env)
-    };
-    ($result:ident, Device, $env:ident, $args:ident) => {
-        wrap_device($env, $result)
-    };
-    ($result:ident, Size, $env:ident, $args:ident) => {
-        wrap_size($env, $result)
-    };
-    ($result:ident, StrAtom, $env:ident, $args:ident) => {
-        wrap_str_atom($env, $result)
-    };
-    ($result:ident, ListWrapper, $env:ident, $args:ident) => {
-        wrap_list_wrapper($env, $result)
-    };
-    ($result:ident, $ret_type:ident, $env:ident, $args:ident) => {
-        // wrap_device($env, $result)
-        Ok($result.encode($env))
     };
 }
 
@@ -119,11 +98,11 @@ macro_rules! wrap_result {
 ///
 #[macro_export]
 macro_rules! nif_impl {
-    ($func_name:ident, $ret_type:ty $(, $argsf:ident : $argst:tt)*) => {
+    ($func_name:ident, $ret_type:ty $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*) => {
         #[rustler::nif]
-        pub fn $func_name<'a>($($argsf: $argst),*) -> NifResult<$ret_type> {
+        pub fn $func_name<'a>($($argsf: $argst$(<$ext>)?),*) -> NifResult<$ret_type> {
             // unpack_args!($($argsf: $argst),*)
-            let result = call!(torch::$func_name $(, $argsf: $argst)*);
+            let result = call!(torch::$func_name $(, $argsf: $argst$(<$ext>)?)*);
             match result {
                 Ok(res) => {
                     let result_wrapped = Into::<$ret_type>::into(res);
@@ -138,26 +117,6 @@ macro_rules! nif_impl {
                 }
             }
 
-        }
-    };
-    ($func_name:ident, $ret_type:ident, $($argsf:ident => $argst:ident),+) => {
-        #[allow(unused_mut)]
-        pub fn $func_name<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-            let mut pos: usize = 0;
-            unpack_args!(pos, env, args, $($argsf => $argst),+);
-            let result = call!(torch::$func_name, $($argsf => $argst),+);
-            // wrap_tensor(tensor_ref, env, args)
-            wrap_result!(result, $ret_type, env, args)
-        }
-    };
-    ($func_name:ident, $ret_type:ident, $call_path:path, $($argsf:ident => $argst:ident),+) => {
-        #[allow(unused_mut)]
-        pub fn $func_name<'a>(env: Env<'a>, args: &[Term<'a>]) -> Result<Term<'a>, Error> {
-            let mut pos: usize = 0;
-            unpack_args!(pos, env, args, $($argsf => $argst),+);
-            let result = call!($call_path::$func_name, $($argsf => $argst),+);
-            // wrap_tensor(tensor_ref, env, args)
-            wrap_result!(result, $ret_type, env, args)
         }
     };
 }

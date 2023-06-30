@@ -65,6 +65,8 @@ fn main() {
             torch_lib.to_str().unwrap()
         );
 
+        println!("cargo:rustc-link-arg=-Wl,-rpath,{}", torch_lib.to_str().unwrap());
+
         CFG.exported_header_dirs.push(&torch_include_path);
         CFG.exported_header_dirs.push(&inner_torch_include_path);
     } else {

@@ -18,7 +18,7 @@ defmodule ExTorch.Tensor.Options do
 
   defstruct [
     # Type of the tensor reference
-    dtype: :int,
+    dtype: :float64,
 
     # The layout format of the tensor
     layout: :strided,

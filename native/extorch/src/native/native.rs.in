@@ -1,7 +1,5 @@
 extern crate cxx;
 
-use rustler::NifUnitEnum;
-
 /// Native access to libtorch (C++) functions and namespaces.
 /// NOTE: Any change to this file will be overwitten.
 

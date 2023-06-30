@@ -1,17 +1,12 @@
-
 use crate::native::torch;
-use crate::shared_types::{TensorOptions, TensorStruct, Reference, AtomString, Size};
+use crate::shared_types::{AtomString, Size, TensorStruct};
 
-use rustler::{Atom, Env, Error, Term, ResourceArc, NifResult};
+use rustler::{Error, NifResult};
 
-#[rustler::nif]
-fn repr<'a>(tensor: TensorStruct<'a>) -> NifResult<String> {
-    let resource = tensor.resource;
-    let out = torch::repr(&resource.tensor);
-    Ok(out)
-}
-// nif_impl!(size, Size, tensor => Tensor);
-// nif_impl!(device, Device, tensor => Tensor);
-// nif_impl!(dtype, StrAtom, tensor => Tensor);
+// trace_macros!(true);
+nif_impl!(repr, String, tensor: TensorStruct<'a>);
+nif_impl!(size, Size, tensor: TensorStruct<'a>);
+nif_impl!(device, torch::Device, tensor: TensorStruct<'a>);
+nif_impl!(dtype, AtomString, tensor: TensorStruct<'a>);
 // nif_impl!(repr, String, tensor => Tensor);
 // nif_impl!(to_list, ListWrapper, tensor => Tensor);

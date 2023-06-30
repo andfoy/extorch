@@ -7,7 +7,7 @@ defmodule ExTorch.Native.Macros do
   @doc """
   Automatic binding generation.
 
-  This macro allow to define a bindings block under a given `doc_section`
+  This macro allows to define a bindings block under a given `doc_section`
   for a given set of function bindings. All binding declarations should be
   signaled using the `defbinding` function, which recieves the function
   signature, alongside an optional keyword list of parameter transformations
@@ -83,6 +83,8 @@ defmodule ExTorch.Native.Macros do
   """
   defmacro defbindings(doc_section, [{:do, {:__block__, [], args}}]) do
     block = compose_block(args, [], [], doc_section)
+    # :logger.debug("#{Macro.to_string(block)}")
+    # IO.puts(Macro.to_string(block))
     {:__block__, [], block}
   end
 
@@ -124,13 +126,17 @@ defmodule ExTorch.Native.Macros do
     {ret_type, arg_types} = collect_arg_types(func_name, spec, arg_names)
     transforms = assemble_transforms(transforms)
 
+    :logger.debug("-> #{inspect(func_name)} Arg names #{inspect(arg_names)}")
+    :logger.debug("-> #{inspect(func_name)} Arg info #{inspect(arg_info)}")
+    :logger.debug("-> #{inspect(func_name)} Arg types #{inspect(arg_types)}")
+
     [{_, first_arg_optional, _} | _] = arg_info
 
-    {args, kwargs, defaults, first_optional_signatures} =
+    {args, kwargs, derived_kwargs, defaults, first_optional_signatures} =
       case first_arg_optional do
         true ->
           [{first_arg, _, default_value} | other_arg_info] = arg_info
-          {args, kwargs, defaults} = split_args_kwargs(other_arg_info)
+          {args, kwargs, derived_kwargs, defaults} = split_args_kwargs(other_arg_info)
 
           signatures =
             compute_signatures(
@@ -141,19 +147,31 @@ defmodule ExTorch.Native.Macros do
               defaults,
               transforms,
               [default_value],
+              derived_kwargs,
               []
             )
 
           args = [first_arg | args]
-          {args, kwargs, defaults, signatures}
+          {args, kwargs, derived_kwargs, defaults, signatures}
 
         false ->
-          {args, kwargs, defaults} = split_args_kwargs(arg_info)
-          {args, kwargs, defaults, []}
+          {args, kwargs, derived_kwargs, defaults} = split_args_kwargs(arg_info)
+          {args, kwargs, derived_kwargs, defaults, []}
       end
 
+    :logger.info("#{inspect(derived_kwargs)} --> #{inspect(defaults)}")
+
     full_positional_signatures =
-      compute_signatures(func_name, arg_types, args, kwargs, defaults, transforms, [])
+      compute_signatures(
+        func_name,
+        arg_types,
+        args,
+        kwargs,
+        defaults,
+        transforms,
+        derived_kwargs,
+        []
+      )
 
     all_signatures = first_optional_signatures ++ full_positional_signatures
 
@@ -174,6 +192,8 @@ defmodule ExTorch.Native.Macros do
         valid_arity_signatures = compare_and_reduce_signatures(signatures, arg_types)
         to_generate ++ valid_arity_signatures
       end)
+
+    :logger.debug("#{inspect(valid_signatures)}")
 
     arity_docs =
       Enum.reduce(valid_signatures, %{}, fn {sig, _}, acc ->
@@ -278,6 +298,7 @@ defmodule ExTorch.Native.Macros do
             end
         end
 
+      :logger.debug("#{Macro.to_string(body)}")
       body
     end)
   end
@@ -299,12 +320,18 @@ defmodule ExTorch.Native.Macros do
 
     composed_guards =
       guards
-      |> Enum.map(fn {variable, guard} when is_atom(guard) ->
-        guard_call = String.to_atom("is_#{Atom.to_string(guard)}")
+      |> Enum.map(fn
+        {variable, guard} when is_atom(guard) ->
+          guard_call = String.to_atom("is_#{Atom.to_string(guard)}")
 
-        quote do
-          unquote(guard_call)(unquote(Macro.var(variable, nil)))
-        end
+          quote do
+            unquote(guard_call)(unquote(Macro.var(variable, nil)))
+          end
+
+        {variable, {:., _, [struct_alias, :t]}} ->
+          quote do
+            is_struct(unquote(Macro.var(variable, nil)), unquote(struct_alias))
+          end
       end)
       |> Enum.chunk_while([], chunk_fun, after_fun)
 
@@ -387,10 +414,21 @@ defmodule ExTorch.Native.Macros do
          defaults,
          transforms,
          left_args,
+         derived_kwargs,
          signatures
        ) do
     args = left_args ++ args
-    compute_signatures(func_name, arg_types, args, kwargs, defaults, transforms, signatures)
+
+    compute_signatures(
+      func_name,
+      arg_types,
+      args,
+      kwargs,
+      defaults,
+      transforms,
+      derived_kwargs,
+      signatures
+    )
   end
 
   defp compute_signatures(
@@ -400,6 +438,7 @@ defmodule ExTorch.Native.Macros do
          [],
          _,
          {transforms, output_transform},
+         _,
          signatures
        ) do
     valid_args = Enum.filter(args, fn x -> is_atom(x) and Map.has_key?(arg_types, x) end)
@@ -456,24 +495,75 @@ defmodule ExTorch.Native.Macros do
          [kwarg | rest] = kwargs,
          defaults,
          {transforms, output_transform},
+         derived_kwargs,
          signatures
        ) do
     valid_args = Enum.filter(args, fn x -> is_atom(x) and Map.has_key?(arg_types, x) end)
     # defaults_macro = Macro.escape(defaults)
+    :logger.debug("#{inspect(derived_kwargs)}")
+    :logger.debug("#{inspect(defaults)}")
+
     defaults_macro =
-      Enum.map(defaults, fn {k, v} ->
-        {k, v}
+      defaults
+      |> Enum.flat_map(fn {k, v} ->
+        case Map.has_key?(derived_kwargs, k) do
+          true ->
+            %{^k => struct_args} = defaults
+            :logger.debug("^^^^^^ #{inspect(struct_args)}")
+            Enum.into(struct_args, [])
+
+          false ->
+            [{k, v}]
+        end
       end)
+
+    :logger.debug(
+      "#{inspect(kwargs)} ----- #{inspect(arg_types)} ===== #{inspect(derived_kwargs)}"
+    )
 
     defaults_macro = {:%{}, [], defaults_macro}
 
+    :logger.debug("$$$$$$$$$$ #{Macro.to_string(defaults_macro)}")
+
     kwargs_assignment =
       kwargs
-      |> Enum.map(fn kwarg -> {kwarg, Macro.var(kwarg, nil)} end)
+      |> Enum.flat_map(fn kw ->
+        case Map.has_key?(derived_kwargs, kw) do
+          true -> []
+          false -> [{kw, Macro.var(kw, nil)}]
+        end
+      end)
 
-    kwargs_assignment = {:%{}, [], kwargs_assignment}
+
+    # kwargs_assignment = Map.new(kwargs_assignment)
+
     native_module = {:__aliases__, [alias: false], [:ExTorch, :Native]}
     call_unquote = {:., [], [native_module, func_name]}
+
+    deriv_kwarg_unpack =
+      derived_kwargs
+      |> Enum.map(fn {kwarg, struct_name} ->
+          quote do
+            unquote(Macro.var(kwarg, nil)) = struct(unquote(struct_name), unquote(Macro.var(:kwargs, nil)))
+          end
+      end)
+
+    deriv_kwarg_unpack = {:__block__, [], deriv_kwarg_unpack}
+
+    kwarg_unpack =
+      case kwargs_assignment do
+        [] ->
+          nil
+
+        _ ->
+          kwargs_assignment = {:%{}, [], kwargs_assignment}
+
+          quote do
+            unquote(kwargs_assignment) = unquote(Macro.var(:kwargs, nil))
+          end
+      end
+
+    :logger.debug("#{inspect(deriv_kwarg_unpack)}")
 
     args_spec =
       valid_args
@@ -527,16 +617,31 @@ defmodule ExTorch.Native.Macros do
         unquote(Macro.var(:kwargs, nil)) =
           Map.merge(unquote(defaults_macro), unquote(Macro.var(:kwargs, nil)))
 
-        unquote(kwargs_assignment) = unquote(Macro.var(:kwargs, nil))
+        unquote(kwarg_unpack)
+        unquote(deriv_kwarg_unpack)
         unquote(transforms)
         unquote(call)
       end
 
+    :logger.debug("--> #{Macro.to_string(kwarg_body)}")
+
     body =
-      quote do
-        unquote(kwargs_assignment) = unquote(defaults_macro)
-        unquote(transforms)
-        unquote(call)
+      case kwargs_assignment do
+        [] ->
+          quote do
+            unquote(Macro.var(:kwargs, nil)) = unquote(defaults_macro)
+            unquote(deriv_kwarg_unpack)
+            unquote(transforms)
+            unquote(call)
+          end
+        _ ->
+          quote do
+            unquote(Macro.var(:kwargs, nil)) = unquote(defaults_macro)
+            unquote(kwarg_unpack)
+            unquote(deriv_kwarg_unpack)
+            unquote(transforms)
+            unquote(call)
+          end
       end
 
     kwarg_signature = valid_args ++ [:kwargs]
@@ -563,27 +668,42 @@ defmodule ExTorch.Native.Macros do
       rest,
       defaults,
       {transforms, output_transform},
+      derived_kwargs,
       signatures
     )
   end
 
   defp split_args_kwargs(arg_info) do
-    {args, kwargs, defaults} =
+    {args, kwargs, derived_kwargs, defaults} =
       arg_info
       |> Enum.reduce(
-        {[], [], %{}},
+        {[], [], %{}, %{}},
         fn
-          {arg, true, default}, {args, kwargs, default_values} ->
-            {args, [arg | kwargs], Map.put(default_values, arg, default)}
+          {arg, true, {:%, _, [{:__aliases__, _, struct_parts}, {:%{}, _, _}]}},
+          {args, kwargs, derived_kwargs, default_values} ->
+            struct_name =
+              struct_parts
+              |> Enum.reduce(["Elixir"], fn x, acc -> [Atom.to_string(x) | acc] end)
+              |> Enum.reverse()
+              |> Enum.join(".")
+              |> String.to_atom()
 
-          {arg, false, _}, {args, kwargs, default_values} ->
-            {[arg | args], kwargs, default_values}
+            {_, default_struct_values} = Map.pop(struct_name.__struct__, :__struct__)
+
+            {args, [arg | kwargs], Map.put(derived_kwargs, arg, struct_name),
+             Map.put(default_values, arg, default_struct_values)}
+
+          {arg, true, default}, {args, kwargs, derived_kwargs, default_values} ->
+            {args, [arg | kwargs], derived_kwargs, Map.put(default_values, arg, default)}
+
+          {arg, false, _}, {args, kwargs, derived_kwargs, default_values} ->
+            {[arg | args], kwargs, derived_kwargs, default_values}
         end
       )
 
     args = Enum.reverse(args)
     kwargs = Enum.reverse(kwargs)
-    {args, kwargs, defaults}
+    {args, kwargs, derived_kwargs, defaults}
   end
 
   defp collect_function_info([], acc) do

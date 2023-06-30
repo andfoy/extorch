@@ -95,29 +95,39 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
     return tensor_options;
 }
 
+template<typename T>
+T copy_bytes_to_type(const uint8_t* bytes) {
+    T recov;
+    std::copy(reinterpret_cast<const uint8_t*>(&bytes[0]),
+              reinterpret_cast<const uint8_t*>(&bytes[sizeof(uint8_t)]),
+              reinterpret_cast<uint8_t*>(&recov));
+    return recov;
+}
+
 torch::Scalar get_scalar_type(Scalar scalar) {
     auto r_entry_used = scalar.entry_used;
     std::string entry_used(r_entry_used.data(), r_entry_used.size());
 
     torch::Scalar ret_scalar;
+    uint8_t* scalar_ptr = scalar._repr.data();
     if(entry_used == "uint8") {
-        ret_scalar = scalar._ui8;
+        ret_scalar = copy_bytes_to_type<uint8_t>(scalar_ptr);
     } else if(entry_used == "int8") {
-        ret_scalar = scalar._i8;
+        ret_scalar = copy_bytes_to_type<int8_t>(scalar_ptr);
     } else if (entry_used == "int16") {
-        ret_scalar = scalar._i16;
+        ret_scalar = copy_bytes_to_type<int16_t>(scalar_ptr);
     } else if (entry_used == "int32") {
-        ret_scalar = scalar._i32;
+        ret_scalar = copy_bytes_to_type<int32_t>(scalar_ptr);
     } else if (entry_used == "int64") {
-        ret_scalar = scalar._i64;
+        ret_scalar = copy_bytes_to_type<int64_t>(scalar_ptr);
     } else if (entry_used == "float16") {
-        ret_scalar = scalar._f16;
+        ret_scalar = copy_bytes_to_type<float>(scalar_ptr);
     } else if (entry_used == "float32") {
-        ret_scalar = scalar._f32;
+        ret_scalar = copy_bytes_to_type<float>(scalar_ptr);
     } else if (entry_used == "float64") {
-        ret_scalar = scalar._f64;
+        ret_scalar = copy_bytes_to_type<double>(scalar_ptr);
     } else if (entry_used == "bool") {
-        ret_scalar = scalar._bool;
+        ret_scalar = scalar_ptr[0];
     }
     return ret_scalar;
 }

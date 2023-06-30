@@ -57,39 +57,44 @@ Scalar pack_scalar(scalar_t scalar, torch::ScalarType type) {
     Scalar scalar_s;
     std::string identifier = "float32";
     if(type == torch::ScalarType::Bool) {
-        scalar_s._bool = (bool) scalar;
+        // scalar_s._bool = (bool) scalar;
         identifier = "bool";
     } else if(type == torch::ScalarType::Byte) {
-        scalar_s._ui8 = scalar;
+        // scalar_s._ui8 = scalar;
         identifier = "uint8";
     } else if(type == torch::ScalarType::Char) {
-        scalar_s._i8 = scalar;
+        // scalar_s._i8 = scalar;
         identifier = "int8";
     } else if(type == torch::ScalarType::Short) {
-        scalar_s._i16 = scalar;
+        // scalar_s._i16 = scalar;
         identifier = "int16";
     } else if(type == torch::ScalarType::Int) {
-        scalar_s._i32 = scalar;
+        // scalar_s._i32 = scalar;
         identifier = "int32";
     } else if(type == torch::ScalarType::Long) {
-        scalar_s._i64 = scalar;
+        // scalar_s._i64 = scalar;
         identifier = "int64";
     } else if(type == torch::ScalarType::Half) {
-        scalar_s._f16 = (float) scalar;
+        // scalar_s._f16 = (float) scalar;
         identifier = "float32";
     } else if(type == torch::ScalarType::Float) {
-        scalar_s._f32 = scalar;
+        // scalar_s._f32 = scalar;
         identifier = "float32";
     } else if(type == torch::ScalarType::Double) {
-        scalar_s._f64 = scalar;
+        // scalar_s._f64 = scalar;
         identifier = "float64";
     } else if(type == torch::ScalarType::Double) {
-        scalar_s._f64 = scalar;
+        // scalar_s._f64 = scalar;
         identifier = "float64";
     }
 
+    auto scalar_repr = static_cast<uint8_t*>(static_cast<void*>(&scalar));
+    rust::Vec<uint8_t> vec_repr;
+    std::copy(scalar_repr, scalar_repr + sizeof(scalar_t), std::back_inserter(vec_repr));
+
     rust::string entry_used(identifier.data(), identifier.size());
     scalar_s.entry_used = entry_used;
+    scalar_s._repr = vec_repr;
     return scalar_s;
 }
 

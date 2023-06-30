@@ -17,18 +17,16 @@
 // #![feature(trace_macros)]
 #[macro_use]
 mod macros;
-mod native;
-mod shared_types;
-mod nifs;
 mod encoding;
+mod native;
+mod nifs;
+mod shared_types;
 
+#[doc(hidden)]
+pub use crate::native::torch;
 use crate::nifs::*;
-use crate::shared_types::TensorStruct;
-pub use crate::native::torch; #[doc(hidden)]
-
-
-use rustler::{Term, Env};
-
+pub use crate::shared_types::TensorStruct;
+use rustler::{Env, Term};
 
 fn load(env: Env, _: Term) -> bool {
     rustler::resource!(torch::CrossTensorRef, env);
@@ -40,4 +38,22 @@ fn add(a: i64, b: i64) -> i64 {
     a + b
 }
 
-rustler::init!("Elixir.ExTorch.Native", [add, empty, repr], load = load);
+rustler::init!(
+    "Elixir.ExTorch.Native",
+    [
+        add,
+        repr,
+        size,
+        device,
+        dtype,
+        empty,
+        zeros,
+        ones,
+        rand,
+        randn,
+        randint,
+        full,
+        eye
+    ],
+    load = load
+);

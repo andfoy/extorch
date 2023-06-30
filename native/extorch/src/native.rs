@@ -1,7 +1,5 @@
 extern crate cxx;
 
-use rustler::NifUnitEnum;
-
 /// Native access to libtorch (C++) functions and namespaces.
 /// NOTE: Any change to this file will be overwitten.
 
@@ -56,16 +54,8 @@ struct Device {
 
 /// Scalar number representation
 struct Scalar {
-    _ui8: u8,
-    _i8: i8,
-    _i16: i16,
-    _i32: i32,
-    _i64: i64,
-    _f16: f32,
-    _f32: f32,
-    _f64: f64,
-    _bool: bool,
-    entry_used: String,
+    _repr: Vec<u8>,
+    entry_used: String
 }
 
 struct ScalarList {
@@ -85,19 +75,19 @@ struct ScalarList {
         // Tensor attribute access
         
 /// Get the size of a tensor
-fn size(tensor: &SharedPtr<CrossTensor>) -> &'static [i64];
+fn size(tensor: &SharedPtr<CrossTensor>) -> Result<&'static [i64]>;
 
 /// Get the type of a tensor
-fn dtype(tensor: &SharedPtr<CrossTensor>) -> String;
+fn dtype(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
 
 /// Get the device where the tensor lives on
-fn device(tensor: &SharedPtr<CrossTensor>) -> Device;
+fn device(tensor: &SharedPtr<CrossTensor>) -> Result<Device>;
 
 /// Get a string representation of a tensor
-fn repr(tensor: &SharedPtr<CrossTensor>) -> String;
+fn repr(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
 
 /// Convert a tensor into a list
-fn to_list(tensor: &SharedPtr<CrossTensor>) -> ScalarList;
+fn to_list(tensor: &SharedPtr<CrossTensor>) -> Result<ScalarList>;
 
 
         // Tensor operations
