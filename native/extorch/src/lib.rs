@@ -53,7 +53,11 @@ rustler::init!(
         randn,
         randint,
         full,
-        eye
+        eye,
+        arange,
+        linspace,
+        logspace,
+        tensor
     ],
     load = load
 );
