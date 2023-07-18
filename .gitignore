@@ -41,5 +41,6 @@ target/
 **/*.rs.bk
 
 /native/extorch_native/src/native.rs
+/native/extorch/src/native/native.rs.sum
 
 /priv/native/libtorch/

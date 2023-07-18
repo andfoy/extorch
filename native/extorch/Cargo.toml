@@ -20,3 +20,4 @@ cxx = "1.0.97"
 [build-dependencies]
 cxx-build = {version = "1.0.97", features = ["parallel"]}
 tera = "1.19.0"
+rustc-hash = "1.1.0"

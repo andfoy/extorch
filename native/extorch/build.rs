@@ -1,9 +1,12 @@
 use cxx_build::CFG;
 use std::env;
 use std::fs;
+use std::hash::Hasher;
 use std::path::Path;
 use std::process::Command;
 use std::str;
+
+use rustc_hash::FxHasher;
 use tera::{Context, Tera};
 
 fn command_ok(cmd: &mut Command) -> bool {
@@ -18,17 +21,10 @@ fn command_output(cmd: &mut Command) -> String {
 }
 
 fn main() {
-    // let mut torch_include_path = env::current_dir().unwrap();
-    // let mut inner_torch_include_path = env::current_dir().unwrap();
-    // let mut torch_lib = env::current_dir().unwrap();
     println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-changed=src/csrc");
     println!("cargo:rerun-if-changed=src/native");
     println!("cargo:rerun-if-changed=src/nifs.rs");
-    println!("cargo:rerun-if-changed=src/conversion.rs");
-    println!("cargo:rerun-if-changed=src/conversion/scalar_types.rs");
-    // println!("cargo:rerun-if-changed=src/wrapper.cc");
-    // println!("cargo:rerun-if-changed=include/wrapper.h");
 
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let template_path = Path::new(&manifest_dir)
@@ -36,6 +32,7 @@ fn main() {
         .join("native")
         .join("**")
         .join("*.rs.in");
+
     let tera = match Tera::new(template_path.to_str().unwrap()) {
         Ok(t) => t,
         Err(e) => {
@@ -46,13 +43,31 @@ fn main() {
 
     let context = Context::new();
     let rendering = tera.render("native.rs.in", &context).unwrap();
+    let native_hash = Path::new(&manifest_dir)
+        .join("src")
+        .join("native")
+        .join("native.rs.sum");
 
-    let ref path = Path::new(&manifest_dir).join("src").join("native.rs");
-    fs::write(path, rendering).unwrap();
+    let hash = match fs::read_to_string(native_hash.clone()) {
+        Ok(hash) => hash.parse::<u64>().unwrap(),
+        Err(_) => 0,
+    };
+
+    let mut hasher = FxHasher::default();
+    hasher.write(rendering.as_bytes());
+    let cur_hash = hasher.finish();
+
+    if hash != cur_hash {
+        let ref path = Path::new(&manifest_dir).join("src").join("native.rs");
+        fs::write(path, rendering).unwrap();
+        fs::write(native_hash, cur_hash.to_string()).unwrap();
+    }
 
     let ref libtorch_path = Path::new(&manifest_dir)
-        .parent().unwrap()
-        .parent().unwrap()
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
         .join("priv")
         .join("native")
         .join("libtorch");
@@ -65,7 +80,10 @@ fn main() {
             torch_lib.to_str().unwrap()
         );
 
-        println!("cargo:rustc-link-arg=-Wl,-rpath,{}", torch_lib.to_str().unwrap());
+        println!(
+            "cargo:rustc-link-arg=-Wl,-rpath,{}",
+            torch_lib.to_str().unwrap()
+        );
 
         CFG.exported_header_dirs.push(&torch_include_path);
         CFG.exported_header_dirs.push(&inner_torch_include_path);
