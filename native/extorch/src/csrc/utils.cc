@@ -98,8 +98,8 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
 template<typename T>
 T copy_bytes_to_type(const uint8_t* bytes) {
     T recov;
-    std::copy(reinterpret_cast<const uint8_t*>(&bytes[0]),
-              reinterpret_cast<const uint8_t*>(&bytes[sizeof(uint8_t)]),
+    std::copy(reinterpret_cast<const uint8_t*>(bytes),
+              reinterpret_cast<const uint8_t*>(bytes + sizeof(T)),
               reinterpret_cast<uint8_t*>(&recov));
     return recov;
 }

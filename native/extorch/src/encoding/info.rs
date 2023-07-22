@@ -109,6 +109,10 @@ trait EncodeTorchScalar<'a>: Decoder<'a> {
     fn encode_scalar(term: Term<'a>) -> NifResult<torch::Scalar>;
 }
 
+trait DecodeTorchScalar: Encoder {
+    fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a>;
+}
+
 impl<'a> EncodeTorchScalar<'a> for bool {
     fn encode_scalar(term: Term<'a>) -> NifResult<torch::Scalar> {
         let bool_value: NifResult<bool> = term.decode();
@@ -123,6 +127,14 @@ impl<'a> EncodeTorchScalar<'a> for bool {
             }
             Err(err) => Err(err),
         }
+    }
+}
+
+impl DecodeTorchScalar for bool {
+    fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
+        let value = scalar._repr.get(0).unwrap();
+        let bool_value = *value != 0u8;
+        bool_value.encode(env)
     }
 }
 
@@ -143,6 +155,14 @@ macro_rules! impl_scalar_for_types {
                         },
                         Err(err) => Err(err)
                     }
+                }
+            }
+
+            impl DecodeTorchScalar for $t {
+                fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
+                    let slice = &scalar._repr[..];
+                    let value = <$t>::from_ne_bytes(slice.try_into().unwrap());
+                    value.encode(env)
                 }
             }
         )*
@@ -194,18 +214,87 @@ impl<'a> Decoder<'a> for torch::Scalar {
     }
 }
 
+impl Encoder for torch::Scalar {
+    fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
+        match self.entry_used.as_str() {
+            "bool" => bool::decode_scalar(self, env),
+            "int8" => i8::decode_scalar(self, env),
+            "int16" => i16::decode_scalar(self, env),
+            "int32" => i32::decode_scalar(self, env),
+            "int64" => i64::decode_scalar(self, env),
+            "uint8" => u8::decode_scalar(self, env),
+            "uint16" => u16::decode_scalar(self, env),
+            "uint32" => u32::decode_scalar(self, env),
+            "uint64" => u64::decode_scalar(self, env),
+            "float32" => f32::decode_scalar(self, env),
+            "float64" => f64::decode_scalar(self, env),
+            &_ => Atom::from_str(env, "not_converted").unwrap().encode(env),
+        }
+    }
+}
+
+fn decode_coerced_scalar<'a>(term: Term<'a>, coerce_dtype: &String) -> NifResult<torch::Scalar> {
+    match coerce_dtype.as_str() {
+        "bool" => bool::encode_scalar(term),
+        "int8" => i8::encode_scalar(term),
+        "int16" => i16::encode_scalar(term),
+        "int32" => i32::encode_scalar(term),
+        "int64" => i64::encode_scalar(term),
+        "uint8" => u8::encode_scalar(term),
+        "uint16" => u16::encode_scalar(term),
+        "uint32" => u32::encode_scalar(term),
+        "uint64" => u64::encode_scalar(term),
+        "float32" => f32::encode_scalar(term),
+        "float64" => f64::encode_scalar(term),
+        &_ => Err(Error::RaiseAtom("not_converted")),
+    }
+}
+
 impl<'a> Decoder<'a> for torch::ScalarList {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         let list_wrapper: ListWrapper<'a> = term.decode()?;
+        let dtype: String = list_wrapper.dtype.atom_to_string()?;
         let scalar_vec: Vec<torch::Scalar> = list_wrapper
             .list
             .iter()
-            .map(|x| x.decode::<torch::Scalar>().unwrap())
+            .map(|x| decode_coerced_scalar(*x, &dtype).unwrap())
             .collect();
         let size: Size = list_wrapper.size.decode()?;
         Ok(Self {
             list: scalar_vec,
-            size: size.size
+            size: size.size,
         })
+    }
+}
+
+impl Encoder for torch::ScalarList {
+    fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
+        let mut dim_count: i64 = 0;
+        let mut cur_parent: Vec<Term<'a>> = Vec::new();
+
+        let mut in_stack: Vec<Term<'a>> = self.list.iter().map(|x| x.encode(env)).collect();
+        let mut out_stack: Vec<Term<'a>> = Vec::new();
+
+        for dim_size in self.size.iter().rev() {
+            for term in &in_stack[..] {
+                cur_parent.push(*term);
+                dim_count = dim_count + 1;
+                cur_parent = match dim_count == *dim_size {
+                    true => {
+                        dim_count = 0;
+                        out_stack.push(cur_parent.encode(env));
+                        Vec::<Term<'a>>::new()
+                    }
+                    false => cur_parent,
+                }
+            }
+            in_stack = out_stack;
+            out_stack = Vec::new();
+        }
+
+        match in_stack.get(0) {
+            Some(val) => val.encode(env),
+            None => in_stack.encode(env),
+        }
     }
 }

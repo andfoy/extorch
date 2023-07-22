@@ -1,7 +1,6 @@
-use crate::conversion::wrap_tensor;
-pub use crate::native::torch;
+use crate::native::torch;
 use crate::shared_types::TensorStruct;
 
-use rustler::{Env, Error, Term};
+use rustler::{Error, NifResult};
 
-nif_impl!(unsqueeze, Tensor, tensor => Tensor, dim => i64);
+nif_impl!(unsqueeze, TensorStruct<'a>, tensor: TensorStruct<'a>, dim: i64);

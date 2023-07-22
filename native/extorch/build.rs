@@ -112,6 +112,7 @@ fn main() {
         .file("src/csrc/wrapper.cc")
         .file("src/csrc/utils.cc")
         .file("src/csrc/creation.cc")
+        .file("src/csrc/manipulation.cc")
         .file("src/csrc/info.cc")
         // .flag_if_supported("-std=c++17")
         .flag_if_supported("-std=gnu++14")

@@ -111,7 +111,7 @@ ScalarList to_list(const std::shared_ptr<CrossTensor> &tensor) {
     auto numel = cross_tensor.numel();
 
     rust::Vec<Scalar> scalar_list;
-    AT_DISPATCH_ALL_TYPES_AND(torch::ScalarType::Half,
+    AT_DISPATCH_ALL_TYPES_AND2(torch::ScalarType::Half, torch::ScalarType::Bool,
         cross_tensor.scalar_type(), "to_list", [&] {
             auto data_ptr = conv_tensor.data_ptr<scalar_t>();
             for(int64_t i = 0; i < numel; i++) {

@@ -57,7 +57,9 @@ rustler::init!(
         arange,
         linspace,
         logspace,
-        tensor
+        tensor,
+        to_list,
+        unsqueeze
     ],
     load = load
 );

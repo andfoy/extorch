@@ -9,7 +9,7 @@ defmodule ExTorch.Native do
   """
   use ExTorch.Native.Tensor.Creation
   use ExTorch.Native.Tensor.Info
-  use ExTorch.Native.Tensor.Ops
+  use ExTorch.Native.Tensor.Ops.Manipulation
 
   use Rustler, otp_app: :extorch, crate: "extorch", env: [{"CARGO_TERM_VERBOSE", "true"}]
 
