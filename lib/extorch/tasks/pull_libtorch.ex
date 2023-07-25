@@ -32,7 +32,7 @@ defmodule Mix.Tasks.PullLibTorch do
     end
   end
 
-  defp download_libtorch(version, cuda_versions, out_folder) do
+  defp download_libtorch(version, cuda_versions, out_folder, nightly) do
     :inets.start()
     :ssl.start()
 
@@ -65,27 +65,37 @@ defmodule Mix.Tasks.PullLibTorch do
       end
 
     url =
-      ~c"https://download.pytorch.org/libtorch/#{dist_str}/libtorch-shared-with-deps-#{version}%2B#{dist_str}.zip"
+      case nightly do
+        true ->
+          ~c"https://download.pytorch.org/libtorch/nightly/#{dist_str}/libtorch-shared-with-deps-#{version}.zip"
+
+        false ->
+          ~c"https://download.pytorch.org/libtorch/#{dist_str}/libtorch-shared-with-deps-#{version}%2B#{dist_str}.zip"
+      end
 
     IO.puts("Downloading #{url} to #{out_folder}")
     libtorch_path = Path.join(out_folder, "libtorch.zip")
 
     {:ok, :saved_to_file} =
-      :httpc.request(:get, {url, []}, [],
-        stream: String.to_charlist(libtorch_path)
-      )
+      :httpc.request(:get, {url, []}, [], stream: String.to_charlist(libtorch_path))
 
     IO.puts("Success!")
     IO.puts("Extracting library")
-    {:ok, _} = :zip.extract(
-      String.to_charlist(libtorch_path),
-      [{:cwd, String.to_charlist(out_folder)}, :verbose])
+
+    {:ok, _} =
+      :zip.extract(
+        String.to_charlist(libtorch_path),
+        [{:cwd, String.to_charlist(out_folder)}, :verbose]
+      )
 
     File.rm(libtorch_path)
   end
 
   @shortdoc "Download libtorch into the current extorch priv directory"
-  def run(_) do
+  def run(args) do
+    {parsed, _, _} =
+      OptionParser.parse(args, strict: [version: :string, cuda: :string, nightly: :boolean])
+
     folder = to_string(:code.priv_dir(:extorch))
 
     folder =
@@ -97,6 +107,40 @@ defmodule Mix.Tasks.PullLibTorch do
     cuda_versions = Keyword.get(config, :libtorch_cuda_versions)
     libtorch_loc = Path.join(folder, "libtorch")
 
+    nightly = Keyword.get(parsed, :nightly, false)
+
+    {version, nightly} =
+      case nightly do
+        true -> {"latest", nightly}
+        false ->
+          ver = Keyword.get(parsed, :version, version)
+          case ver do
+            "latest" -> {"latest", true}
+            "nightly" -> {"latest", true}
+            _ -> {ver, false}
+          end
+      end
+
+    cuda_versions = Keyword.get(parsed, :cuda, cuda_versions)
+
+    cuda_versions =
+      case cuda_versions do
+        [_ | _] ->
+          cuda_versions
+
+        _ ->
+          tuple_ver =
+            cuda_versions
+            |> String.split(".")
+            |> Enum.map(fn x ->
+              {num, _} = Integer.parse(x)
+              num
+            end)
+            |> List.to_tuple()
+
+          [tuple_ver]
+      end
+
     case File.exists?(libtorch_loc) do
       true ->
         IO.puts("libtorch already exists!")
@@ -104,7 +148,7 @@ defmodule Mix.Tasks.PullLibTorch do
 
       false ->
         IO.puts("Attempting to download libtorch v#{version}")
-        download_libtorch(version, cuda_versions, folder)
+        download_libtorch(version, cuda_versions, folder, nightly)
     end
   end
 end
