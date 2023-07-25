@@ -124,6 +124,10 @@ fn main() {
     // TODO: See why Cargo is not linking against libtorch directly
     println!("cargo:rustc-link-lib=dylib=torch");
     println!("cargo:rustc-link-lib=dylib=torch_cpu");
-    println!("cargo:rustc-link-lib=dylib=torch_cuda");
     println!("cargo:rustc-link-lib=dylib=c10");
+
+    if command_ok(Command::new("nvcc").arg("--version")) {
+        println!("cargo:rustc-link-lib=dylib=torch_cuda");
+
+    }
 }
