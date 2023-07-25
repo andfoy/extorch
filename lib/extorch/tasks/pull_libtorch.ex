@@ -16,11 +16,17 @@ defmodule Mix.Tasks.PullLibTorch do
                     {minor, _} -> {:cuda, {major, minor}}
                     :error -> version
                   end
-                :error -> version
+
+                :error ->
+                  version
               end
-            nil -> version
+
+            nil ->
+              version
           end
+
         get_cuda_version(port, ref, version)
+
       {:DOWN, ^ref, :port, ^port, _} ->
         version
     end
@@ -37,6 +43,7 @@ defmodule Mix.Tasks.PullLibTorch do
       case nvcc do
         nil ->
           {:cpu, nil}
+
         _ ->
           p = Port.open({:spawn_executable, nvcc}, [:binary, args: ["--version"]])
           r = Port.monitor(p)
@@ -48,6 +55,7 @@ defmodule Mix.Tasks.PullLibTorch do
         {:cpu, nil} ->
           IO.puts("No CUDA installation was detected, resorting to CPU")
           "cpu"
+
         {:cuda, cu_version} ->
           {major, minor} = cu_version
           IO.puts("CUDA version detected: #{major}.#{minor}")
@@ -56,16 +64,30 @@ defmodule Mix.Tasks.PullLibTorch do
           "cu#{major}#{minor}"
       end
 
-    url = ~c"https://download.pytorch.org/libtorch/#{dist_str}/libtorch-shared-with-deps-#{version}%2B#{dist_str}.zip"
-    IO.puts("Downloading #{url} to #{out_folder}")
-    {:ok, :saved_to_file} = :httpc.request(:get, {url, []}, [], [stream: String.to_charlist(Path.join(out_folder, "libtorch.zip"))])
-    IO.puts("Success!")
+    url =
+      ~c"https://download.pytorch.org/libtorch/#{dist_str}/libtorch-shared-with-deps-#{version}%2B#{dist_str}.zip"
 
+    IO.puts("Downloading #{url} to #{out_folder}")
+    libtorch_path = Path.join(out_folder, "libtorch.zip")
+
+    {:ok, :saved_to_file} =
+      :httpc.request(:get, {url, []}, [],
+        stream: String.to_charlist(libtorch_path)
+      )
+
+    IO.puts("Success!")
+    IO.puts("Extracting library")
+    {:ok, _} = :zip.extract(
+      String.to_charlist(libtorch_path),
+      [{:cwd, String.to_charlist(out_folder)}, :verbose])
+
+    File.rm(libtorch_path)
   end
 
   @shortdoc "Download libtorch into the current extorch priv directory"
   def run(_) do
     folder = to_string(:code.priv_dir(:extorch))
+
     folder =
       folder
       |> Path.join("native")
@@ -79,6 +101,7 @@ defmodule Mix.Tasks.PullLibTorch do
       true ->
         IO.puts("libtorch already exists!")
         :ok
+
       false ->
         IO.puts("Attempting to download libtorch v#{version}")
         download_libtorch(version, cuda_versions, folder)
