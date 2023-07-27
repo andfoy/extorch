@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.toml": "toml",
         "iostream": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
@@ -64,7 +65,10 @@
         "typeindex": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "csignal": "cpp",
+        "regex": "cpp",
+        "shared_mutex": "cpp"
     },
     "rust-analyzer.linkedProjects": ["native/extorch/Cargo.toml"]
 }

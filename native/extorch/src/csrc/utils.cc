@@ -3,7 +3,7 @@
 
 
 std::unordered_map<std::string, torch::ScalarType> type_mapping = {
-    {"int", torch::kI32},
+    {"int", torch::kInt},
     {"int8", torch::kI8},
     {"int16", torch::kI16},
     {"int32", torch::kI32},
@@ -20,10 +20,28 @@ std::unordered_map<std::string, torch::ScalarType> type_mapping = {
     {"short", torch::kShort},
     {"double", torch::kDouble},
     {"long", torch::kLong},
+    {"complex_half", torch::kComplexHalf},
+    {"complex_float", torch::kComplexFloat},
+    {"complex_double", torch::kComplexDouble},
     {"complex32", torch::kComplexHalf},
     {"complex64", torch::kComplexFloat},
     {"complex128", torch::kComplexDouble},
     {"bool", torch::kBool}};
+
+std::unordered_map<torch::ScalarType, std::string> inv_type_mapping = {
+    {torch::kBool, "bool"},
+    {torch::kByte, "byte"},
+    {torch::kShort, "short"},
+    {torch::kInt, "int"},
+    {torch::kLong, "long"},
+    {torch::kShort, "short"},
+    {torch::kHalf, "half"},
+    {torch::kFloat, "float"},
+    {torch::kDouble, "double"},
+    {torch::kComplexHalf, "complex_half"},
+    {torch::kComplexFloat, "complex_float"},
+    {torch::kComplexDouble, "complex_double"},
+};
 
 std::unordered_map<std::string, torch::DeviceType> device_mapping = {
     {"cpu", torch::kCPU},

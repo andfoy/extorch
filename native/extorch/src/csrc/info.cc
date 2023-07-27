@@ -13,15 +13,9 @@ rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
 rust::String dtype(const std::shared_ptr<CrossTensor> &tensor)
 {
     CrossTensor cross_tensor = *tensor.get();
-    auto type = cross_tensor.dtype();
-    auto it = std::find_if(
-        type_mapping.begin(), type_mapping.end(),
-        [&type](const std::pair<std::string, torch::ScalarType> &p) {
-            return p.second == type;
-        });
-    auto type_name = it->first;
+    auto type = cross_tensor.dtype().toScalarType();
+    auto type_name = inv_type_mapping[type];
     rust::String type_rust(type_name.data(), type_name.size());
-    // rust::Slice<const int64_t> slice{sizes.data(), sizes.size()};
     return type_rust;
 }
 

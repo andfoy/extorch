@@ -54,6 +54,6 @@ jobs:
               shell: bash -l {0}
               run: bash -l .github/scripts/test_extorch.sh
             # Enable this if SSH debugging is required
-            - name: Setup tmate session
-              if: ${{ failure() }}
-              uses: mxschmitt/action-tmate@v3
+            # - name: Setup tmate session
+            #   if: ${{ failure() }}
+            #   uses: mxschmitt/action-tmate@v3

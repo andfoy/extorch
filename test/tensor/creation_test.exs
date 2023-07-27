@@ -248,7 +248,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "eye/3 with kwargs" do
     tensor = ExTorch.eye(3, 5, dtype: :int32, requires_grad: false)
     assert tensor.size == {3, 5}
-    assert tensor.dtype == :int32
+    assert tensor.dtype == :int
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -356,7 +356,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "tensor/1 with int32" do
     tensor = ExTorch.tensor([[[6, 1, 2], [3, 4, 5], [6, 7, 8]], [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]])
     assert tensor.size == {2, 3, 3}
-    assert tensor.dtype == :int32
+    assert tensor.dtype == :int
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -365,7 +365,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "tensor/1 with float32" do
     tensor = ExTorch.tensor([[[6, 1, 2], [3, 4, 5], [6, 7, 8]], [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]], dtype: :float32)
     assert tensor.size == {2, 3, 3}
-    assert tensor.dtype == :float32
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size

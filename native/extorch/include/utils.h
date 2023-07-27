@@ -1,6 +1,7 @@
 #include "common.h"
 
 extern std::unordered_map<std::string, torch::ScalarType> type_mapping;
+extern std::unordered_map<torch::ScalarType, std::string> inv_type_mapping;
 extern std::unordered_map<std::string, torch::DeviceType> device_mapping;
 extern std::unordered_map<std::string, torch::Layout> layout_mapping;
 extern std::unordered_map<std::string, torch::MemoryFormat> memory_fmt_mapping;
