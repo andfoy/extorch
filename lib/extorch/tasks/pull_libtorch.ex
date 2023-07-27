@@ -4,14 +4,15 @@ defmodule Mix.Tasks.PullLibTorch do
 
   @cuda_regex ~r".*release ((\d+).(\d+)).*"
 
-  defp version_parts_parsing([], acc_version, _) do
+  defp parse_version_parts([], acc_version, _) do
     List.to_tuple(Enum.reverse(acc_version))
   end
 
-  defp version_parts_parsing([part|rest], acc_version, def_version) do
+  defp parse_version_parts([part | rest], acc_version, def_version) do
     case Integer.parse(part) do
       {parsed_part, _} ->
-        version_parts_parsing(rest, [parsed_part | acc_version], def_version)
+        parse_version_parts(rest, [parsed_part | acc_version], def_version)
+
       :error ->
         def_version
     end
@@ -19,7 +20,8 @@ defmodule Mix.Tasks.PullLibTorch do
 
   defp parse_version(version_str, version) do
     case Regex.run(@cuda_regex, version_str) do
-      [_, _ | version_parts] -> version_parts_parsing(version_parts, [], version)
+      [_, _ | version_parts] ->
+        parse_version_parts(version_parts, [], version)
 
       nil ->
         version
@@ -114,6 +116,7 @@ defmodule Mix.Tasks.PullLibTorch do
 
   defp get_cuda_versions(parsed, cuda_versions) do
     cuda_versions = Keyword.get(parsed, :cuda, cuda_versions)
+
     case cuda_versions do
       [_ | _] ->
         cuda_versions
