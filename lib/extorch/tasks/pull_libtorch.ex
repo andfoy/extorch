@@ -4,27 +4,32 @@ defmodule Mix.Tasks.PullLibTorch do
 
   @cuda_regex ~r".*release ((\d+).(\d+)).*"
 
+  defp version_parts_parsing([], acc_version, _) do
+    List.to_tuple(Enum.reverse(acc_version))
+  end
+
+  defp version_parts_parsing([part|rest], acc_version, def_version) do
+    case Integer.parse(part) do
+      {parsed_part, _} ->
+        version_parts_parsing(rest, [parsed_part | acc_version], def_version)
+      :error ->
+        def_version
+    end
+  end
+
+  defp parse_version(version_str, version) do
+    case Regex.run(@cuda_regex, version_str) do
+      [_, _ | version_parts] -> version_parts_parsing(version_parts, [], version)
+
+      nil ->
+        version
+    end
+  end
+
   defp get_cuda_version(port, ref, version) do
     receive do
       {^port, {:data, out}} ->
-        version =
-          case Regex.run(@cuda_regex, out) do
-            [_, _, major, minor] ->
-              case Integer.parse(major) do
-                {major, _} ->
-                  case Integer.parse(minor) do
-                    {minor, _} -> {:cuda, {major, minor}}
-                    :error -> version
-                  end
-
-                :error ->
-                  version
-              end
-
-            nil ->
-              version
-          end
-
+        version = parse_version(out, version)
         get_cuda_version(port, ref, version)
 
       {:DOWN, ^ref, :port, ^port, _} ->
@@ -91,6 +96,42 @@ defmodule Mix.Tasks.PullLibTorch do
     File.rm(libtorch_path)
   end
 
+  defp get_version_and_nightly(parsed, version, nightly) do
+    case nightly do
+      true ->
+        {"latest", nightly}
+
+      false ->
+        ver = Keyword.get(parsed, :version, version)
+
+        case ver do
+          "latest" -> {"latest", true}
+          "nightly" -> {"latest", true}
+          _ -> {ver, false}
+        end
+    end
+  end
+
+  defp get_cuda_versions(parsed, cuda_versions) do
+    cuda_versions = Keyword.get(parsed, :cuda, cuda_versions)
+    case cuda_versions do
+      [_ | _] ->
+        cuda_versions
+
+      _ ->
+        tuple_ver =
+          cuda_versions
+          |> String.split(".")
+          |> Enum.map(fn x ->
+            {num, _} = Integer.parse(x)
+            num
+          end)
+          |> List.to_tuple()
+
+        [tuple_ver]
+    end
+  end
+
   @shortdoc "Download libtorch into the current extorch priv directory"
   def run(args) do
     {parsed, _, _} =
@@ -109,37 +150,8 @@ defmodule Mix.Tasks.PullLibTorch do
 
     nightly = Keyword.get(parsed, :nightly, false)
 
-    {version, nightly} =
-      case nightly do
-        true -> {"latest", nightly}
-        false ->
-          ver = Keyword.get(parsed, :version, version)
-          case ver do
-            "latest" -> {"latest", true}
-            "nightly" -> {"latest", true}
-            _ -> {ver, false}
-          end
-      end
-
-    cuda_versions = Keyword.get(parsed, :cuda, cuda_versions)
-
-    cuda_versions =
-      case cuda_versions do
-        [_ | _] ->
-          cuda_versions
-
-        _ ->
-          tuple_ver =
-            cuda_versions
-            |> String.split(".")
-            |> Enum.map(fn x ->
-              {num, _} = Integer.parse(x)
-              num
-            end)
-            |> List.to_tuple()
-
-          [tuple_ver]
-      end
+    {version, nightly} = get_version_and_nightly(parsed, version, nightly)
+    cuda_versions = get_cuda_versions(parsed, cuda_versions)
 
     case File.exists?(libtorch_loc) do
       true ->

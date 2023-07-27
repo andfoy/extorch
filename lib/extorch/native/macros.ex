@@ -406,6 +406,52 @@ defmodule ExTorch.Native.Macros do
     |> Enum.reverse()
   end
 
+  defp asm_defaults_macro(defaults, derived_kwargs) do
+    defaults
+      |> Enum.flat_map(fn {k, v} ->
+        case Map.has_key?(derived_kwargs, k) do
+          true ->
+            %{^k => struct_args} = defaults
+            :logger.debug("^^^^^^ #{inspect(struct_args)}")
+            Enum.into(struct_args, [])
+
+          false ->
+            [{k, v}]
+        end
+      end)
+  end
+
+  defp asm_call_macro(func_name, args, kwargs, output_transform) do
+    native_module = {:__aliases__, [alias: false], [:ExTorch, :Native]}
+    call_unquote = {:., [], [native_module, func_name]}
+
+    call_parameters =
+      Enum.map(
+        args ++ kwargs,
+        fn
+          x when is_atom(x) -> Macro.var(x, nil)
+          x -> x
+        end
+      )
+
+    call =
+      quote do
+        unquote(call_unquote)(unquote_splicing(call_parameters))
+      end
+
+    # call =
+    case output_transform do
+      nil ->
+        call
+
+      _ ->
+        quote do
+          unquote(output_transform)(unquote(call))
+        end
+    end
+  end
+
+  # credo:disable-for-next-line
   defp compute_signatures(
          func_name,
          arg_types,
@@ -503,19 +549,7 @@ defmodule ExTorch.Native.Macros do
     :logger.debug("#{inspect(derived_kwargs)}")
     :logger.debug("#{inspect(defaults)}")
 
-    defaults_macro =
-      defaults
-      |> Enum.flat_map(fn {k, v} ->
-        case Map.has_key?(derived_kwargs, k) do
-          true ->
-            %{^k => struct_args} = defaults
-            :logger.debug("^^^^^^ #{inspect(struct_args)}")
-            Enum.into(struct_args, [])
-
-          false ->
-            [{k, v}]
-        end
-      end)
+    defaults_macro = asm_defaults_macro(defaults, derived_kwargs)
 
     :logger.debug(
       "#{inspect(kwargs)} ----- #{inspect(arg_types)} ===== #{inspect(derived_kwargs)}"
@@ -533,12 +567,6 @@ defmodule ExTorch.Native.Macros do
           false -> [{kw, Macro.var(kw, nil)}]
         end
       end)
-
-
-    # kwargs_assignment = Map.new(kwargs_assignment)
-
-    native_module = {:__aliases__, [alias: false], [:ExTorch, :Native]}
-    call_unquote = {:., [], [native_module, func_name]}
 
     deriv_kwarg_unpack =
       derived_kwargs
@@ -581,30 +609,7 @@ defmodule ExTorch.Native.Macros do
 
     fn_spec = args_spec ++ [kwargs_spec]
 
-    call_parameters =
-      Enum.map(
-        args ++ kwargs,
-        fn
-          x when is_atom(x) -> Macro.var(x, nil)
-          x -> x
-        end
-      )
-
-    call =
-      quote do
-        unquote(call_unquote)(unquote_splicing(call_parameters))
-      end
-
-    call =
-      case output_transform do
-        nil ->
-          call
-
-        _ ->
-          quote do
-            unquote(output_transform)(unquote(call))
-          end
-      end
+    call = asm_call_macro(func_name, args, kwargs, output_transform)
 
     kwarg_body =
       quote do
