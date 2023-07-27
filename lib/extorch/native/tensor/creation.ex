@@ -46,22 +46,12 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec empty(
             tuple() | [integer()],
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       empty(
         size,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -114,22 +104,12 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec zeros(
             tuple() | [integer()],
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       zeros(
         size,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -182,22 +162,12 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec ones(
             tuple() | [integer()],
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       ones(
         size,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -260,22 +230,12 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec rand(
             tuple() | [integer()],
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       rand(
         size,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -352,22 +312,12 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec randn(
             tuple() | [integer()],
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       randn(
         size,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -474,24 +424,14 @@ defmodule ExTorch.Native.Tensor.Creation do
             integer(),
             integer(),
             tuple() | [integer()],
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       randint(
         low \\ 0,
         high,
         size,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -610,24 +550,14 @@ defmodule ExTorch.Native.Tensor.Creation do
             number(),
             number(),
             number(),
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       arange(
         start \\ 0,
         end_bound,
         step \\ 1,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -680,23 +610,13 @@ defmodule ExTorch.Native.Tensor.Creation do
     @spec eye(
             integer(),
             integer(),
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       eye(
         n,
         m \\ n,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -748,23 +668,13 @@ defmodule ExTorch.Native.Tensor.Creation do
     @spec full(
             tuple() | [integer()],
             number(),
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       full(
         size,
         scalar,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -841,24 +751,14 @@ defmodule ExTorch.Native.Tensor.Creation do
             number(),
             number(),
             integer(),
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       linspace(
         start,
         end_bound,
         steps,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -943,12 +843,7 @@ defmodule ExTorch.Native.Tensor.Creation do
             number(),
             integer(),
             number(),
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       logspace(
@@ -956,12 +851,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         end_bound,
         steps,
         base \\ 10,
-        dtype \\ :float,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       )
     )
 
@@ -1017,28 +907,23 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec tensor(
             list() | tuple() | number(),
-            ExTorch.DType.dtype(),
-            ExTorch.Layout.layout(),
-            ExTorch.Device.device(),
-            boolean(),
-            boolean(),
-            ExTorch.MemoryFormat.memory_format()
+            ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
       tensor(
         list,
-        dtype \\ nil,
-        layout \\ :strided,
-        device \\ :cpu,
-        requires_grad \\ false,
-        pin_memory \\ false,
-        memory_format \\ :contiguous
+        opts \\ %ExTorch.Tensor.Options{}
       ),
       list: ExTorch.Utils.to_list_wrapper(list),
-      dtype:
-        case dtype do
-          nil -> list.dtype
-          _ -> dtype
+      opts:
+        case opts.dtype do
+          :float64 ->
+            kw =
+              opts
+              |> Map.from_struct()
+              |> Map.put(:dtype, list.dtype)
+            struct(ExTorch.Tensor.Options, kw)
+          _ -> opts
         end
     )
   end

@@ -1,0 +1,15 @@
+
+/// Get the size of a tensor
+fn size(tensor: &SharedPtr<CrossTensor>) -> Result<&'static [i64]>;
+
+/// Get the type of a tensor
+fn dtype(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
+
+/// Get the device where the tensor lives on
+fn device(tensor: &SharedPtr<CrossTensor>) -> Result<Device>;
+
+/// Get a string representation of a tensor
+fn repr(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
+
+/// Convert a tensor into a list
+fn to_list(tensor: &SharedPtr<CrossTensor>) -> Result<ScalarList>;

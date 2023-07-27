@@ -1,0 +1,23 @@
+[package]
+name = "extorch"
+version = "0.1.0"
+authors = []
+edition = "2021"
+links = "torch"
+
+[lib]
+name = "extorch"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+rustler = "0.29.0"
+rustler_sys = "2.3"
+lazy_static = "1.4.0"
+libc = "0.2.147"
+cxx = "1.0.97"
+
+[build-dependencies]
+cxx-build = {version = "1.0.97", features = ["parallel"]}
+tera = "1.19.0"
+rustc-hash = "1.1.0"

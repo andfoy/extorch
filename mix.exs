@@ -9,24 +9,26 @@ defmodule ExTorch.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      compilers: [:rustler] ++ Mix.compilers(),
-      rustler_crates: [extorch_native: []]
+      libtorch_version: "2.0.1",
+      libtorch_cuda_versions: [{11, 7}, {11, 8}]
+      # compilers: [:rustler] ++ Mix.compilers(),
+      # rustler_crates: [extorch_native: []]
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :ssl, :inets]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:rustler, "~> 0.21.1"},
+      {:rustler, "~> 0.29.0"},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       # {:delegate_with_docs, "~> 0.1.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}

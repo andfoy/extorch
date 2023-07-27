@@ -20,13 +20,13 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                PYTORCH_VERSION: ['1.8.1', 'latest']
-                OTP_VERSION: ['22.2', '23.2.3']
-                ELIXIR_VERSION: ['1.10.1', '1.11.2']
+                PYTORCH_VERSION: ['2.0.1', 'latest']
+                OTP_VERSION: ['26', '25']
+                ELIXIR_VERSION: ['1.15', '1.14.5']
                 DEVICE: ['cpu']
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v1
+              uses: actions/checkout@v3
             - name: Install latest Rust nightly
               uses: actions-rs/toolchain@v1
               with:
@@ -47,6 +47,9 @@ jobs:
             - name: Install dependencies
               shell: bash -l {0}
               run: mix deps.get
+            # - name: Download libtorch binaries
+            #   shell: bash -l {0}
+            #   run: mix pull_lib_torch --version ${{ matrix.PYTORCH_VERSION }}
             - name: Build and test extorch
               shell: bash -l {0}
               run: bash -l .github/scripts/test_extorch.sh

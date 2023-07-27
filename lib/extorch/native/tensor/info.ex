@@ -47,6 +47,6 @@ defmodule ExTorch.Native.Tensor.Info do
       - tensor (`ExTorch.Tensor`): Input tensor
     """
     @spec to_list(ExTorch.Tensor.t()) :: list()
-    defbinding(to_list(tensor), output: ExTorch.Utils.from_list_wrapper)
+    defbinding(to_list(tensor))
   end
 end

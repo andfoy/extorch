@@ -4,10 +4,11 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/home/andfoy/anaconda3/lib/python3.8/site-packages/torch/include",
-                "/home/andfoy/anaconda3/lib/python3.8/site-packages/torch/include/torch/csrc/api/include",
-                "/home/andfoy/anaconda3/lib/python3.8/site-packages/torch/include/**",
-                "/home/andfoy/anaconda3/lib/python3.8/site-packages/torch/include/torch/csrc/api/include/**",
+                "${workspaceFolder}/native",
+                "/home/andfoy/anaconda3/envs/pth/lib/python3.10/site-packages/torch/include",
+                "/home/andfoy/anaconda3/envs/pth/lib/python3.10/site-packages/torch/include/torch/csrc/api/include",
+                "/home/andfoy/anaconda3/envs/pth/lib/python3.10/site-packages/torch/include/**",
+                "/home/andfoy/anaconda3/envs/pth/lib/python3.10/site-packages/torch/include/torch/csrc/api/include/**",
                 "/usr/local/include",
                 "/usr/include"
             ],
