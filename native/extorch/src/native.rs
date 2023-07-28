@@ -63,6 +63,21 @@ struct ScalarList {
     size: Vec<i64>
 }
 
+struct TorchSlice {
+    start: i64,
+    stop: i64,
+    step: i64,
+    enc: u8
+}
+
+struct TorchIndex {
+    integer: i64,
+    boolean: bool,
+    slice: TorchSlice,
+    tensor: SharedPtr<CrossTensor>,
+    type_: i64
+}
+
 
     extern "Rust" {}
 
@@ -91,12 +106,14 @@ fn to_list(tensor: &SharedPtr<CrossTensor>) -> Result<ScalarList>;
 
 
         // Tensor operations
-        
-/// Add an empty dimension to a tensor at the given dimension.
-fn unsqueeze(
+        /// Index a dimension using a sequence of indices (aka advanced indexing)
+fn index(
     tensor: &SharedPtr<CrossTensor>,
-    dim: i64
+    indices: Vec<TorchIndex>,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Add an empty dimension to a tensor at the given dimension.
+fn unsqueeze(tensor: &SharedPtr<CrossTensor>, dim: i64) -> Result<SharedPtr<CrossTensor>>;
 
 
         // Tensor creation operations.
