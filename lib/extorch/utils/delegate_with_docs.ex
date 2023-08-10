@@ -59,34 +59,55 @@ defmodule ExTorch.DelegateWithDocs do
     point_to_docs = options[:point_to]
     signature = {function, length(args)}
 
-    {doc_str, doc_attrs} = get_doc(module, signature)
-    specs = get_specs(module, signature)
+    {doc_spec, specs} =
+      case get_doc(module, signature) do
+        {doc_str, doc_attrs} ->
+          doc_spec =
+            assemble_doc_specs(function, caller_module, point_to_docs, doc_str, doc_attrs)
 
-    doc_spec = assemble_doc_specs(function, caller_module, point_to_docs, doc_str, doc_attrs)
+          specs = get_specs(module, signature)
+          {doc_spec, specs}
 
-    delegate = quote do
-      unquote(doc_spec)
-      unquote(specs)
-      Kernel.defdelegate(unquote(fun), unquote(opts))
-    end
+        nil ->
+          {nil, nil}
+      end
+
+    delegate =
+      quote do
+        unquote(doc_spec)
+        unquote(specs)
+        Kernel.defdelegate(unquote(fun), unquote(opts))
+      end
 
     delegate
   end
 
   defp assemble_doc_specs(function, caller_module, point_to_docs, doc_str, doc_attrs) do
-    doc_specs = Enum.map(doc_attrs, fn {k, v} ->
-      quote do
-        @doc [{unquote(k), unquote(v)}]
-      end
-    end)
+    doc_specs =
+      Enum.reduce(doc_attrs, [], fn
+        {:defaults, _}, acc ->
+          acc
+
+        {k, v}, acc ->
+          doc_part =
+            quote do
+              @doc [{unquote(k), unquote(v)}]
+            end
+
+          [doc_part] ++ acc
+      end)
 
     doc_specs =
       case doc_str do
-        nil -> doc_specs
+        nil ->
+          doc_specs
+
         _ ->
           doc_str =
             case point_to_docs do
-              nil -> doc_str
+              nil ->
+                doc_str
+
               _ ->
                 """
                 See `#{caller_module}.#{Atom.to_string(function)}/#{point_to_docs}`
@@ -99,6 +120,7 @@ defmodule ExTorch.DelegateWithDocs do
             quote do
               @doc unquote(doc_str)
             end
+
           [doc_str_quote | doc_specs]
       end
 
@@ -110,7 +132,7 @@ defmodule ExTorch.DelegateWithDocs do
   ## Example
       DelegateWithDocs.get_doc(MyModule.Internal, {:my_func, 2})
   """
-  @spec get_doc(module, {atom, integer}) :: {String.t() | nil, map() | :none}
+  @spec get_doc(module, {atom, integer}) :: {String.t() | nil, map() | :none} | nil
   def get_doc(module, {function, arity}) do
     assert_module_exists!(module)
 
@@ -118,7 +140,6 @@ defmodule ExTorch.DelegateWithDocs do
     |> Code.fetch_docs()
     |> fetch_docs()
     |> Map.get({function, arity})
-
   end
 
   defp fetch_docs({:docs_v1, _, :elixir, "text/markdown", _, %{}, funcs}) do
@@ -129,7 +150,9 @@ defmodule ExTorch.DelegateWithDocs do
             %{"en" => doc} -> doc
             _ -> nil
           end
+
         Map.put(acc, {func_name, arity}, {docstring, sections})
+
       _, acc ->
         acc
     end)
@@ -148,15 +171,17 @@ defmodule ExTorch.DelegateWithDocs do
     module_specs = Enum.into(module_specs, %{})
     func_spec = Map.get(module_specs, {function, arity})
 
-    quoted_specs = Enum.map(func_spec, fn spec ->
-      quoted_spec = Code.Typespec.spec_to_quoted(function, spec)
-      quote do
-         @spec unquote(quoted_spec)
-      end
-    end)
+    quoted_specs =
+      Enum.map(func_spec, fn spec ->
+        quoted_spec = Code.Typespec.spec_to_quoted(function, spec)
+
+        quote do
+          @spec unquote(quoted_spec)
+        end
+      end)
+
     {:__block__, [], quoted_specs}
   end
-
 
   defp assert_module_exists!(module) do
     unless Code.ensure_compiled(module),

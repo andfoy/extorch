@@ -408,17 +408,17 @@ defmodule ExTorch.Native.Macros do
 
   defp asm_defaults_macro(defaults, derived_kwargs) do
     defaults
-      |> Enum.flat_map(fn {k, v} ->
-        case Map.has_key?(derived_kwargs, k) do
-          true ->
-            %{^k => struct_args} = defaults
-            :logger.debug("^^^^^^ #{inspect(struct_args)}")
-            Enum.into(struct_args, [])
+    |> Enum.flat_map(fn {k, v} ->
+      case Map.has_key?(derived_kwargs, k) do
+        true ->
+          %{^k => struct_args} = defaults
+          :logger.debug("^^^^^^ #{inspect(struct_args)}")
+          Enum.into(struct_args, [])
 
-          false ->
-            [{k, v}]
-        end
-      end)
+        false ->
+          [{k, v}]
+      end
+    end)
   end
 
   defp asm_call_macro(func_name, args, kwargs, output_transform) do
@@ -571,9 +571,10 @@ defmodule ExTorch.Native.Macros do
     deriv_kwarg_unpack =
       derived_kwargs
       |> Enum.map(fn {kwarg, struct_name} ->
-          quote do
-            unquote(Macro.var(kwarg, nil)) = struct(unquote(struct_name), unquote(Macro.var(:kwargs, nil)))
-          end
+        quote do
+          unquote(Macro.var(kwarg, nil)) =
+            struct(unquote(struct_name), unquote(Macro.var(:kwargs, nil)))
+        end
       end)
 
     deriv_kwarg_unpack = {:__block__, [], deriv_kwarg_unpack}
@@ -602,12 +603,44 @@ defmodule ExTorch.Native.Macros do
       end)
 
     kwargs_spec =
-      Enum.map(kwargs, fn kwarg ->
-        {_, kwarg_type} = Map.get(arg_types, kwarg)
-        {kwarg, kwarg_type}
+      Enum.reduce(kwargs, [], fn kw, acc ->
+        case Map.has_key?(derived_kwargs, kw) do
+          true ->
+            {_, kwarg_type} = Map.get(arg_types, kw)
+
+            case kwarg_type do
+              {{:., _, [{:__aliases__, _, struct_name}, :t]}, _, []} ->
+                struct_name = [:"Elixir"] ++ struct_name
+
+                struct_module =
+                  struct_name
+                  |> Enum.join(".")
+                  |> String.to_atom()
+
+                {:ok, [{:type, types}]} = Code.Typespec.fetch_types(struct_module)
+
+                {:"::", [],
+                 [
+                   {:t, [], []},
+                   {:%, _,
+                    [
+                      ^struct_module,
+                      {:%{}, _, struct_spec}
+                    ]}
+                 ]} = Code.Typespec.type_to_quoted(types)
+                 acc ++ struct_spec
+              _ ->
+                acc ++ [{kw, kwarg_type}]
+            end
+          false ->
+            {_, kwarg_type} = Map.get(arg_types, kw)
+            :logger.debug("***************** #{inspect(kw)} ^^^ #{inspect(kwarg_type)}")
+            acc ++ [{kw, kwarg_type}]
+        end
       end)
 
     fn_spec = args_spec ++ [kwargs_spec]
+    :logger.debug("/////////////////// #{inspect(fn_spec)}")
 
     call = asm_call_macro(func_name, args, kwargs, output_transform)
 
@@ -639,6 +672,7 @@ defmodule ExTorch.Native.Macros do
             unquote(transforms)
             unquote(call)
           end
+
         _ ->
           quote do
             unquote(Macro.var(:kwargs, nil)) = unquote(defaults_macro)

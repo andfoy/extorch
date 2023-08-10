@@ -46,6 +46,7 @@ defmodule ExTorch.MixProject do
         {:"Tensor information", & &1[:kind] == :tensor_info},
         {:"Tensor creation", & &1[:kind] == :tensor_creation},
         {:"Tensor manipulation", & &1[:kind] == :tensor_manipulation},
+        {:"Tensor indexing", & &1[:kind] == :tensor_indexing},
       ]
       # ...
     ]
