@@ -19,7 +19,8 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
   Python.
   """
   @doc kind: :tensor_indexing
-  @spec slice(integer() | nil, integer() | nil, integer() | nil) :: ExTorch.Utils.Indices.Slice.t()
+  @spec slice(integer() | nil, integer() | nil, integer() | nil) ::
+          ExTorch.Utils.Indices.Slice.t()
   def slice(start \\ nil, stop \\ nil, step \\ nil) do
     bases = [1, 2, 4]
 
@@ -65,7 +66,24 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec index(
             ExTorch.Tensor.t(),
-            [nil | Range.t() | ExTorch.Tensor.t() | integer() | :ellipsis | :"::" | :...]
+            [
+              nil
+              | Range.t()
+              | ExTorch.Tensor.t()
+              | boolean()
+              | integer()
+              | :ellipsis
+              | :"::"
+              | :...
+            ]
+            | nil
+            | Range.t()
+            | ExTorch.Tensor.t()
+            | integer()
+            | boolean()
+            | :ellipsis
+            | :"::"
+            | :...
           ) :: ExTorch.Tensor.t()
     defbinding(index(tensor, indices), indices: ExTorch.Utils.Indices.parse_indices(indices))
   end

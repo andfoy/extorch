@@ -2,7 +2,7 @@ defmodule ExTorch.Tensor do
   @moduledoc """
   An ``ExTorch.Tensor`` is a multi-dimensional matrix containing elements of a single data type.
   """
-  # @behaviour Access
+  @behaviour Access
 
   use ExTorch.DelegateWithDocs
   import ExTorch.ModuleMixin
@@ -60,11 +60,18 @@ defmodule ExTorch.Tensor do
     end
   end
 
+  def fetch(tensor, index) do
+    {:ok, ExTorch.index(tensor, index)}
+  end
+
+  def pop(_, _) do
+    {:error, :not_implemented}
+  end
+
+  def get_and_update(_, _, _) do
+    {:error, :not_implemented}
+  end
 
   extends(ExTorch.Native.Tensor.Info)
-  # def fetch(tensor, index)
 
-  # def fetch(tensor, index) when is_integer(index) do
-
-  # end
 end

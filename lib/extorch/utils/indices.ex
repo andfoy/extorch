@@ -1,19 +1,32 @@
 defmodule ExTorch.Utils.Indices do
   @spec parse_indices(
-          [
-            :"::"
-            | :ellipsis
-            | nil
-            | list
-            | number
-            | tuple
-            | %{
-                :__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice | Range,
-                optional(any) => any
-              }
-          ]
+          :"::"
+          | :ellipsis
+          | nil
+          | [
+              :"::"
+              | :ellipsis
+              | nil
+              | list
+              | number
+              | tuple
+              | %{
+                  :__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice | Range,
+                  optional(any) => any
+                }
+            ]
+          | number
           | tuple
-        ) :: list
+          | %{
+              :__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice | Range,
+              optional(any) => any
+            }
+        ) :: [
+          :ellipsis
+          | nil
+          | number
+          | %{:__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice, optional(any) => any}
+        ]
   @doc false
   def parse_indices(indices) when is_tuple(indices) do
     parse_indices(Tuple.to_list(indices), [])
@@ -23,10 +36,15 @@ defmodule ExTorch.Utils.Indices do
     parse_indices(indices, [])
   end
 
+  def parse_indices(x) do
+    parse_indices([x], [])
+  end
+
   @spec parse_indices(
           [
             :"::"
             | :ellipsis
+            | boolean()
             | nil
             | list
             | number
@@ -36,8 +54,20 @@ defmodule ExTorch.Utils.Indices do
                 optional(any) => any
               }
           ],
-          any
-        ) :: list
+          [
+            :ellipsis
+            | nil
+            | number
+            | boolean()
+            | %{:__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice, optional(any) => any}
+          ]
+        ) :: [
+          :ellipsis
+          | nil
+          | number
+          | boolean()
+          | %{:__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice, optional(any) => any}
+        ]
   def parse_indices([], acc) do
     Enum.reverse(acc)
   end
@@ -53,6 +83,7 @@ defmodule ExTorch.Utils.Indices do
           | list
           | number
           | tuple
+          | boolean()
           | %{
               :__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice | Range,
               optional(any) => any
@@ -61,6 +92,7 @@ defmodule ExTorch.Utils.Indices do
           :ellipsis
           | nil
           | number
+          | boolean()
           | %{:__struct__ => ExTorch.Tensor | ExTorch.Utils.Indices.Slice, optional(any) => any}
   def parse_index(index) when is_number(index) do
     index
@@ -92,7 +124,7 @@ defmodule ExTorch.Utils.Indices do
     }
   end
 
-  def parse_index(:'::') do
+  def parse_index(:"::") do
     %ExTorch.Utils.Indices.Slice{
       start: 0,
       stop: 0,
@@ -109,6 +141,10 @@ defmodule ExTorch.Utils.Indices do
     nil
   end
 
+  def parse_index(x) when is_boolean(x) do
+    x
+  end
+
   def parse_index(%ExTorch.Tensor{} = tensor) do
     tensor
   end
@@ -116,5 +152,4 @@ defmodule ExTorch.Utils.Indices do
   def parse_index(%ExTorch.Utils.Indices.Slice{} = slice) do
     slice
   end
-
 end
