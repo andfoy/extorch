@@ -19,7 +19,7 @@ std::shared_ptr<CrossTensor> index(const std::shared_ptr<CrossTensor> &tensor, c
             act_index.push_back(at::indexing::TensorIndex(c10::nullopt));
         } else if(idx_type == at::indexing::TensorIndexType::Ellipsis) {
             act_index.push_back(at::indexing::TensorIndex(at::indexing::Ellipsis));
-        } else if(idx_type == at::indexing::TensorIndexType::Integer) {
+        } else if(idx.type_ == 2) {
             act_index.push_back(idx.integer);
         } else if(idx_type == at::indexing::TensorIndexType::Boolean) {
             act_index.push_back(idx.boolean);
