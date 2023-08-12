@@ -10,7 +10,24 @@ defmodule ExTorch.MixProject do
       deps: deps(),
       docs: docs(),
       libtorch_version: "2.0.1",
-      libtorch_cuda_versions: [{11, 7}, {11, 8}]
+      libtorch_cuda_versions: [{11, 7}, {11, 8}],
+      test_coverage: [
+        ignore_modules: [
+          ExTorch.DType,
+          ExTorch.DelegateWithDocs,
+          ExTorch.DelegateWithDocs.Error,
+          ExTorch.Device,
+          ExTorch.Layout,
+          ExTorch.MemoryFormat,
+          ExTorch.ModuleMixin,
+          ExTorch.Native.BindingDeclaration,
+          ExTorch.Native.Macros,
+          ExTorch.Index.Slice,
+          ExTorch.Utils.ListWrapper,
+          Inspect.ExTorch.Tensor,
+          Mix.Tasks.PullLibTorch
+        ]
+      ]
       # compilers: [:rustler] ++ Mix.compilers(),
       # rustler_crates: [extorch_native: []]
     ]
@@ -29,6 +46,7 @@ defmodule ExTorch.MixProject do
       {:rustler, "~> 0.29.0"},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
       # {:delegate_with_docs, "~> 0.1.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
@@ -43,9 +61,10 @@ defmodule ExTorch.MixProject do
       # This is useful for custom JS/CSS files you want to include.
       before_closing_body_tag: &before_closing_body_tag/1,
       groups_for_functions: [
-        {:"Tensor information", & &1[:kind] == :tensor_info},
-        {:"Tensor creation", & &1[:kind] == :tensor_creation},
-        {:"Tensor manipulation", & &1[:kind] == :tensor_manipulation},
+        {:"Tensor information", &(&1[:kind] == :tensor_info)},
+        {:"Tensor creation", &(&1[:kind] == :tensor_creation)},
+        {:"Tensor manipulation", &(&1[:kind] == :tensor_manipulation)},
+        {:"Tensor indexing", &(&1[:kind] == :tensor_indexing)}
       ]
       # ...
     ]

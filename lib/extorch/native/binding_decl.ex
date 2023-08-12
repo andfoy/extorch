@@ -49,6 +49,7 @@ defmodule ExTorch.Native.BindingDeclaration do
           end
 
         quote do
+          @doc false
           def unquote(name)(unquote_splicing(args)) do
             :erlang.nif_error(:nif_not_loaded)
           end

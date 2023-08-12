@@ -7,4 +7,6 @@
 struct Device;
 struct Scalar;
 struct ScalarList;
+struct TorchSlice;
+struct TorchIndex;
 using CrossTensor = torch::Tensor;

@@ -35,4 +35,5 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     unsqueezed_tensor = ExTorch.unsqueeze(tensor, rand_dim)
     assert unsqueezed_tensor.size == expected_dims
   end
+
 end

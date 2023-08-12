@@ -12,5 +12,7 @@ defmodule ExTorch do
   # Native operations
   extends(ExTorch.Native.Tensor.Creation)
   extends(ExTorch.Native.Tensor.Ops.Manipulation)
+  extends(ExTorch.Native.Tensor.Ops.Indexing)
+
   # extends(ExTorch.Native.Tensor.Info)
 end

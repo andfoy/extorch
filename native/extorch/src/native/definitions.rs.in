@@ -55,3 +55,18 @@ struct ScalarList {
     list: Vec<Scalar>,
     size: Vec<i64>
 }
+
+struct TorchSlice {
+    start: i64,
+    stop: i64,
+    step: i64,
+    enc: u8
+}
+
+struct TorchIndex {
+    integer: i64,
+    boolean: bool,
+    slice: TorchSlice,
+    tensor: SharedPtr<CrossTensor>,
+    type_: i64
+}

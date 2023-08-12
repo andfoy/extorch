@@ -52,3 +52,16 @@ pub struct ListWrapper<'a> {
     pub size: Term<'a>,
     pub dtype: Term<'a>,
 }
+
+pub struct TensorIndex {
+    pub indices: Vec<torch::TorchIndex>
+}
+
+#[derive(NifStruct)]
+#[module = "ExTorch.Index.Slice"]
+pub struct ExSlice {
+    pub start: i64,
+    pub stop: i64,
+    pub step: i64,
+    pub mask: u8
+}

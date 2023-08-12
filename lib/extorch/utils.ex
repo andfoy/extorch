@@ -21,22 +21,6 @@ defmodule ExTorch.Utils do
   end
 
   @doc """
-  Given a `ExTorch.Utils.ListWrapper` structure, return a list with elements.
-  """
-  @spec from_list_wrapper(__MODULE__.ListWrapper.t()) :: list()
-  def from_list_wrapper(%__MODULE__.ListWrapper{
-        list: list,
-        size: size
-      }) do
-    # dims =
-    size
-    |> Tuple.to_list()
-    |> Enum.reverse()
-    |> Enum.reduce(list, fn dim, list -> Enum.chunk_every(list, dim) end)
-    |> Enum.at(0)
-  end
-
-  @doc """
   Given a list of elements or a list with lists with elements, this function
   returns a ExTorch.Utils.ListWrapper structure.
   """
@@ -78,10 +62,6 @@ defmodule ExTorch.Utils do
   end
 
   defp size(x) do
-    size(x, [0])
-  end
-
-  defp size([_ | _] = x, []) do
     size(x, [0])
   end
 
