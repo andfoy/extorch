@@ -1,4 +1,6 @@
 defmodule ExTorch.Utils.Indices do
+  @moduledoc false
+
   @spec parse_indices(ExTorch.Index.t()) :: [ExTorch.Index.actual_index()]
   @doc false
   def parse_indices(indices) when is_tuple(indices) do
@@ -66,7 +68,7 @@ defmodule ExTorch.Utils.Indices do
     tensor
   end
 
-  def parse_index(%ExTorch.Utils.Indices.Slice{} = slice) do
+  def parse_index(%ExTorch.Index.Slice{} = slice) do
     slice
   end
 end

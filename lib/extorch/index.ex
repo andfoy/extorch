@@ -20,10 +20,10 @@ defmodule ExTorch.Index do
   ## Description
   - `start..end//step` - A standard Elixir range struct, it will be non-inclusive
      on `end`, as opposed to its usual behaviour in Elixir.
-  - `Slice.t()` - See `ExTorch.Utils.Indices.Slice`
+  - `Slice.t()` - See `ExTorch.Index.Slice`
   - `:::` - Same as invoking `ExTorch.slice/0`.
   """
-  @type range_index :: Range.t() | ExTorch.Utils.Indices.Slice.t() | :::
+  @type range_index :: Range.t() | ExTorch.Index.Slice.t() | :::
 
   @typedoc """
   Access a tensor given a particular integer index.
@@ -42,7 +42,7 @@ defmodule ExTorch.Index do
 
   # Notes
   Ellipsis indices will behave as a sequence of empty
-  `ExTorch.Utils.Indices.Slice`s between the dimensions that are specified.
+  `ExTorch.Index.Slice`s between the dimensions that are specified.
   e.g.,
 
   ```elixir
@@ -62,7 +62,7 @@ defmodule ExTorch.Index do
   @typedoc """
   An actual index element, after aliases are interpreted.
   """
-  @type actual_index :: nil | boolean() | ExTorch.Utils.Indices.Slice.t() | integer() | ExTorch.Tensor.t() | :ellipsis
+  @type actual_index :: nil | boolean() | ExTorch.Index.Slice.t() | integer() | ExTorch.Tensor.t() | :ellipsis
 
   @typedoc """
   A complete possible index. It can be either a puntual index or a list of puntual indices.

@@ -22,7 +22,7 @@ defmodule ExTorch.MixProject do
           ExTorch.ModuleMixin,
           ExTorch.Native.BindingDeclaration,
           ExTorch.Native.Macros,
-          ExTorch.Utils.Indices.Slice,
+          ExTorch.Index.Slice,
           ExTorch.Utils.ListWrapper,
           Inspect.ExTorch.Tensor,
           Mix.Tasks.PullLibTorch

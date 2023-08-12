@@ -1,7 +1,10 @@
-defmodule ExTorch.Utils.Indices.Slice do
+defmodule ExTorch.Index.Slice do
+  @moduledoc """
+  Slice index definition.
+  """
 
   @typedoc """
-  An ``ExTorch.Utils.Indices.Slice`` is a struct that represents an indexing slice
+  An ``ExTorch.Index.Slice`` is a struct that represents an indexing slice
   with a start, stop and a number of steps between values.
   """
   @type t :: %__MODULE__{

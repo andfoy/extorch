@@ -58,7 +58,7 @@ pub struct TensorIndex {
 }
 
 #[derive(NifStruct)]
-#[module = "ExTorch.Utils.Indices.Slice"]
+#[module = "ExTorch.Index.Slice"]
 pub struct ExSlice {
     pub start: i64,
     pub stop: i64,

@@ -3,8 +3,6 @@ defmodule ExTorch.ModuleMixin do
   Utilities used to define a module mixin that inherits documentation and specs.
   """
 
-  @signature_regex ~r/[a-zA-Z_]\w*[(]((\w( ?\\\\ ?\w+)?,? ?)*)[)]/
-
   @doc """
   This macro enables a module to import the functions from another module
   and expose them as they were defined on it.
@@ -53,12 +51,7 @@ defmodule ExTorch.ModuleMixin do
           false ->
             add_max_header = is_max_arity_call(doc_funcs, name, arity)
             args = get_arguments(signature_args, name, arity)
-            case args do
-              nil -> acc
-              _ ->
-                [{{name, [], args}, add_max_header} | acc]
-            end
-
+            discard_optional_signatures(name, args, add_max_header, acc)
           true ->
             acc
         end
@@ -84,6 +77,14 @@ defmodule ExTorch.ModuleMixin do
     end)
   end
 
+  defp discard_optional_signatures(name, args, add_max_header, acc) do
+    case args do
+      nil -> acc
+      _ ->
+        [{{name, [], args}, add_max_header} | acc]
+    end
+  end
+
   defp get_arguments(signature_args, name, arity) do
     signature = Map.get(signature_args, {name, arity})
 
@@ -95,14 +96,6 @@ defmodule ExTorch.ModuleMixin do
             args
           _ -> nil
         end
-        # [_, args, _ | _] = Regex.run(@signature_regex, signature)
-
-        # args
-        # |> String.split(",", trim: true)
-        # |> Enum.map(fn arg ->
-        #   arg = String.split(arg, "\\\\") |> Enum.at(0)
-        #   Macro.var(String.to_atom(arg), nil)
-        # end)
     end
   end
 

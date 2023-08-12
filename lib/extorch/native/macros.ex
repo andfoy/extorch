@@ -451,6 +451,47 @@ defmodule ExTorch.Native.Macros do
     end
   end
 
+  defp parse_struct_spec(kw, kwarg_type) do
+    case kwarg_type do
+      {{:., _, [{:__aliases__, _, struct_name}, :t]}, _, []} ->
+        struct_name = [:"Elixir"] ++ struct_name
+
+        struct_module =
+          struct_name
+          |> Enum.join(".")
+          |> String.to_atom()
+
+        {:ok, [{:type, types}]} = Code.Typespec.fetch_types(struct_module)
+
+        {:"::", [],
+          [
+            {:t, [], []},
+            {:%, _,
+            [
+              ^struct_module,
+              {:%{}, _, struct_spec}
+            ]}
+          ]} = Code.Typespec.type_to_quoted(types)
+          struct_spec
+      _ ->
+        [{kw, kwarg_type}]
+    end
+  end
+
+  defp asm_kwargs_spec_macro(kwargs, arg_types, derived_kwargs) do
+    Enum.reduce(kwargs, [], fn kw, acc ->
+      case Map.has_key?(derived_kwargs, kw) do
+        true ->
+          {_, kwarg_type} = Map.get(arg_types, kw)
+          acc ++ parse_struct_spec(kw, kwarg_type)
+
+        false ->
+          {_, kwarg_type} = Map.get(arg_types, kw)
+          acc ++ [{kw, kwarg_type}]
+      end
+    end)
+  end
+
   # credo:disable-for-next-line
   defp compute_signatures(
          func_name,
@@ -602,45 +643,8 @@ defmodule ExTorch.Native.Macros do
           spec_type
       end)
 
-    kwargs_spec =
-      Enum.reduce(kwargs, [], fn kw, acc ->
-        case Map.has_key?(derived_kwargs, kw) do
-          true ->
-            {_, kwarg_type} = Map.get(arg_types, kw)
-
-            case kwarg_type do
-              {{:., _, [{:__aliases__, _, struct_name}, :t]}, _, []} ->
-                struct_name = [:"Elixir"] ++ struct_name
-
-                struct_module =
-                  struct_name
-                  |> Enum.join(".")
-                  |> String.to_atom()
-
-                {:ok, [{:type, types}]} = Code.Typespec.fetch_types(struct_module)
-
-                {:"::", [],
-                 [
-                   {:t, [], []},
-                   {:%, _,
-                    [
-                      ^struct_module,
-                      {:%{}, _, struct_spec}
-                    ]}
-                 ]} = Code.Typespec.type_to_quoted(types)
-                 acc ++ struct_spec
-              _ ->
-                acc ++ [{kw, kwarg_type}]
-            end
-          false ->
-            {_, kwarg_type} = Map.get(arg_types, kw)
-            :logger.debug("***************** #{inspect(kw)} ^^^ #{inspect(kwarg_type)}")
-            acc ++ [{kw, kwarg_type}]
-        end
-      end)
-
+    kwargs_spec = asm_kwargs_spec_macro(kwargs, arg_types, derived_kwargs)
     fn_spec = args_spec ++ [kwargs_spec]
-    :logger.debug("/////////////////// #{inspect(fn_spec)}")
 
     call = asm_call_macro(func_name, args, kwargs, output_transform)
 
