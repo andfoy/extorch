@@ -23,7 +23,7 @@ defmodule ExTorch.Index do
   - `Slice.t()` - See `ExTorch.Index.Slice`
   - `:::` - Same as invoking `ExTorch.slice/0`.
   """
-  @type range_index :: Range.t() | ExTorch.Index.Slice.t() | :::
+  @type range_index :: Range.t() | ExTorch.Index.Slice.t() | :"::"
 
   @typedoc """
   Access a tensor given a particular integer index.

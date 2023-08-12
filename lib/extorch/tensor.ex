@@ -60,14 +60,20 @@ defmodule ExTorch.Tensor do
     end
   end
 
+  @spec fetch(ExTorch.Tensor.t(), ExTorch.Index.t()) :: {:ok, ExTorch.Tensor.t()}
+  @doc """
+  Index a tensor using an accessor object. It acts as a alias for `ExTorch.index/2`.
+  """
   def fetch(tensor, index) do
     {:ok, ExTorch.index(tensor, index)}
   end
 
+  @doc false
   def pop(_, _) do
     {:error, :not_implemented}
   end
 
+  @doc false
   def get_and_update(_, _, _) do
     {:error, :not_implemented}
   end
