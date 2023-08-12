@@ -66,7 +66,7 @@ defmodule ExTorch.MixProject do
       # These are the default files included in the package
       files: ~w(lib priv native .formatter.exs mix.exs README* LICENSE*),
       exclude_patterns: ["native/extorch/target", "native/extorch/.cargo", "priv/native/libtorch",
-                         "priv/native/libextorch.so"],
+                         "priv/native/libextorch.so", "native/extorch/src/native/native.rs.sum"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/andfoy/extorch"}
     ]
