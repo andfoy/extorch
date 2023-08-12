@@ -344,6 +344,30 @@ impl<'a> Decoder<'a> for torch::TorchIndex {
                         tensor: SharedPtr::<torch::CrossTensor>::null(),
                         type_: 1
                     })),
+                    "true" => Some(Ok(torch::TorchIndex {
+                        integer: -1,
+                        slice: torch::TorchSlice {
+                            start: 0,
+                            stop: 0,
+                            step: 1,
+                            enc: 0
+                        },
+                        boolean: true,
+                        tensor: SharedPtr::<torch::CrossTensor>::null(),
+                        type_: 3
+                    })),
+                    "false" => Some(Ok(torch::TorchIndex {
+                        integer: -1,
+                        slice: torch::TorchSlice {
+                            start: 0,
+                            stop: 0,
+                            step: 1,
+                            enc: 0
+                        },
+                        boolean: false,
+                        tensor: SharedPtr::<torch::CrossTensor>::null(),
+                        type_: 3
+                    })),
                     _ => Some(Err(Error::RaiseAtom("only ellipsis and nil are valid indices")))
                 }
             },
@@ -372,30 +396,8 @@ impl<'a> Decoder<'a> for torch::TorchIndex {
             }
         };
 
-        let bool_value = match int_value {
+        let slice_value = match int_value {
             Some(_) => int_value,
-            None => {
-                let bool_val: Result<bool, Error> = term.decode();
-                match bool_val {
-                    Ok(bool_value) => Some(Ok(torch::TorchIndex {
-                        integer: -1,
-                        slice: torch::TorchSlice {
-                            start: 0,
-                            stop: 0,
-                            step: 1,
-                            enc: 0
-                        },
-                        boolean: bool_value,
-                        tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 3
-                    })),
-                    Err(_) => None
-                }
-            }
-        };
-
-        let slice_value = match bool_value {
-            Some(_) => bool_value,
             None => {
                 let slice_val: Result<torch::TorchSlice, Error> = term.decode();
                 match slice_val {

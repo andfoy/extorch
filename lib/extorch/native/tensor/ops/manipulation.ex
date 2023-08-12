@@ -56,6 +56,9 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           ) :: ExTorch.Tensor.t()
     defbinding(unsqueeze(tensor, dim))
 
+    end
+
+    defbindings(:tensor_indexing) do
     @doc """
     Index a tensor given a list of integers, ranges, tensors, nil or
     `:ellipsis`.
@@ -66,24 +69,7 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec index(
             ExTorch.Tensor.t(),
-            [
-              nil
-              | Range.t()
-              | ExTorch.Tensor.t()
-              | boolean()
-              | integer()
-              | :ellipsis
-              | :"::"
-              | :...
-            ]
-            | nil
-            | Range.t()
-            | ExTorch.Tensor.t()
-            | integer()
-            | boolean()
-            | :ellipsis
-            | :"::"
-            | :...
+            ExTorch.Index.t()
           ) :: ExTorch.Tensor.t()
     defbinding(index(tensor, indices), indices: ExTorch.Utils.Indices.parse_indices(indices))
   end
