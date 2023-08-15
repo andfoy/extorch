@@ -1,6 +1,5 @@
 use cxx_build::CFG;
 use glob::GlobError;
-use glob::Paths;
 use std::env;
 use std::fs;
 use std::hash::Hasher;

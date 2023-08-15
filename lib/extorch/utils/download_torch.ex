@@ -216,7 +216,7 @@ defmodule ExTorch.Utils.DownloadTorch do
         {:error, :missing_libtorch_folder_key}
 
       _ ->
-        File.ln_s(libtorch_loc, local_folder)
+        File.ln_s(local_folder, libtorch_loc)
     end
   end
 
