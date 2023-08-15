@@ -1,7 +1,7 @@
 defmodule ExTorch.Utils.DownloadTorch do
   @moduledoc false
 
-  @libtorch_config Application.get_env(:extorch, :libtorch)
+  @libtorch_config Application.compile_env(:extorch, :libtorch)
   @cuda_regex ~r".*release ((\d+).(\d+)).*"
 
   defp parse_version_parts([], acc_version, _) do
