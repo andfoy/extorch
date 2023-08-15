@@ -11,12 +11,12 @@ defmodule ExTorch.Tensor do
   An ``ExTorch.Tensor`` is a multi-dimensional matrix containing elements of a single data type.
   """
   @type t :: %__MODULE__{
-    resource: any(),
-    reference: reference(),
-    size: tuple(),
-    dtype: ExTorch.DType.dtype(),
-    device: ExTorch.Device.device()
-  }
+          resource: any(),
+          reference: reference(),
+          size: tuple(),
+          dtype: ExTorch.DType.dtype(),
+          device: ExTorch.Device.device()
+        }
 
   defstruct [
     # The actual Tensor NIF resource
@@ -36,7 +36,7 @@ defmodule ExTorch.Tensor do
     dtype: :int,
 
     # Device where the tensor lives on
-    device: :cpu,
+    device: :cpu
   ]
 
   @doc false
@@ -79,5 +79,4 @@ defmodule ExTorch.Tensor do
   end
 
   extends(ExTorch.Native.Tensor.Info)
-
 end

@@ -52,6 +52,7 @@ defmodule ExTorch.ModuleMixin do
             add_max_header = is_max_arity_call(doc_funcs, name, arity)
             args = get_arguments(signature_args, name, arity)
             discard_optional_signatures(name, args, add_max_header, acc)
+
           true ->
             acc
         end
@@ -79,7 +80,9 @@ defmodule ExTorch.ModuleMixin do
 
   defp discard_optional_signatures(name, args, add_max_header, acc) do
     case args do
-      nil -> acc
+      nil ->
+        acc
+
       _ ->
         [{{name, [], args}, add_max_header} | acc]
     end
@@ -89,12 +92,16 @@ defmodule ExTorch.ModuleMixin do
     signature = Map.get(signature_args, {name, arity})
 
     case signature do
-      nil -> nil
+      nil ->
+        nil
+
       _ ->
         case Code.string_to_quoted(signature) do
           {:ok, {_, _, args}} ->
             args
-          _ -> nil
+
+          _ ->
+            nil
         end
     end
   end

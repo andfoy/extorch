@@ -464,15 +464,17 @@ defmodule ExTorch.Native.Macros do
         {:ok, [{:type, types}]} = Code.Typespec.fetch_types(struct_module)
 
         {:"::", [],
-          [
-            {:t, [], []},
-            {:%, _,
+         [
+           {:t, [], []},
+           {:%, _,
             [
               ^struct_module,
               {:%{}, _, struct_spec}
             ]}
-          ]} = Code.Typespec.type_to_quoted(types)
-          struct_spec
+         ]} = Code.Typespec.type_to_quoted(types)
+
+        struct_spec
+
       _ ->
         [{kw, kwarg_type}]
     end

@@ -188,7 +188,8 @@ defmodule ExTorch.DelegateWithDocs do
       {:module, _} -> nil
       _ -> raise(Error, "Module #{inspect(module)} is not defined/available")
     end
+
     # unless Code.ensure_compiled(module),
-      # do: raise(Error, "Module #{inspect(module)} is not defined/available")
+    # do: raise(Error, "Module #{inspect(module)} is not defined/available")
   end
 end

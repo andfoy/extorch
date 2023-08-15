@@ -57,12 +57,18 @@ defmodule ExTorch.Index do
   @typedoc """
   An individual index element.
   """
-  @type index :: dim_modifier_index() | range_index() | tensor_list_index() | ellipsis_index() | integer_index()
+  @type index ::
+          dim_modifier_index()
+          | range_index()
+          | tensor_list_index()
+          | ellipsis_index()
+          | integer_index()
 
   @typedoc """
   An actual index element, after aliases are interpreted.
   """
-  @type actual_index :: nil | boolean() | ExTorch.Index.Slice.t() | integer() | ExTorch.Tensor.t() | :ellipsis
+  @type actual_index ::
+          nil | boolean() | ExTorch.Index.Slice.t() | integer() | ExTorch.Tensor.t() | :ellipsis
 
   @typedoc """
   A complete possible index. It can be either a puntual index or a list of puntual indices.

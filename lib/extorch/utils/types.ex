@@ -6,7 +6,8 @@ defmodule ExTorch.Utils.Types do
   @doc """
   Given two basic types, compare them and return the type that subsumes the other one.
   """
-  @spec compare_types(ExTorch.DType.base_type(), ExTorch.DType.base_type()) :: ExTorch.DType.base_type()
+  @spec compare_types(ExTorch.DType.base_type(), ExTorch.DType.base_type()) ::
+          ExTorch.DType.base_type()
   def compare_types(:bool, y) do
     y
   end

@@ -27,7 +27,7 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     indexed = ExTorch.index(x, ExTorch.slice())
     assert indexed.size == {6, 4, 5}
 
-    indexed = ExTorch.index(x, :::)
+    indexed = ExTorch.index(x, :"::")
     assert indexed.size == {6, 4, 5}
 
     indexed = ExTorch.index(x, 1..6)
@@ -42,7 +42,7 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     indexed = ExTorch.index(x, [ExTorch.slice(), ExTorch.slice(0, -2)])
     assert indexed.size == {6, 2, 5}
 
-    indexed = ExTorch.index(x, [ExTorch.slice(1), :::, 0..4])
+    indexed = ExTorch.index(x, [ExTorch.slice(1), :"::", 0..4])
     assert indexed.size == {5, 4, 4}
   end
 
@@ -109,5 +109,4 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     indexed = x[{0..3, 1, [0, 2]}]
     assert indexed.size == {3, 2}
   end
-
 end
