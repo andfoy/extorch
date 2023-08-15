@@ -169,19 +169,17 @@ defmodule ExTorch.Utils.DownloadTorch do
     end
   end
 
-  defp get_exit_status(port, ref) do
+  defp get_exit_status(port, ref, status) do
     receive do
-      {^port, {:data, _}} ->
-        get_exit_status(port, ref)
-
-      {^port, {:exit_status, 0}} ->
-        :ok
-
-      {^port, {:exit_status, _}} ->
-        {:error, :pytorch_import_failed}
+      {^port, {:data, data}} ->
+        stat = String.contains?(data, "__init__.py")
+        get_exit_status(port, ref, stat)
 
       {:DOWN, ^ref, :port, ^port, _} ->
-        {:error, :error_spawning_python}
+        case status do
+          false -> {:error, :error_spawning_python}
+          true -> :ok
+        end
     end
   end
 
@@ -200,13 +198,14 @@ defmodule ExTorch.Utils.DownloadTorch do
           ])
 
         r = Port.monitor(p)
-        get_exit_status(p, r)
+        get_exit_status(p, r, false)
     end
   end
 
   defp symlink_local_libtorch(config, libtorch_loc) do
     IO.puts("Using local libtorch installation")
     local_folder = Keyword.get(config, :folder)
+    :logger.debug("#{local_folder}, #{libtorch_loc}")
 
     case local_folder do
       :python ->
@@ -255,23 +254,29 @@ defmodule ExTorch.Utils.DownloadTorch do
 
     {version, nightly} = get_version_and_nightly(version, nightly)
 
-    :ok =
+    {:ok, try_to_download} =
       case version do
         :local ->
-          symlink_local_libtorch(config, libtorch_loc)
+          {symlink_local_libtorch(config, libtorch_loc), :skip}
 
         _ ->
-          :ok
+          {:ok, :continue}
       end
 
-    try_to_download_libtorch(
-      config,
-      variant,
-      version,
-      nightly,
-      libtorch_loc,
-      folder
-    )
+    case try_to_download do
+      :continue ->
+        try_to_download_libtorch(
+          config,
+          variant,
+          version,
+          nightly,
+          libtorch_loc,
+          folder
+        )
+
+      :skip ->
+        :ok
+    end
   end
 
   defp default_libtorch_config() do
@@ -293,11 +298,13 @@ defmodule ExTorch.Utils.DownloadTorch do
     #   folder: nil
     # ]
   end
+
   defmacro __using__(_opts) do
-    config = case @libtorch_config do
-      nil -> default_libtorch_config()
-      _ -> @libtorch_config
-    end
+    config =
+      case @libtorch_config do
+        nil -> default_libtorch_config()
+        _ -> @libtorch_config
+      end
 
     :ok = download_torch_binaries(config)
 
