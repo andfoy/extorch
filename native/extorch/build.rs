@@ -1,10 +1,12 @@
 use cxx_build::CFG;
+use glob::Paths;
 use std::env;
 use std::fs;
 use std::hash::Hasher;
 use std::path::Path;
 use std::process::Command;
 use std::str;
+use glob::glob;
 
 use rustc_hash::FxHasher;
 use tera::{Context, Tera};
@@ -63,6 +65,8 @@ fn main() {
         fs::write(native_hash, cur_hash.to_string()).unwrap();
     }
 
+    let mut link_gpu = false;
+
     let ref libtorch_path = Path::new(&manifest_dir)
         .parent()
         .unwrap()
@@ -75,6 +79,11 @@ fn main() {
         let torch_include_path = libtorch_path.join("include");
         let inner_torch_include_path = libtorch_path.join("include/torch/csrc/api/include");
         let torch_lib = libtorch_path.join("lib");
+
+        let glob_pattern = format!("{}/{}", torch_lib.to_str().unwrap(), "*torch_cuda*");
+        let cuda_lib: Vec<Paths> = glob(&glob_pattern).into_iter().collect();
+        link_gpu = cuda_lib.len() > 0;
+
         println!(
             "cargo:rustc-link-search=native={}",
             torch_lib.to_str().unwrap()
@@ -98,6 +107,11 @@ fn main() {
             let inner_torch_include_path = torch_path.join("include/torch/csrc/api/include");
 
             let torch_lib = torch_path.join("lib");
+
+            let glob_pattern = format!("{}/{}", torch_lib.to_str().unwrap(), "*torch_cuda*");
+            let cuda_lib: Vec<Paths> = glob(&glob_pattern).into_iter().collect();
+            link_gpu = cuda_lib.len() > 0;
+
             println!(
                 "cargo:rustc-link-search=native={}",
                 torch_lib.to_str().unwrap()
@@ -131,7 +145,7 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=torch_cpu");
     println!("cargo:rustc-link-lib=dylib=c10");
 
-    if command_ok(Command::new("nvcc").arg("--version")) {
+    if link_gpu {
         println!("cargo:rustc-link-lib=dylib=torch_cuda");
 
     }
