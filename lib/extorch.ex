@@ -6,7 +6,7 @@ defmodule ExTorch do
   It has a CUDA counterpart, that enables you to run your tensor computations on an NVIDIA GPU with compute capability >= 3.0
   """
 
-  @before_compile ExTorch.Utils.DownloadTorch
+  # @before_compile ExTorch.Utils.DownloadTorch
 
   use ExTorch.DelegateWithDocs
   import ExTorch.ModuleMixin

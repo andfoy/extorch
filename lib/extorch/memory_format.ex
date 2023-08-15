@@ -18,5 +18,4 @@ defmodule ExTorch.MemoryFormat do
   @memory_format [:contiguous, :channels_last, :preserve_format, :channels_last_3d]
 
   defguard is_memory_format(memory_format) when memory_format in @memory_format
-
 end

@@ -922,8 +922,11 @@ defmodule ExTorch.Native.Tensor.Creation do
               opts
               |> Map.from_struct()
               |> Map.put(:dtype, list.dtype)
+
             struct(ExTorch.Tensor.Options, kw)
-          _ -> opts
+
+          _ ->
+            opts
         end
     )
   end

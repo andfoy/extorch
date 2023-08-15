@@ -38,46 +38,96 @@ defmodule ExTorch.Utils.DownloadTorch do
     end
   end
 
-  defp download_libtorch(version, cuda_versions, out_folder, nightly) do
-    :inets.start()
-    :ssl.start()
-
+  def detect_cuda_installation(config) do
     # Detect if CUDA is installed
     nvcc = System.find_executable("nvcc")
 
-    torch_flavor =
+    tag =
       case nvcc do
         nil ->
+          IO.puts("No CUDA installation was detected, resorting to CPU")
           {:cpu, nil}
 
         _ ->
           p = Port.open({:spawn_executable, nvcc}, [:binary, args: ["--version"]])
           r = Port.monitor(p)
-          get_cuda_version(p, r, {:cpu, nil})
+          {:cuda, get_cuda_version(p, r, {:cpu, nil})}
       end
 
-    dist_str =
-      case torch_flavor do
-        {:cpu, nil} ->
-          IO.puts("No CUDA installation was detected, resorting to CPU")
-          "cpu"
+    case tag do
+      {:cpu, nil} ->
+        "cpu"
 
-        {:cuda, cu_version} ->
-          {major, minor} = cu_version
-          IO.puts("CUDA version detected: #{major}.#{minor}")
-          {major, minor} = Enum.max(Enum.filter(cuda_versions, fn v -> v <= cu_version end))
-          IO.puts("Closest supported libtorch CUDA version: #{major}.#{minor}")
-          "cu#{major}#{minor}"
-      end
+      {:cuda, {major, minor} = cu_version} ->
+        IO.puts("CUDA version detected: #{major}.#{minor}")
+        cuda_versions = Keyword.get(config, :cuda_versions)
+        {major, minor} = Enum.max(Enum.filter(cuda_versions, fn v -> v <= cu_version end))
+        IO.puts("Closest supported libtorch CUDA version: #{major}.#{minor}")
+        "cu#{major}#{minor}"
+    end
+  end
+
+  defp get_variant_tag(config, :auto) do
+    case :os.type() do
+      {:unix, :darwin} ->
+        IO.puts("MacOS only supports CPU")
+        {:macos, "cpu"}
+
+      {:unix, :linux} ->
+        str_tag = detect_cuda_installation(config)
+        {:linux, str_tag}
+
+      {:win32, :nt} ->
+        str_tag = detect_cuda_installation(config)
+        {:win, str_tag}
+    end
+  end
+
+  defp get_variant_tag(_, :cpu) do
+    case :os.type() do
+      {:unix, :darwin} ->
+        IO.puts("MacOS only supports CPU")
+        {:macos, "cpu"}
+
+      {:unix, :linux} ->
+        {:linux, "cpu"}
+
+      {:win32, :nt} ->
+        {:win, "cpu"}
+    end
+  end
+
+  defp download_libtorch(version, {os, dist_str}, out_folder, nightly) do
+    :inets.start()
+    :ssl.start()
+
+    url_base = "https://download.pytorch.org/libtorch"
 
     url =
       case nightly do
-        true ->
-          ~c"https://download.pytorch.org/libtorch/nightly/#{dist_str}/libtorch-shared-with-deps-#{version}.zip"
-
-        false ->
-          ~c"https://download.pytorch.org/libtorch/#{dist_str}/libtorch-shared-with-deps-#{version}%2B#{dist_str}.zip"
+        true -> "#{url_base}/nightly"
+        false -> url_base
       end
+
+    url = "#{url}/#{dist_str}/libtorch"
+
+    url =
+      case os do
+        :macos -> "#{url}-macos"
+        :linux -> "#{url}-shared-with-deps"
+        :win -> "#{url}-win-shared-with-deps"
+      end
+
+    url = "#{url}-#{version}"
+
+    url =
+      case {os, nightly} do
+        {:macos, _} -> "#{url}.zip"
+        {_, false} -> "#{url}%2B#{dist_str}.zip"
+        {_, true} -> "#{url}.zip"
+      end
+
+    url = String.to_charlist(url)
 
     IO.puts("Downloading #{url} to #{out_folder}")
     libtorch_path = Path.join(out_folder, "libtorch.zip")
@@ -97,72 +147,166 @@ defmodule ExTorch.Utils.DownloadTorch do
     File.rm(libtorch_path)
   end
 
-  defp get_version_and_nightly(parsed, version, nightly) do
+  defp parse_nightly(version, nightly) do
     case nightly do
       true ->
         {"latest", nightly}
 
       false ->
-        ver = Keyword.get(parsed, :version, version)
-
-        case ver do
+        case version do
           "latest" -> {"latest", true}
           "nightly" -> {"latest", true}
-          _ -> {ver, false}
+          _ -> {version, false}
         end
     end
   end
 
-  defp get_cuda_versions(parsed, cuda_versions) do
-    cuda_versions = Keyword.get(parsed, :cuda, cuda_versions)
-
-    case cuda_versions do
-      [_ | _] ->
-        cuda_versions
-
-      _ ->
-        tuple_ver =
-          cuda_versions
-          |> String.split(".")
-          |> Enum.map(fn x ->
-            {num, _} = Integer.parse(x)
-            num
-          end)
-          |> List.to_tuple()
-
-        [tuple_ver]
+  defp get_version_and_nightly(version, nightly) do
+    case version do
+      :local -> {:local, false}
+      _ -> parse_nightly(version, nightly)
     end
   end
 
-  def download_torch_binaries(parsed \\ []) do
-    folder = to_string(:code.priv_dir(:extorch))
+  defp get_exit_status(port, ref) do
+    receive do
+      {^port, {:data, _}} ->
+        get_exit_status(port, ref)
 
-    folder =
-      folder
-      |> Path.join("native")
+      {^port, {:exit_status, 0}} ->
+        :ok
 
-    config = Mix.Project.config()
-    version = Keyword.get(config, :libtorch_version)
-    cuda_versions = Keyword.get(config, :libtorch_cuda_versions)
-    libtorch_loc = Path.join(folder, "libtorch")
+      {^port, {:exit_status, _}} ->
+        {:error, :pytorch_import_failed}
 
-    nightly = Keyword.get(parsed, :nightly, false)
+      {:DOWN, ^ref, :port, ^port, _} ->
+        {:error, :error_spawning_python}
+    end
+  end
 
-    {version, nightly} = get_version_and_nightly(parsed, version, nightly)
-    cuda_versions = get_cuda_versions(parsed, cuda_versions)
+  defp find_local_pytorch() do
+    python = System.find_executable("python")
 
+    case python do
+      nil ->
+        {:error, :python_not_found}
+
+      _ ->
+        p =
+          Port.open({:spawn_executable, python}, [
+            :binary,
+            args: ["-c", "import torch; print(torch.__file__)", :exit_status]
+          ])
+
+        r = Port.monitor(p)
+        get_exit_status(p, r)
+    end
+  end
+
+  defp symlink_local_libtorch(config, libtorch_loc) do
+    IO.puts("Using local libtorch installation")
+    local_folder = Keyword.get(config, :folder)
+
+    case local_folder do
+      :python ->
+        find_local_pytorch()
+
+      nil ->
+        {:error, :missing_libtorch_folder_key}
+
+      _ ->
+        File.ln_s(libtorch_loc, local_folder)
+    end
+  end
+
+  defp try_to_download_libtorch(
+         config,
+         variant,
+         version,
+         nightly,
+         libtorch_loc,
+         folder
+       ) do
     case File.exists?(libtorch_loc) do
       true ->
         IO.puts("libtorch already exists!")
         :ok
 
       false ->
+        variant_tag = get_variant_tag(config, variant)
         IO.puts("Attempting to download libtorch v#{version}")
-        download_libtorch(version, cuda_versions, folder, nightly)
+        download_libtorch(version, variant_tag, folder, nightly)
     end
   end
 
-  defmacro __before_compile__(_env) do
-    download_torch_binaries()
+  def download_torch_binaries(config \\ []) do
+    folder = to_string(:code.priv_dir(:extorch))
+
+    folder =
+      folder
+      |> Path.join("native")
+
+    libtorch_loc = Path.join(folder, "libtorch")
+
+    version = Keyword.get(config, :version)
+    variant = Keyword.get(config, :variant)
+    nightly = Keyword.get(config, :nightly, false)
+
+    {version, nightly} = get_version_and_nightly(version, nightly)
+
+    :ok =
+      case version do
+        :local ->
+          symlink_local_libtorch(config, libtorch_loc)
+
+        _ ->
+          :ok
+      end
+
+    try_to_download_libtorch(
+      config,
+      variant,
+      version,
+      nightly,
+      libtorch_loc,
+      folder
+    )
+  end
+
+  defp default_libtorch_config(variant \\ :stable) do
+    default_libtorch_config(variant)
+  end
+
+  defp default_libtorch_config(:stable) do
+    # 2.0.1 stable release options
+    [
+      version: "2.0.1",
+      cuda_versions: [{11, 7}, {11, 8}],
+      variant: :auto,
+      nightly: false,
+      folder: nil
+    ]
+  end
+
+  defp default_libtorch_config(:nightly) do
+    # 2.1.0 Nightly version options
+    [
+      version: "latest",
+      cuda_versions: [{11, 8}, {12, 1}],
+      variant: :auto,
+      nightly: false,
+      folder: nil
+    ]
+  end
+
+  defmacro __using__(_opts) do
+    config = Application.get_env(:extorch, :libtorch, default_libtorch_config())
+    :ok = download_torch_binaries(config)
+
+    quote do
+      def compilation_info() do
+        unquote(config)
+      end
+    end
   end
 end

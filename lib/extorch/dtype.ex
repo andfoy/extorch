@@ -37,7 +37,18 @@ defmodule ExTorch.DType do
   @typedoc """
   Alias names to other integral/floating tensor types.
   """
-  @type alias_type :: :byte | :char | :short | :int | :long | :half | :float | :double | :chalf | :cfloat | :cdouble
+  @type alias_type ::
+          :byte
+          | :char
+          | :short
+          | :int
+          | :long
+          | :half
+          | :float
+          | :double
+          | :chalf
+          | :cfloat
+          | :cdouble
 
   @typedoc """
   A torch.dtype is an object that represents the data type of a torch.Tensor.
@@ -73,9 +84,8 @@ defmodule ExTorch.DType do
     :double,
     :chalf,
     :cfloat,
-    :cdouble,
+    :cdouble
   ]
 
   defguard is_dtype(dtype) when dtype in @dtypes
-
 end

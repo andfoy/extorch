@@ -354,7 +354,12 @@ defmodule ExTorchTest.Tensor.CreationTest do
   end
 
   test "tensor/1 with int32" do
-    tensor = ExTorch.tensor([[[6, 1, 2], [3, 4, 5], [6, 7, 8]], [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]])
+    tensor =
+      ExTorch.tensor([
+        [[6, 1, 2], [3, 4, 5], [6, 7, 8]],
+        [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]
+      ])
+
     assert tensor.size == {2, 3, 3}
     assert tensor.dtype == :int
     assert tensor.device == :cpu
@@ -363,7 +368,12 @@ defmodule ExTorchTest.Tensor.CreationTest do
   end
 
   test "tensor/1 with float32" do
-    tensor = ExTorch.tensor([[[6, 1, 2], [3, 4, 5], [6, 7, 8]], [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]], dtype: :float32)
+    tensor =
+      ExTorch.tensor(
+        [[[6, 1, 2], [3, 4, 5], [6, 7, 8]], [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]],
+        dtype: :float32
+      )
+
     assert tensor.size == {2, 3, 3}
     assert tensor.dtype == :float
     assert tensor.device == :cpu
@@ -372,12 +382,16 @@ defmodule ExTorchTest.Tensor.CreationTest do
   end
 
   test "tensor/1 with float64" do
-    tensor = ExTorch.tensor([[[6, 1.0, 2], [3, 4, 5], [6, 7, 8]], [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]])
+    tensor =
+      ExTorch.tensor([
+        [[6, 1.0, 2], [3, 4, 5], [6, 7, 8]],
+        [[-6, -1, -2], [-3, -4, -5], [-6, -7, -8]]
+      ])
+
     assert tensor.size == {2, 3, 3}
     assert tensor.dtype == :double
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
   end
-
 end

@@ -8,16 +8,14 @@ defmodule ExTorch.Index.Slice do
   with a start, stop and a number of steps between values.
   """
   @type t :: %__MODULE__{
-    start: integer(),
-    stop: integer(),
-    step: integer(),
-    mask: integer()
-  }
+          start: integer(),
+          stop: integer(),
+          step: integer(),
+          mask: integer()
+        }
 
-  defstruct [
-    start: 0,
-    stop: 0,
-    step: 0,
-    mask: 0
-  ]
+  defstruct start: 0,
+            stop: 0,
+            step: 0,
+            mask: 0
 end

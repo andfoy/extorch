@@ -9,8 +9,6 @@ defmodule ExTorch.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
-      libtorch_version: "2.0.1",
-      libtorch_cuda_versions: [{11, 7}, {11, 8}],
       test_coverage: [
         ignore_modules: [
           ExTorch.DType,
@@ -38,7 +36,10 @@ defmodule ExTorch.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :ssl, :inets]
+      extra_applications: [:logger, :ssl, :inets],
+      env: [
+        libtorch: libtorch_config()
+      ]
     ]
   end
 
@@ -65,10 +66,25 @@ defmodule ExTorch.MixProject do
       name: "extorch",
       # These are the default files included in the package
       files: ~w(lib priv native .formatter.exs mix.exs README* LICENSE*),
-      exclude_patterns: ["native/extorch/target", "native/extorch/.cargo", "priv/native/libtorch",
-                         "priv/native/libextorch.so", "native/extorch/src/native/native.rs.sum"],
+      exclude_patterns: [
+        "native/extorch/target",
+        "native/extorch/.cargo",
+        "priv/native/libtorch",
+        "priv/native/libextorch.so",
+        "native/extorch/src/native/native.rs.sum"
+      ],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/andfoy/extorch"}
+    ]
+  end
+
+  defp libtorch_config() do
+    [
+      version: "2.0.1",
+      cuda_versions: [{11, 7}, {11, 8}],
+      variant: :auto,
+      nightly: false,
+      folder: nil
     ]
   end
 
