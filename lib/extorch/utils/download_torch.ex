@@ -1,6 +1,7 @@
 defmodule ExTorch.Utils.DownloadTorch do
   @moduledoc false
 
+  @libtorch_config Application.get_env(:extorch, :libtorch)
   @cuda_regex ~r".*release ((\d+).(\d+)).*"
 
   defp parse_version_parts([], acc_version, _) do
@@ -273,11 +274,7 @@ defmodule ExTorch.Utils.DownloadTorch do
     )
   end
 
-  defp default_libtorch_config(variant \\ :stable) do
-    default_libtorch_config(variant)
-  end
-
-  defp default_libtorch_config(:stable) do
+  defp default_libtorch_config() do
     # 2.0.1 stable release options
     [
       version: "2.0.1",
@@ -286,21 +283,22 @@ defmodule ExTorch.Utils.DownloadTorch do
       nightly: false,
       folder: nil
     ]
-  end
 
-  defp default_libtorch_config(:nightly) do
     # 2.1.0 Nightly version options
-    [
-      version: "latest",
-      cuda_versions: [{11, 8}, {12, 1}],
-      variant: :auto,
-      nightly: false,
-      folder: nil
-    ]
+    # [
+    #   version: "latest",
+    #   cuda_versions: [{11, 8}, {12, 1}],
+    #   variant: :auto,
+    #   nightly: false,
+    #   folder: nil
+    # ]
   end
-
   defmacro __using__(_opts) do
-    config = Application.get_env(:extorch, :libtorch, default_libtorch_config())
+    config = case @libtorch_config do
+      nil -> default_libtorch_config()
+      _ -> @libtorch_config
+    end
+
     :ok = download_torch_binaries(config)
 
     quote do
