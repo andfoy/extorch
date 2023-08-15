@@ -157,6 +157,8 @@ defmodule ExTorch.Utils.DownloadTorch do
         case version do
           "latest" -> {"latest", true}
           "nightly" -> {"latest", true}
+          :latest -> {"latest", true}
+          :nightly -> {"latest", true}
           _ -> {version, false}
         end
     end
@@ -165,6 +167,7 @@ defmodule ExTorch.Utils.DownloadTorch do
   defp get_version_and_nightly(version, nightly) do
     case version do
       :local -> {:local, false}
+      "local" -> {:local, false}
       _ -> parse_nightly(version, nightly)
     end
   end
@@ -209,6 +212,9 @@ defmodule ExTorch.Utils.DownloadTorch do
 
     case local_folder do
       :python ->
+        find_local_pytorch()
+
+      "python" ->
         find_local_pytorch()
 
       nil ->
