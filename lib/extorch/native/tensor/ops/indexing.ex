@@ -129,5 +129,23 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             ExTorch.Index.t()
           ) :: ExTorch.Tensor.t()
     defbinding(index(tensor, indices), indices: ExTorch.Utils.Indices.parse_indices(indices))
+
+    @doc """
+    Assign a tensor or value in another tensor given an index or set of indices.
+
+    ## Arguments
+    - `tensor` - Input tensor (`ExTorch.Tensor`)
+    - `index` - Indices to replace (`ExTorch.Index`)
+    - `value` - The value to assign into the tensor (`ExTorch.Tensor` | `number()` | `list()` | `tuple()` | `number()`)
+    """
+    @spec index_assign(
+            ExTorch.Tensor.t(),
+            ExTorch.Index.t(),
+            ExTorch.Tensor.t() | number() | list() | tuple() | boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(index_assign(tensor, indices, value),
+      indices: ExTorch.Utils.Indices.parse_indices(indices),
+      value: ExTorch.Utils.to_list_wrapper(value)
+    )
   end
 end

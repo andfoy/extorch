@@ -52,3 +52,10 @@ std::shared_ptr<CrossTensor> index(const std::shared_ptr<CrossTensor> &tensor, c
     // auto sliced_tensor = cross_tensor[0];
     return std::make_shared<CrossTensor>(std::move(sliced_tensor));
 }
+
+// std::shared_ptr<CrossTensor> index_assign(
+//         const std::shared_ptr<CrossTensor> &tensor,
+//         const rust::Vec<TorchIndex> index,
+//         ScalarList list) {
+//     at::index_put
+// }
