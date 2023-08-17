@@ -9,22 +9,22 @@ macro_rules! call {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! make_call {
-    ($f: path, ($($args:expr)*), ()) => { $f($($args),*) };
-    ($f: path, ($($args:expr)*), ($x:ident : TensorStruct<'a> $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
-        make_call!($f, ($($args)* &$x.resource.tensor), ($($argsf : $argst$(<$ext>)?),*))
+    ($f: path, ($({$args:expr})*), ()) => { $f($($args),*) };
+    ($f: path, ($({$args:expr})*), ($x:ident : TensorStruct<'a> $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($({$args})* {&$x.resource.tensor}), ($($argsf : $argst$(<$ext>)?),*))
     };
-    ($f: path, ($($args:expr)*), ($x:ident : Size $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
-        make_call!($f, ($($args)* $x.size), ($($argsf : $argst$(<$ext>)?),*))
+    ($f: path, ($({$args:expr})*), ($x:ident : Size $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($({$args})* {$x.size}), ($($argsf : $argst$(<$ext>)?),*))
     };
-    ($f: path, ($($args:expr)*), ($x:ident : TensorIndex $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
-        make_call!($f, ($($args)* $x.indices), ($($argsf : $argst$(<$ext>)?),*))
+    ($f: path, ($({$args:expr})*), ($x:ident : TensorIndex $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($({$args})* {$x.indices}), ($($argsf : $argst$(<$ext>)?),*))
     };
-    ($f: path, ($($args:expr)*), ($x:ident : TensorOptions $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
-        make_call!($f, ($($args)* $x.dtype.name $x.layout.name $x.device $x.requires_grad
-                        $x.pin_memory $x.memory_format.name), ($($argsf : $argst$(<$ext>)?),*))
+    ($f: path, ($({$args:expr})*), ($x:ident : TensorOptions $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($({$args})* {$x.dtype.name} {$x.layout.name} {$x.device} {$x.requires_grad}
+                        {$x.pin_memory} {$x.memory_format.name}), ($($argsf : $argst$(<$ext>)?),*))
     };
-    ($f: path, ($($args:expr)*), ($x:ident : $y:tt$(<$ext1:lifetime>)? $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
-        make_call!($f, ($($args)* $x), ($($argsf : $argst$(<$ext>)?),*))
+    ($f: path, ($({$args:expr})*), ($x:ident : $y:tt$(<$ext1:lifetime>)? $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($({$args})* {$x}), ($($argsf : $argst$(<$ext>)?),*))
     };
 }
 

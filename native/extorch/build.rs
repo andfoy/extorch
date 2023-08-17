@@ -1,4 +1,5 @@
 use cxx_build::CFG;
+use glob::glob;
 use glob::GlobError;
 use std::env;
 use std::fs;
@@ -6,7 +7,6 @@ use std::hash::Hasher;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
-use glob::glob;
 
 use rustc_hash::FxHasher;
 use tera::{Context, Tera};
@@ -44,7 +44,10 @@ fn main() {
     };
 
     let context = Context::new();
-    let rendering = tera.render("native.rs.in", &context).unwrap();
+    let mut rendering = tera.render("native.rs.in", &context).unwrap();
+    let syntax_tree = syn::parse_file(&rendering).unwrap();
+    rendering = prettyplease::unparse(&syntax_tree);
+
     let native_hash = Path::new(&manifest_dir)
         .join("src")
         .join("native")
@@ -84,9 +87,10 @@ fn main() {
         let glob_all = glob(&glob_pattern);
         match glob_all {
             Ok(paths) => {
-                let valid_paths: Vec<Result<PathBuf, GlobError>> = paths.into_iter().filter(|x| x.is_ok()).collect();
+                let valid_paths: Vec<Result<PathBuf, GlobError>> =
+                    paths.into_iter().filter(|x| x.is_ok()).collect();
                 link_gpu = valid_paths.len() > 0;
-            },
+            }
             Err(_) => {
                 link_gpu = false;
             }
@@ -120,9 +124,10 @@ fn main() {
             let glob_all = glob(&glob_pattern);
             match glob_all {
                 Ok(paths) => {
-                    let valid_paths: Vec<Result<PathBuf, GlobError>> = paths.into_iter().filter(|x| x.is_ok()).collect();
+                    let valid_paths: Vec<Result<PathBuf, GlobError>> =
+                        paths.into_iter().filter(|x| x.is_ok()).collect();
                     link_gpu = valid_paths.len() > 0;
-                },
+                }
                 Err(_) => {
                     link_gpu = false;
                 }
@@ -163,6 +168,5 @@ fn main() {
 
     if link_gpu {
         println!("cargo:rustc-link-lib=dylib=torch_cuda");
-
     }
 }

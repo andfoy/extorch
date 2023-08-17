@@ -1,6 +1,5 @@
 use crate::native::torch;
-use crate::shared_types::{
-    AtomString, ListWrapper, Size, ExSlice, TensorStruct, TensorIndex};
+use crate::shared_types::{AtomString, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct};
 
 use rustler::types::tuple::{get_tuple, make_tuple};
 use rustler::{Atom, Decoder, Encoder, Env, Error, NifResult, Term};
@@ -309,69 +308,68 @@ impl<'a> Decoder<'a> for torch::TorchSlice {
             start: wrapped_term.start,
             stop: wrapped_term.stop,
             step: wrapped_term.step,
-            enc: wrapped_term.mask
+            enc: wrapped_term.mask,
         })
     }
 }
 
-
 impl<'a> Decoder<'a> for torch::TorchIndex {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         let atom_value = match term.atom_to_string() {
-            Ok(value) => {
-                match value.as_str() {
-                    "nil" => Some(Ok(torch::TorchIndex {
-                        integer: -1,
-                        slice: torch::TorchSlice {
-                            start: 0,
-                            stop: 0,
-                            step: 1,
-                            enc: 0
-                        },
-                        boolean: false,
-                        tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 0
-                    })),
-                    "ellipsis" => Some(Ok(torch::TorchIndex {
-                        integer: -1,
-                        slice: torch::TorchSlice {
-                            start: 0,
-                            stop: 0,
-                            step: 1,
-                            enc: 0
-                        },
-                        boolean: false,
-                        tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 1
-                    })),
-                    "true" => Some(Ok(torch::TorchIndex {
-                        integer: -1,
-                        slice: torch::TorchSlice {
-                            start: 0,
-                            stop: 0,
-                            step: 1,
-                            enc: 0
-                        },
-                        boolean: true,
-                        tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 3
-                    })),
-                    "false" => Some(Ok(torch::TorchIndex {
-                        integer: -1,
-                        slice: torch::TorchSlice {
-                            start: 0,
-                            stop: 0,
-                            step: 1,
-                            enc: 0
-                        },
-                        boolean: false,
-                        tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 3
-                    })),
-                    _ => Some(Err(Error::RaiseAtom("only ellipsis and nil are valid indices")))
-                }
+            Ok(value) => match value.as_str() {
+                "nil" => Some(Ok(torch::TorchIndex {
+                    integer: -1,
+                    slice: torch::TorchSlice {
+                        start: 0,
+                        stop: 0,
+                        step: 1,
+                        enc: 0,
+                    },
+                    boolean: false,
+                    tensor: SharedPtr::<torch::CrossTensor>::null(),
+                    type_: 0,
+                })),
+                "ellipsis" => Some(Ok(torch::TorchIndex {
+                    integer: -1,
+                    slice: torch::TorchSlice {
+                        start: 0,
+                        stop: 0,
+                        step: 1,
+                        enc: 0,
+                    },
+                    boolean: false,
+                    tensor: SharedPtr::<torch::CrossTensor>::null(),
+                    type_: 1,
+                })),
+                "true" => Some(Ok(torch::TorchIndex {
+                    integer: -1,
+                    slice: torch::TorchSlice {
+                        start: 0,
+                        stop: 0,
+                        step: 1,
+                        enc: 0,
+                    },
+                    boolean: true,
+                    tensor: SharedPtr::<torch::CrossTensor>::null(),
+                    type_: 3,
+                })),
+                "false" => Some(Ok(torch::TorchIndex {
+                    integer: -1,
+                    slice: torch::TorchSlice {
+                        start: 0,
+                        stop: 0,
+                        step: 1,
+                        enc: 0,
+                    },
+                    boolean: false,
+                    tensor: SharedPtr::<torch::CrossTensor>::null(),
+                    type_: 3,
+                })),
+                _ => Some(Err(Error::RaiseAtom(
+                    "only ellipsis and nil are valid indices",
+                ))),
             },
-            Err(_) => None
+            Err(_) => None,
         };
 
         let int_value = match atom_value {
@@ -385,13 +383,13 @@ impl<'a> Decoder<'a> for torch::TorchIndex {
                             start: 0,
                             stop: 0,
                             step: 1,
-                            enc: 0
+                            enc: 0,
                         },
                         boolean: false,
                         tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 2
+                        type_: 2,
                     })),
-                    Err(_) => None
+                    Err(_) => None,
                 }
             }
         };
@@ -406,9 +404,9 @@ impl<'a> Decoder<'a> for torch::TorchIndex {
                         slice: slice_value,
                         boolean: false,
                         tensor: SharedPtr::<torch::CrossTensor>::null(),
-                        type_: 4
+                        type_: 4,
                     })),
-                    Err(_) => None
+                    Err(_) => None,
                 }
             }
         };
@@ -418,34 +416,28 @@ impl<'a> Decoder<'a> for torch::TorchIndex {
             None => {
                 let tensor_val: Result<TensorStruct<'a>, Error> = term.decode();
                 match tensor_val {
-                    Ok(tensor) => {
-                        Ok(torch::TorchIndex {
-                            integer: -1,
-                            slice: torch::TorchSlice {
-                                start: 0,
-                                stop: 0,
-                                step: 1,
-                                enc: 0
-                            },
-                            boolean: false,
-                            tensor: tensor.resource.tensor.clone(),
-                            type_: 5
-                        })
-                    },
-                    Err(e) => Err(e)
+                    Ok(tensor) => Ok(torch::TorchIndex {
+                        integer: -1,
+                        slice: torch::TorchSlice {
+                            start: 0,
+                            stop: 0,
+                            step: 1,
+                            enc: 0,
+                        },
+                        boolean: false,
+                        tensor: tensor.resource.tensor.clone(),
+                        type_: 5,
+                    }),
+                    Err(e) => Err(e),
                 }
             }
         }
-
-
     }
 }
 
 impl<'a> Decoder<'a> for TensorIndex {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         let indices: Vec<torch::TorchIndex> = term.decode()?;
-        Ok(TensorIndex {
-            indices
-        })
+        Ok(TensorIndex { indices })
     }
 }

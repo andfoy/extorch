@@ -16,12 +16,15 @@ pub mod torch {
         type CrossTensor;
 
         // Tensor attribute access
+        // ----------------------------------------------------------------
         {% include "tensor/info.rs.in" %}
 
         // Tensor operations
+        // ----------------------------------------------------------------
         {% include "tensor/ops.rs.in" %}
 
         // Tensor creation operations.
+        // ----------------------------------------------------------------
         {% include "tensor/creation.rs.in" %}
     }
 }

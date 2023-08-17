@@ -53,9 +53,58 @@ std::shared_ptr<CrossTensor> index(const std::shared_ptr<CrossTensor> &tensor, c
     return std::make_shared<CrossTensor>(std::move(sliced_tensor));
 }
 
-// std::shared_ptr<CrossTensor> index_assign(
-//         const std::shared_ptr<CrossTensor> &tensor,
-//         const rust::Vec<TorchIndex> index,
-//         ScalarList list) {
-//     at::index_put
-// }
+std::shared_ptr<CrossTensor> index_put(
+        const std::shared_ptr<CrossTensor> &tensor,
+        const rust::Vec<TorchIndex> index,
+        const std::shared_ptr<CrossTensor> &value) {
+    CrossTensor cross_tensor = *tensor.get();
+    CrossTensor value_tensor = *value.get();
+
+    std::vector<at::indexing::TensorIndex> act_index;
+    for(int i = 0; i < index.size(); i++) {
+        const TorchIndex& idx = index[i];
+        at::indexing::TensorIndexType idx_type = static_cast<at::indexing::TensorIndexType>(idx.type_);
+        if(idx_type == at::indexing::TensorIndexType::None) {
+            act_index.push_back(at::indexing::TensorIndex(c10::nullopt));
+        } else if(idx_type == at::indexing::TensorIndexType::Ellipsis) {
+            act_index.push_back(at::indexing::TensorIndex(at::indexing::Ellipsis));
+        } else if(idx.type_ == 2) {
+            act_index.push_back(idx.integer);
+        } else if(idx_type == at::indexing::TensorIndexType::Boolean) {
+            act_index.push_back(idx.boolean);
+        } else if(idx_type == at::indexing::TensorIndexType::Slice) {
+            const TorchSlice& ex_slice = idx.slice;
+            c10::optional<c10::SymInt> start = c10::nullopt;
+            c10::optional<c10::SymInt> stop = c10::nullopt;
+            c10::optional<c10::SymInt> step = c10::nullopt;
+
+            uint8_t mask = ex_slice.enc;
+            if(mask & 1) {
+                start = ex_slice.start;
+            }
+            mask >>= 1;
+            if(mask & 1) {
+                stop = ex_slice.stop;
+            }
+            mask >>= 1;
+            if(mask & 1) {
+                step = ex_slice.step;
+            }
+            at::indexing::Slice act_slice(start, stop, step);
+            act_index.push_back(act_slice);
+        } else if(idx_type == at::indexing::TensorIndexType::Tensor) {
+            CrossTensor cross_tensor_idx = *idx.tensor.get();
+            act_index.push_back(cross_tensor_idx);
+        }
+    }
+
+    // const int64_t *ptr = list.size.data();
+    // torch::detail::TensorDataContainer scalar_list = get_scalar_list(std::move(list.list));
+    // torch::TensorOptions opts = cross_tensor.options();
+    // opts = opts.requires_grad(torch::nullopt);
+    // torch::Tensor value_tensor = torch::tensor(scalar_list, opts);
+    // value_tensor = value_tensor.reshape(torch::IntArrayRef{ptr, list.size.size()}).contiguous();
+
+    auto out_tensor = cross_tensor.index_put_(act_index, value_tensor);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

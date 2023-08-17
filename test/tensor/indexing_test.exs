@@ -109,4 +109,33 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     indexed = x[{0..3, 1, [0, 2]}]
     assert indexed.size == {3, 2}
   end
+
+  test "assign a number in a tensor dim" do
+    x = ExTorch.zeros({2, 3, 3})
+    expected = [[[-1, -1, -1], [-1, -1, -1], [-1, -1, -1]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+    x = ExTorch.index_put(x, 0, -1)
+    assert ExTorch.Tensor.to_list(x) == expected
+  end
+
+  test "assign a list in a tensor slice" do
+    x = ExTorch.zeros({3, 3})
+    expected = [[0, 0, 0], [1, 2, 3], [0, 0, 0]]
+    x = ExTorch.index_put(x, [1, :"::"], [1, 2, 3])
+    assert ExTorch.Tensor.to_list(x) == expected
+  end
+
+  test "assign a list in a tensor slice (broadcast)" do
+    x = ExTorch.zeros({2, 3, 3})
+    expected = [[[0, 0, 0], [1, 2, 3], [0, 0, 0]], [[0, 0, 0], [1, 2, 3], [0, 0, 0]]]
+    x = ExTorch.index_put(x, [:"::", 1], [1, 2, 3])
+    assert ExTorch.Tensor.to_list(x) == expected
+  end
+
+  test "assign a tensor in a tensor dim" do
+    x = ExTorch.zeros({2, 3, 3})
+    value = ExTorch.eye(3)
+    expected = [[[1, 0, 0], [0, 1, 0], [0, 0, 1]], [[0, 0, 0], [0, 0, 0], [0, 0, 0]]]
+    x = ExTorch.index_put(x, 0, value)
+    assert ExTorch.Tensor.to_list(x) == expected
+  end
 end
