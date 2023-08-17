@@ -129,5 +129,103 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             ExTorch.Index.t()
           ) :: ExTorch.Tensor.t()
     defbinding(index(tensor, indices), indices: ExTorch.Utils.Indices.parse_indices(indices))
+
+    @doc """
+    Assign a value into a tensor given a single or a sequence of indices.
+
+    ## Arguments
+    - `tensor` - Input tensor (`ExTorch.Tensor`)
+    - `index` - Indices to replace (`ExTorch.Index`)
+    - `value` - The value to assign into the tensor (`ExTorch.Tensor` | `number()` | `list()` | `tuple()` | `number()`)
+
+    ## Examples
+        # Assign a particular value
+        iex> x = ExTorch.zeros({2, 3, 3})
+        #Tensor<
+        (1,.,.) =
+          0  0  0
+          0  0  0
+          0  0  0
+
+        (2,.,.) =
+          0  0  0
+          0  0  0
+          0  0  0
+        [ CPUDoubleType{2,3,3} ]
+        >
+        iex> x = ExTorch.index_put(x, 0, -1)
+        #Tensor<
+        (1,.,.) =
+        -1 -1 -1
+        -1 -1 -1
+        -1 -1 -1
+
+        (2,.,.) =
+          0  0  0
+          0  0  0
+          0  0  0
+        [ CPUDoubleType{2,3,3} ]
+        >
+
+        # Assign a value into an slice
+        iex> x = ExTorch.index_put(x, [0, ExTorch.slice(1), ExTorch.slice(1)], 0.3)
+        #Tensor<
+        (1,.,.) =
+        -1.0000 -1.0000 -1.0000
+        -1.0000  0.3000  0.3000
+        -1.0000  0.3000  0.3000
+
+        (2,.,.) =
+          0  0  0
+          0  0  0
+          0  0  0
+        [ CPUDoubleType{2,3,3} ]
+
+        # Assign a tensor into an index
+        iex> value = ExTorch.eye(3)
+        iex> x = ExTorch.index_put(x, 1, value)
+        #Tensor<
+        (1,.,.) =
+        -1.0000 -1.0000 -1.0000
+        -1.0000  0.3000  0.3000
+        -1.0000  0.3000  0.3000
+
+        (2,.,.) =
+          1  0  0
+          0  1  0
+          0  0  1
+        [ CPUDoubleType{2,3,3} ]
+
+        # Assign a list of numbers into an index (broadcastable)
+        iex> x = ExTorch.index_put(x, [:::, 1], [1, 2, 3])
+        #Tensor<
+        (1,.,.) =
+        -1.0000 -1.0000 -1.0000
+          1.0000  2.0000  3.0000
+        -1.0000  0.3000  0.3000
+
+        (2,.,.) =
+          1  0  0
+          1  2  3
+          0  0  1
+        [ CPUDoubleType{2,3,3} ]
+    """
+    @spec index_put(
+            ExTorch.Tensor.t(),
+            ExTorch.Index.t(),
+            ExTorch.Tensor.t() | number() | list() | tuple() | boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(index_put(tensor, indices, value),
+      indices: ExTorch.Utils.Indices.parse_indices(indices),
+      value:
+        case value do
+          %ExTorch.Tensor{} ->
+            value
+
+          _ ->
+            ExTorch.tensor(value, device: ExTorch.Tensor.device(tensor),
+                           requires_grad: false)
+        end
+    )
   end
 end

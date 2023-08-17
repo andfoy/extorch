@@ -208,5 +208,6 @@ std::shared_ptr<CrossTensor> tensor(
     opts = opts.requires_grad(torch::nullopt);
     torch::Tensor tensor = torch::tensor(scalar_list, opts);
     torch::Tensor reshaped_tensor = tensor.reshape(torch::IntArrayRef{ptr, list.size.size()}).contiguous();
+    reshaped_tensor.set_requires_grad(requires_grad);
     return std::make_shared<CrossTensor>(std::move(reshaped_tensor));
 }

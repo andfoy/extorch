@@ -4,5 +4,12 @@ fn index(
     indices: Vec<TorchIndex>,
 ) -> Result<SharedPtr<CrossTensor>>;
 
+/// Assign a value into a tensor given a sequence of indices
+fn index_put(
+    tensor: &SharedPtr<CrossTensor>,
+    indices: Vec<TorchIndex>,
+    value: &SharedPtr<CrossTensor>
+) -> Result<SharedPtr<CrossTensor>>;
+
 /// Add an empty dimension to a tensor at the given dimension.
 fn unsqueeze(tensor: &SharedPtr<CrossTensor>, dim: i64) -> Result<SharedPtr<CrossTensor>>;

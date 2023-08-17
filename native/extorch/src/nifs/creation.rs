@@ -59,4 +59,9 @@ nif_impl!(
     options: TensorOptions
 );
 
-nif_impl!(tensor, TensorStruct<'a>, list: ScalarList, options: TensorOptions);
+nif_impl!(
+    tensor,
+    TensorStruct<'a>,
+    list: ScalarList,
+    options: TensorOptions
+);
