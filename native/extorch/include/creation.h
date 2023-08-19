@@ -122,3 +122,11 @@ std::shared_ptr<CrossTensor> tensor(
     bool pin_memory,
     rust::String s_mem_fmt
 );
+
+std::shared_ptr<CrossTensor> complex(
+    const std::shared_ptr<CrossTensor> &real,
+    const std::shared_ptr<CrossTensor> &imag);
+
+std::shared_ptr<CrossTensor> polar(
+    const std::shared_ptr<CrossTensor> &abs,
+    const std::shared_ptr<CrossTensor> &angle);

@@ -929,5 +929,41 @@ defmodule ExTorch.Native.Tensor.Creation do
             opts
         end
     )
+
+    @doc """
+    Constructs a complex tensor with its real part equal to `real` and its
+    imaginary part equal to `imag`.
+
+    ## Arguments
+      - `real`: An `ExTorch.Tensor` containing the real parts.
+      - `imag`: An `ExTorch.Tensor` containing the imag parts.
+
+    ## Notes
+    If both the inputs are `:float32`, the output will be `:complex64`.
+    Comparatively, if both the inputs are `:float64`, the output will be
+    `:complex128`.
+    """
+    @spec complex(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(complex(real, imag))
+
+    @doc ~S"""
+    Constructs a complex tensor whose elements are Cartesian coordinates
+    corresponding to the polar coordinates with absolute value `abs` and
+    angle `angle`.
+
+    $$(\text{out} = \text{abs} \cdot \cos(\text{angle}) + \text{abs} \cdot \sin(\text{angle}) \cdot j)$$
+
+    ## Arguments
+      - `real`: An `ExTorch.Tensor` containing the real parts.
+      - `imag`: An `ExTorch.Tensor` containing the imag parts.
+
+    ## Notes
+    If both the inputs are `:float32`, the output will be `:complex64`.
+    Comparatively, if both the inputs are `:float64`, the output will be
+    `:complex128`.
+    """
+    @spec polar(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(polar(real, imag))
+
   end
 end

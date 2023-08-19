@@ -26,6 +26,14 @@ pub mod torch {
         // Tensor creation operations.
         // ----------------------------------------------------------------
         {% include "tensor/creation.rs.in" %}
+
+        // Tensor pointwise math operations.
+        // ----------------------------------------------------------------
+        {% include "tensor/pointwise.rs.in" %}
+
+        // Other tensor operations.
+        // ----------------------------------------------------------------
+        {% include "tensor/other.rs.in" %}
     }
 }
 

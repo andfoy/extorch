@@ -12,6 +12,9 @@ defmodule ExTorch.Native do
   use ExTorch.Native.Tensor.Info
   use ExTorch.Native.Tensor.Ops.Indexing
   use ExTorch.Native.Tensor.Ops.Manipulation
+  use ExTorch.Native.Tensor.Ops.PointWise
+  use ExTorch.Native.Tensor.Ops.Other
+
   use ExTorch.Utils.DownloadTorch
   use Rustler, otp_app: :extorch, crate: "extorch", env: [{"CARGO_TERM_VERBOSE", "true"}]
 

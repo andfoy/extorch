@@ -1,0 +1,2 @@
+
+fn view_as_complex(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;

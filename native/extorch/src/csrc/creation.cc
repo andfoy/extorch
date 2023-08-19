@@ -219,3 +219,21 @@ std::shared_ptr<CrossTensor> tensor(
     reshaped_tensor.set_requires_grad(requires_grad);
     return std::make_shared<CrossTensor>(std::move(reshaped_tensor));
 }
+
+std::shared_ptr<CrossTensor> complex(
+        const std::shared_ptr<CrossTensor> &real,
+        const std::shared_ptr<CrossTensor> &imag) {
+    CrossTensor real_tensor = *real.get();
+    CrossTensor imag_tensor = *imag.get();
+    torch::Tensor tensor = torch::complex(real_tensor, imag_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> polar(
+        const std::shared_ptr<CrossTensor> &abs,
+        const std::shared_ptr<CrossTensor> &angle) {
+    CrossTensor abs_tensor = *abs.get();
+    CrossTensor angle_tensor = *angle.get();
+    torch::Tensor tensor = torch::polar(abs_tensor, angle_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
