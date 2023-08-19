@@ -1,4 +1,3 @@
-
 /// Create an empty tensor.
 fn empty(
     dims: Vec<i64>,
@@ -143,4 +142,16 @@ fn tensor(
     requires_grad: bool,
     pin_memory: bool,
     s_mem_fmt: String,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a complex tensor with real and imaginary parts.
+fn complex(
+    real: &SharedPtr<CrossTensor>,
+    imag: &SharedPtr<CrossTensor>,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a polar complex tensor with magnitude and phase parts.
+fn polar(
+    abs: &SharedPtr<CrossTensor>,
+    angle: &SharedPtr<CrossTensor>,
 ) -> Result<SharedPtr<CrossTensor>>;

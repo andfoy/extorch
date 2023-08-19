@@ -1,5 +1,7 @@
 use crate::native::torch;
-use crate::shared_types::{AtomString, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct};
+use crate::shared_types::{
+    AtomString, Complex, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct,
+};
 
 use rustler::types::tuple::{get_tuple, make_tuple};
 use rustler::{Atom, Decoder, Encoder, Env, Error, NifResult, Term};
@@ -132,11 +134,44 @@ impl<'a> EncodeTorchScalar<'a> for bool {
     }
 }
 
+impl<'a> EncodeTorchScalar<'a> for Complex {
+    fn encode_scalar(term: Term<'a>) -> NifResult<torch::Scalar> {
+        let complex_value: NifResult<Complex> = term.decode();
+        match complex_value {
+            Ok(value) => {
+                let re_bytes = value.real.to_ne_bytes();
+                let im_bytes = value.imaginary.to_ne_bytes();
+                let mut repr: Vec<u8> = re_bytes.to_vec();
+                repr.append(&mut im_bytes.to_vec());
+                Ok(torch::Scalar {
+                    _repr: repr,
+                    entry_used: "complex128".to_string(),
+                })
+            }
+            Err(err) => Err(err),
+        }
+    }
+}
+
 impl DecodeTorchScalar for bool {
     fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
         let value = scalar._repr.get(0).unwrap();
         let bool_value = *value != 0u8;
         bool_value.encode(env)
+    }
+}
+
+impl DecodeTorchScalar for Complex {
+    fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
+        let real_part = &scalar._repr[..8];
+        let im_part = &scalar._repr[8..];
+        let real = f64::from_ne_bytes(real_part.try_into().unwrap());
+        let im = f64::from_ne_bytes(im_part.try_into().unwrap());
+        let complex = Complex {
+            real,
+            imaginary: im,
+        };
+        complex.encode(env)
     }
 }
 
@@ -206,8 +241,9 @@ impl_scalar_for_types!(
 impl<'a> Decoder<'a> for torch::Scalar {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         // let mut result: NifResult<Self> = Err(Error::RaiseAtom("invalid_type"));
-        let result =
-            nested_type_encoding!(term, bool, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64);
+        let result = nested_type_encoding!(
+            term, bool, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, Complex
+        );
 
         match result {
             Ok(_) => result,
@@ -230,6 +266,9 @@ impl Encoder for torch::Scalar {
             "uint64" => u64::decode_scalar(self, env),
             "float32" => f32::decode_scalar(self, env),
             "float64" => f64::decode_scalar(self, env),
+            "complex32" => Complex::decode_scalar(self, env),
+            "complex64" => Complex::decode_scalar(self, env),
+            "complex128" => Complex::decode_scalar(self, env),
             &_ => Atom::from_str(env, "not_converted").unwrap().encode(env),
         }
     }
@@ -248,6 +287,9 @@ fn decode_coerced_scalar<'a>(term: Term<'a>, coerce_dtype: &String) -> NifResult
         "uint64" => u64::encode_scalar(term),
         "float32" => f32::encode_scalar(term),
         "float64" => f64::encode_scalar(term),
+        "complex32" => Complex::encode_scalar(term),
+        "complex64" => Complex::encode_scalar(term),
+        "complex128" => Complex::encode_scalar(term),
         &_ => Err(Error::RaiseAtom("not_converted")),
     }
 }

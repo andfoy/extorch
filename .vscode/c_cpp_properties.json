@@ -10,6 +10,8 @@
                 // "/home/andfoy/anaconda3/envs/pth/lib/python3.10/site-packages/torch/include/**",
                 // "/home/andfoy/anaconda3/envs/pth/lib/python3.10/site-packages/torch/include/torch/csrc/api/include/**",
                 "/home/andfoy/Documentos/andfoy/extorch/priv/native/libtorch/include/**",
+                // "/home/andfoy/Documentos/PyTorch/pytorch/torch/include",
+                // "/home/andfoy/Documentos/PyTorch/pytorch/torch/csrc/api/include/**",
                 "/usr/local/include",
                 "/usr/include"
             ],

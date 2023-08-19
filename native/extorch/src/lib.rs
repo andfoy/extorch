@@ -41,8 +41,32 @@ fn add(a: i64, b: i64) -> i64 {
 rustler::init!(
     "Elixir.ExTorch.Native",
     [
-        add, repr, size, device, dtype, empty, zeros, ones, rand, randn, randint, full, eye,
-        arange, linspace, logspace, tensor, to_list, unsqueeze, index, index_put
+        add,
+        repr,
+        size,
+        device,
+        dtype,
+        empty,
+        zeros,
+        ones,
+        rand,
+        randn,
+        randint,
+        full,
+        eye,
+        arange,
+        linspace,
+        logspace,
+        tensor,
+        complex,
+        polar,
+        to_list,
+        unsqueeze,
+        index,
+        index_put,
+        real,
+        imag,
+        view_as_complex
     ],
     load = load
 );

@@ -12,3 +12,8 @@ torch::TensorOptions get_tensor_options(rust::String s_dtype,
                                         rust::String s_mem_fmt);
 torch::Scalar get_scalar_type(Scalar scalar);
 torch::detail::TensorDataContainer get_scalar_list(rust::Vec<Scalar> list);
+torch::detail::TensorDataContainer get_complex_tensor_parts(
+        rust::Vec<Scalar> list,
+        c10::ScalarType scalar_type,
+        torch::TensorOptions opts,
+        const int64_t *ptr);

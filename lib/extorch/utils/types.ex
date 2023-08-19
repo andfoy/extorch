@@ -56,6 +56,22 @@ defmodule ExTorch.Utils.Types do
     x
   end
 
+  def compare_types(:complex64, y) when y not in [:complex128] do
+    :complex64
+  end
+
+  def compare_types(x, :complex64) when x not in [:complex128] do
+    :complex64
+  end
+
+  def compare_types(:complex128, _) do
+    :complex128
+  end
+
+  def compare_types(_, :complex128) do
+    :complex128
+  end
+
   def compare_types(t, t) do
     t
   end
@@ -100,5 +116,21 @@ defmodule ExTorch.Utils.Types do
 
   def collect_types(float, acc) when is_float(float) do
     MapSet.put(acc, :float64)
+  end
+
+  def collect_types(%ExTorch.Complex{real: re, imaginary: im}, acc) do
+    re_dtype =
+      case re <= 3.4_028_235e38 do
+        true -> :complex64
+        false -> :complex128
+      end
+
+    im_dtype =
+      case im <= 3.4_028_235e38 do
+        true -> :complex64
+        false -> :complex128
+      end
+
+    MapSet.put(acc, compare_types(re_dtype, im_dtype))
   end
 end

@@ -203,11 +203,37 @@ std::shared_ptr<CrossTensor> tensor(
 )
 {
     const int64_t *ptr = list.size.data();
-    torch::detail::TensorDataContainer scalar_list = get_scalar_list(std::move(list.list));
     torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    auto scalar_type = opts.dtype().toScalarType();
+    torch::detail::TensorDataContainer scalar_list;
+
+    if(torch::isComplexType(scalar_type)) {
+        scalar_list = get_complex_tensor_parts(std::move(list.list), scalar_type, opts, ptr);
+    } else {
+        scalar_list = get_scalar_list(std::move(list.list));
+    }
+
     opts = opts.requires_grad(torch::nullopt);
     torch::Tensor tensor = torch::tensor(scalar_list, opts);
     torch::Tensor reshaped_tensor = tensor.reshape(torch::IntArrayRef{ptr, list.size.size()}).contiguous();
     reshaped_tensor.set_requires_grad(requires_grad);
     return std::make_shared<CrossTensor>(std::move(reshaped_tensor));
+}
+
+std::shared_ptr<CrossTensor> complex(
+        const std::shared_ptr<CrossTensor> &real,
+        const std::shared_ptr<CrossTensor> &imag) {
+    CrossTensor real_tensor = *real.get();
+    CrossTensor imag_tensor = *imag.get();
+    torch::Tensor tensor = torch::complex(real_tensor, imag_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> polar(
+        const std::shared_ptr<CrossTensor> &abs,
+        const std::shared_ptr<CrossTensor> &angle) {
+    CrossTensor abs_tensor = *abs.get();
+    CrossTensor angle_tensor = *angle.get();
+    torch::Tensor tensor = torch::polar(abs_tensor, angle_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
 }

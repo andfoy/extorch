@@ -394,4 +394,28 @@ defmodule ExTorchTest.Tensor.CreationTest do
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
   end
+
+  test "tensor/1 with ExTorch.Complex" do
+    tensor = ExTorch.tensor([ExTorch.Complex.complex(-1, 2), 7, ExTorch.Complex.complex(8, 4)])
+    assert tensor.size == {3}
+    assert tensor.dtype == :complex_float
+    assert tensor.device == :cpu
+
+    real_part = [-1.0, 7.0, 8.0]
+
+    tensor_real =
+      tensor
+      |> ExTorch.real()
+      |> ExTorch.Tensor.to_list()
+
+    imag_part = [2.0, 0.0, 4.0]
+
+    tensor_imag =
+      tensor
+      |> ExTorch.imag()
+      |> ExTorch.Tensor.to_list()
+
+    assert tensor_real == real_part
+    assert tensor_imag == imag_part
+  end
 end

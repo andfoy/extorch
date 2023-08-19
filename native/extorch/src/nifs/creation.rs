@@ -65,3 +65,17 @@ nif_impl!(
     list: ScalarList,
     options: TensorOptions
 );
+
+nif_impl!(
+    complex,
+    TensorStruct<'a>,
+    real: TensorStruct<'a>,
+    imag: TensorStruct<'a>
+);
+
+nif_impl!(
+    polar,
+    TensorStruct<'a>,
+    abs: TensorStruct<'a>,
+    angle: TensorStruct<'a>
+);

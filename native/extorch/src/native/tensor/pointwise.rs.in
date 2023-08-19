@@ -1,0 +1,6 @@
+
+/// Retrieve the real part of a complex tensor.
+fn real(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Retrieve the imaginary part of a complex tensor.
+fn imag(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
