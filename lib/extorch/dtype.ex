@@ -49,6 +49,8 @@ defmodule ExTorch.DType do
           | :chalf
           | :cfloat
           | :cdouble
+          | :complex_float
+          | :complex_double
 
   @typedoc """
   A torch.dtype is an object that represents the data type of a torch.Tensor.
