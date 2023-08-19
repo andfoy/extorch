@@ -223,8 +223,10 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             value
 
           _ ->
-            ExTorch.tensor(value, device: ExTorch.Tensor.device(tensor),
-                           requires_grad: false)
+            ExTorch.tensor(value,
+              device: ExTorch.Tensor.device(tensor),
+              requires_grad: false
+            )
         end
     )
   end

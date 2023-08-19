@@ -123,10 +123,12 @@ defmodule ExTorch.Utils do
   end
 
   defp convert_list(bool, type, _) when is_boolean(bool) and type in [:complex64, :complex128] do
-    re = case bool do
-      true -> 1.0
-      false -> 0.0
-    end
+    re =
+      case bool do
+        true -> 1.0
+        false -> 0.0
+      end
+
     ExTorch.Complex.complex(re, 0.0)
   end
 
@@ -134,12 +136,14 @@ defmodule ExTorch.Utils do
     integer / 1
   end
 
-  defp convert_list(integer, type, _) when is_integer(integer) and type in [:complex64, :complex128] do
+  defp convert_list(integer, type, _)
+       when is_integer(integer) and type in [:complex64, :complex128] do
     re = integer / 1
     ExTorch.Complex.complex(re, 0.0)
   end
 
-  defp convert_list(number, type, _) when is_float(number) and type in [:complex64, :complex128] do
+  defp convert_list(number, type, _)
+       when is_float(number) and type in [:complex64, :complex128] do
     ExTorch.Complex.complex(number, 0.0)
   end
 

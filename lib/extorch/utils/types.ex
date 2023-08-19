@@ -119,15 +119,17 @@ defmodule ExTorch.Utils.Types do
   end
 
   def collect_types(%ExTorch.Complex{real: re, imaginary: im}, acc) do
-    re_dtype = case re <= 3.4_028_235e38 do
-      true -> :complex64
-      false -> :complex128
-    end
+    re_dtype =
+      case re <= 3.4_028_235e38 do
+        true -> :complex64
+        false -> :complex128
+      end
 
-    im_dtype = case im <= 3.4_028_235e38 do
-      true -> :complex64
-      false -> :complex128
-    end
+    im_dtype =
+      case im <= 3.4_028_235e38 do
+        true -> :complex64
+        false -> :complex128
+      end
 
     MapSet.put(acc, compare_types(re_dtype, im_dtype))
   end

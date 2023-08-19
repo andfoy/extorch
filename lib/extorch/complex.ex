@@ -10,14 +10,12 @@ defmodule ExTorch.Complex do
   An ``ExTorch.Complex`` is a struct that represents a complex number with real and imaginary parts.
   """
   @type t :: %__MODULE__{
-    real: number(),
-    imaginary: number()
-  }
+          real: number(),
+          imaginary: number()
+        }
 
-  defstruct [
-    real: 0,
-    imaginary: 0
-  ]
+  defstruct real: 0,
+            imaginary: 0
 
   defimpl Inspect, for: ExTorch.Complex do
     import Inspect.Algebra
@@ -28,6 +26,7 @@ defmodule ExTorch.Complex do
           true -> {"+", im}
           false -> {"-", Kernel.abs(im)}
         end
+
       concat(["#{re}", " ", sign, " ", "#{im}j"])
     end
   end
@@ -39,6 +38,7 @@ defmodule ExTorch.Complex do
           true -> {"+", im}
           false -> {"-", Kernel.abs(im)}
         end
+
       "#{re} #{sign} #{im}j"
     end
   end
@@ -55,7 +55,7 @@ defmodule ExTorch.Complex do
   - `complex` - An imaginary number with real part `re` and imaginary part `im` (`ExTorch.Complex`)
   """
   def complex(re, im) do
-    %ExTorch.Complex {
+    %ExTorch.Complex{
       real: re / 1.0,
       imaginary: im / 1.0
     }
@@ -88,5 +88,4 @@ defmodule ExTorch.Complex do
   def im(%ExTorch.Complex{imaginary: im}) do
     im
   end
-
 end
