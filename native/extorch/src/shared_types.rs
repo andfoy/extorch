@@ -49,7 +49,7 @@ pub struct TensorStruct<'a> {
 #[module = "ExTorch.Complex"]
 pub struct Complex {
     pub real: f64,
-    pub imaginary: f64
+    pub imaginary: f64,
 }
 
 #[derive(NifStruct)]

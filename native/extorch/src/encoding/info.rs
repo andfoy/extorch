@@ -1,5 +1,7 @@
 use crate::native::torch;
-use crate::shared_types::{AtomString, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct, Complex};
+use crate::shared_types::{
+    AtomString, Complex, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct,
+};
 
 use rustler::types::tuple::{get_tuple, make_tuple};
 use rustler::{Atom, Decoder, Encoder, Env, Error, NifResult, Term};
@@ -143,10 +145,10 @@ impl<'a> EncodeTorchScalar<'a> for Complex {
                 repr.append(&mut im_bytes.to_vec());
                 Ok(torch::Scalar {
                     _repr: repr,
-                    entry_used: "complex128".to_string()
+                    entry_used: "complex128".to_string(),
                 })
-            },
-            Err(err) => Err(err)
+            }
+            Err(err) => Err(err),
         }
     }
 }
@@ -167,12 +169,11 @@ impl DecodeTorchScalar for Complex {
         let im = f64::from_ne_bytes(im_part.try_into().unwrap());
         let complex = Complex {
             real,
-            imaginary: im
+            imaginary: im,
         };
         complex.encode(env)
     }
 }
-
 
 macro_rules! impl_scalar_for_types {
     ($(($t:ty, $dtype:tt)),*) => {
@@ -240,8 +241,9 @@ impl_scalar_for_types!(
 impl<'a> Decoder<'a> for torch::Scalar {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         // let mut result: NifResult<Self> = Err(Error::RaiseAtom("invalid_type"));
-        let result =
-            nested_type_encoding!(term, bool, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, Complex);
+        let result = nested_type_encoding!(
+            term, bool, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, Complex
+        );
 
         match result {
             Ok(_) => result,

@@ -402,12 +402,14 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert tensor.device == :cpu
 
     real_part = [-1.0, 7.0, 8.0]
+
     tensor_real =
       tensor
       |> ExTorch.real()
       |> ExTorch.Tensor.to_list()
 
     imag_part = [2.0, 0.0, 4.0]
+
     tensor_imag =
       tensor
       |> ExTorch.imag()

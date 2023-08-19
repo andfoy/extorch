@@ -964,6 +964,5 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec polar(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(polar(real, imag))
-
   end
 end

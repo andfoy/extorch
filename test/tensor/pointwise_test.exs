@@ -7,6 +7,7 @@ defmodule ExTorchTest.Tensor.PointWiseTest do
     complex_tensor = ExTorch.complex(real_part, imag_part)
 
     real_list = ExTorch.Tensor.to_list(real_part)
+
     complex_real =
       complex_tensor
       |> ExTorch.real()
@@ -21,6 +22,7 @@ defmodule ExTorchTest.Tensor.PointWiseTest do
     complex_tensor = ExTorch.complex(real_part, imag_part)
 
     imag_list = ExTorch.Tensor.to_list(imag_part)
+
     complex_imag =
       complex_tensor
       |> ExTorch.imag()

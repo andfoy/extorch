@@ -23,7 +23,7 @@ defmodule ExTorchTest.Tensor.OtherTest do
       |> ExTorch.real()
       |> ExTorch.Tensor.to_list()
 
-      complex_view_imag =
+    complex_view_imag =
       complex_view
       |> ExTorch.imag()
       |> ExTorch.Tensor.to_list()

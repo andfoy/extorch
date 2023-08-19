@@ -24,5 +24,4 @@ defmodule ExTorch.Native.Tensor.Ops.PointWise do
     @spec imag(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(imag(input))
   end
-
 end
