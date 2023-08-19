@@ -1,5 +1,6 @@
 #include "extorch/src/native.rs.h"
 #include "extorch/include/utils.h"
+#include <complex>
 
 
 std::unordered_map<std::string, torch::ScalarType> type_mapping = {
@@ -122,6 +123,33 @@ T copy_bytes_to_type(const uint8_t* bytes) {
     return recov;
 }
 
+template<typename T>
+c10::complex<T> copy_complex_bytes_to_type(const uint8_t* bytes) {
+    T real;
+    T im;
+    real = copy_bytes_to_type<double>(bytes);
+    im = copy_bytes_to_type<double>(bytes + sizeof(double));
+    return c10::complex<T>(real, im);
+}
+
+template<typename T>
+c10::complex<T> get_complex_type(Scalar scalar) {
+    auto r_entry_used = scalar.entry_used;
+    std::string entry_used(r_entry_used.data(), r_entry_used.size());
+
+    c10::complex<T> ret_scalar;
+    uint8_t* scalar_ptr = scalar._repr.data();
+
+    if (entry_used == "complex32") {
+        ret_scalar = copy_complex_bytes_to_type<T>(scalar_ptr);
+    } else if (entry_used == "complex64") {
+        ret_scalar = copy_complex_bytes_to_type<T>(scalar_ptr);
+    } else if (entry_used == "complex128") {
+        ret_scalar = copy_complex_bytes_to_type<T>(scalar_ptr);
+    }
+    return ret_scalar;
+}
+
 torch::Scalar get_scalar_type(Scalar scalar) {
     auto r_entry_used = scalar.entry_used;
     std::string entry_used(r_entry_used.data(), r_entry_used.size());
@@ -144,6 +172,12 @@ torch::Scalar get_scalar_type(Scalar scalar) {
         ret_scalar = copy_bytes_to_type<float>(scalar_ptr);
     } else if (entry_used == "float64") {
         ret_scalar = copy_bytes_to_type<double>(scalar_ptr);
+    } else if (entry_used == "complex32") {
+        ret_scalar = copy_bytes_to_type<c10::complex<double>>(scalar_ptr);
+    } else if (entry_used == "complex64") {
+        ret_scalar = copy_bytes_to_type<c10::complex<double>>(scalar_ptr);
+    } else if (entry_used == "complex128") {
+        ret_scalar = copy_bytes_to_type<c10::complex<double>>(scalar_ptr);
     } else if (entry_used == "bool") {
         ret_scalar = scalar_ptr[0];
     }
@@ -167,9 +201,11 @@ torch::detail::TensorDataContainer get_scalar_list(rust::Vec<Scalar> list) {
         auto r_entry_used = scalar.entry_used;
         std::string entry_used(r_entry_used.data(), r_entry_used.size());
 
-        for(auto elem: list) {
-            torch::Scalar scalar = get_scalar_type(elem);
-            scalar_vec.push_back(scalar);
+        if(entry_used.rfind("complex", 0) != 0) {
+            for(auto elem: list) {
+                torch::Scalar scalar = get_scalar_type(elem);
+                scalar_vec.push_back(scalar);
+            }
         }
 
         if(entry_used == "uint8") {
@@ -209,9 +245,9 @@ torch::detail::TensorDataContainer get_scalar_list(rust::Vec<Scalar> list) {
             }
             return scalar_typed_list;
         } else if (entry_used == "float16") {
-            std::vector<float> scalar_typed_list;
+            std::vector<c10::Half> scalar_typed_list;
             for(torch::Scalar scalar : scalar_vec) {
-                float typed_scalar = scalar.toFloat();
+                float typed_scalar = scalar.toHalf();
                 scalar_typed_list.push_back(typed_scalar);
             }
             return scalar_typed_list;
@@ -239,4 +275,29 @@ torch::detail::TensorDataContainer get_scalar_list(rust::Vec<Scalar> list) {
         }
     }
     return torch::detail::TensorDataContainer();
+}
+
+torch::detail::TensorDataContainer get_complex_tensor_parts(
+        rust::Vec<Scalar> list,
+        c10::ScalarType scalar_type,
+        torch::TensorOptions opts,
+        const int64_t *ptr) {
+
+    if(scalar_type == torch::kComplexHalf || scalar_type == torch::kComplexFloat) {
+        std::vector<c10::complex<float>> typed_list;
+        // std::vector<float> im_typed_list;
+        for(auto elem: list) {
+            auto cmplx = get_complex_type<float>(elem);
+            typed_list.push_back(cmplx);
+            // im_typed_list.push_back(cmplx.imag());
+        }
+        return typed_list;
+    } else {
+        std::vector<c10::complex<double>> typed_list;
+        for(auto elem: list) {
+            auto cmplx = get_complex_type<double>(elem);
+            typed_list.push_back(cmplx);
+        }
+        return typed_list;
+    }
 }

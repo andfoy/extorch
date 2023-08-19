@@ -45,6 +45,31 @@ rust::String repr(const std::shared_ptr<CrossTensor> &tensor) {
     return tensor_repr;
 }
 
+template<typename scalar_t>
+Scalar pack_complex_scalar(scalar_t scalar, torch::ScalarType type) {
+    Scalar scalar_s;
+    std::string identifier = "complex32";
+    if(type == torch::ScalarType::ComplexFloat) {
+        identifier = "complex64";
+    } else if (type == torch::ScalarType::ComplexDouble) {
+        identifier = "complex128";
+    }
+
+    auto re = static_cast<double>(scalar.real());
+    auto imag = static_cast<double>(scalar.imag());
+
+    auto re_repr = static_cast<uint8_t*>(static_cast<void*>(&re));
+    auto im_repr = static_cast<uint8_t*>(static_cast<void*>(&imag));
+
+    rust::Vec<uint8_t> vec_repr;
+    std::copy(re_repr, re_repr + sizeof(double), std::back_inserter(vec_repr));
+    std::copy(im_repr, im_repr + sizeof(double), std::back_inserter(vec_repr));
+
+    rust::string entry_used(identifier.data(), identifier.size());
+    scalar_s.entry_used = entry_used;
+    scalar_s._repr = vec_repr;
+    return scalar_s;
+}
 
 template<typename scalar_t>
 Scalar pack_scalar(scalar_t scalar, torch::ScalarType type) {
@@ -77,10 +102,14 @@ Scalar pack_scalar(scalar_t scalar, torch::ScalarType type) {
     } else if(type == torch::ScalarType::Double) {
         // scalar_s._f64 = scalar;
         identifier = "float64";
-    } else if(type == torch::ScalarType::Double) {
-        // scalar_s._f64 = scalar;
-        identifier = "float64";
     }
+    // } else if(type == torch::ScalarType::ComplexHalf) {
+    //     return pack_complex_scalar<c10::Half>(scalar, type);
+    // } else if(type == torch::ScalarType::ComplexFloat) {
+    //     return pack_complex_scalar<float>(scalar, type);
+    // } else if (type == torch::ScalarType::ComplexDouble) {
+    //     return pack_complex_scalar<double>(scalar, type);
+    // }
 
     auto scalar_repr = static_cast<uint8_t*>(static_cast<void*>(&scalar));
     rust::Vec<uint8_t> vec_repr;
@@ -105,14 +134,25 @@ ScalarList to_list(const std::shared_ptr<CrossTensor> &tensor) {
     auto numel = cross_tensor.numel();
 
     rust::Vec<Scalar> scalar_list;
-    AT_DISPATCH_ALL_TYPES_AND2(torch::ScalarType::Half, torch::ScalarType::Bool,
-        cross_tensor.scalar_type(), "to_list", [&] {
-            auto data_ptr = conv_tensor.data_ptr<scalar_t>();
-            for(int64_t i = 0; i < numel; i++) {
-                auto scalar = pack_scalar<scalar_t>(data_ptr[i], cross_tensor.scalar_type());
-                scalar_list.push_back(scalar);
-            }
-    });
+
+    AT_DISPATCH_SWITCH(cross_tensor.scalar_type(), "to_list",
+        AT_DISPATCH_CASE_ALL_TYPES_AND2(torch::ScalarType::Half, torch::ScalarType::Bool,
+            [&] {
+                auto data_ptr = conv_tensor.data_ptr<scalar_t>();
+                for(int64_t i = 0; i < numel; i++) {
+                    auto scalar = pack_scalar<scalar_t>(data_ptr[i], cross_tensor.scalar_type());
+                    scalar_list.push_back(scalar);
+                }
+        })
+        AT_DISPATCH_CASE_COMPLEX_TYPES_AND(torch::ScalarType::ComplexHalf,
+            [&] {
+                auto data_ptr = conv_tensor.data_ptr<scalar_t>();
+                for(int64_t i = 0; i < numel; i++) {
+                    auto scalar = pack_complex_scalar<scalar_t>(data_ptr[i], cross_tensor.scalar_type());
+                    scalar_list.push_back(scalar);
+                }
+        })
+    );
 
     ScalarList result {
         std::move(scalar_list),

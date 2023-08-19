@@ -203,8 +203,16 @@ std::shared_ptr<CrossTensor> tensor(
 )
 {
     const int64_t *ptr = list.size.data();
-    torch::detail::TensorDataContainer scalar_list = get_scalar_list(std::move(list.list));
     torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    auto scalar_type = opts.dtype().toScalarType();
+    torch::detail::TensorDataContainer scalar_list;
+
+    if(torch::isComplexType(scalar_type)) {
+        scalar_list = get_complex_tensor_parts(std::move(list.list), scalar_type, opts, ptr);
+    } else {
+        scalar_list = get_scalar_list(std::move(list.list));
+    }
+
     opts = opts.requires_grad(torch::nullopt);
     torch::Tensor tensor = torch::tensor(scalar_list, opts);
     torch::Tensor reshaped_tensor = tensor.reshape(torch::IntArrayRef{ptr, list.size.size()}).contiguous();

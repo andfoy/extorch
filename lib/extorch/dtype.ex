@@ -15,6 +15,11 @@ defmodule ExTorch.DType do
   @type floating_type :: :float16 | :bfloat16 | :float32 | :float64
 
   @typedoc """
+  Complex number tensor types.
+  """
+  @type complex_type :: :complex32 | :complex64 | :complex128
+
+  @typedoc """
   Numeric tensor types
   """
   @type numeric_type :: integral_type() | floating_type()
@@ -22,12 +27,7 @@ defmodule ExTorch.DType do
   @typedoc """
   Basic tensor types
   """
-  @type base_type :: :bool | numeric_type()
-
-  @typedoc """
-  Complex number tensor types.
-  """
-  @type complex_type :: :complex32 | :complex64 | :complex128
+  @type base_type :: :bool | numeric_type() | complex_type()
 
   @typedoc """
   Quantized floating point tensor types.

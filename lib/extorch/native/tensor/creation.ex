@@ -906,7 +906,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         >
     """
     @spec tensor(
-            list() | tuple() | number(),
+            list() | tuple() | number() | boolean() | ExTorch.Complex.t(),
             ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(

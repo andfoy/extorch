@@ -303,6 +303,15 @@ defmodule ExTorch.Utils.DownloadTorch do
     #   nightly: false,
     #   folder: nil
     # ]
+
+    # Local Python installation
+    # [
+    #   version: :local,
+    #   cuda_versions: [{12, 1}, {12, 2}],
+    #   variant: :auto,
+    #   nightly: false,
+    #   folder: :python
+    # ]
   end
 
   defmacro __using__(_opts) do

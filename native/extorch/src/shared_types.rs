@@ -46,6 +46,13 @@ pub struct TensorStruct<'a> {
 }
 
 #[derive(NifStruct)]
+#[module = "ExTorch.Complex"]
+pub struct Complex {
+    pub real: f64,
+    pub imaginary: f64
+}
+
+#[derive(NifStruct)]
 #[module = "ExTorch.Utils.ListWrapper"]
 pub struct ListWrapper<'a> {
     pub list: Vec<Term<'a>>,
