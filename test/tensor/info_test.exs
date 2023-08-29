@@ -44,6 +44,9 @@ defmodule ExTorchTest.Tensor.InfoTest do
                                           " [5.0000e-10, 5.0000e-10, 5.0000e-10, ..., 5.0000e-10, 5.0000e-10,\n  5.0000e-10],\n" <>
                                           " [5.0000e-10, 5.0000e-10, 5.0000e-10, ..., 5.0000e-10, 5.0000e-10,\n  5.0000e-10],\n" <>
                                           " [5.0000e-10, 5.0000e-10, 5.0000e-10, ..., 5.0000e-10, 5.0000e-10,\n  5.0000e-10]]"
+
+    tensor = ExTorch.tensor([true, false])
+    assert ExTorch.Tensor.repr(tensor) == "[ true, false]"
   end
 
   test "to_list/1" do
