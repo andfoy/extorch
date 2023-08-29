@@ -3,6 +3,14 @@ defmodule ExTorch.Utils.PrintOptions do
   Tensor printing options.
   """
 
+  @after_compile __MODULE__
+  def __after_compile__(_env, bytecode) do
+    __MODULE__
+    |> :code.which()
+    |> to_string()
+    |> File.write(bytecode)
+  end
+
   @typedoc """
   An ``ExTorch.Utils.PrintOptions`` is a struct that is used to set different
   printing options to display an ``ExTorch.Tensor`` struct.
