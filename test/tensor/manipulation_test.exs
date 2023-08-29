@@ -37,4 +37,16 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     unsqueezed_tensor = ExTorch.unsqueeze(tensor, rand_dim)
     assert unsqueezed_tensor.size == expected_dims
   end
+
+  test "reshape/2 with negative value" do
+    tensor = ExTorch.empty({3, 4, 5, 2})
+    reshaped_tensor = ExTorch.reshape(tensor, {3, -1, 2})
+    assert reshaped_tensor.size == {3, 20, 2}
+  end
+
+  test "reshape/2" do
+    tensor = ExTorch.empty({3, 4, 5, 2})
+    reshaped_tensor = ExTorch.reshape(tensor, {20, 6})
+    assert reshaped_tensor.size == {20, 6}
+  end
 end

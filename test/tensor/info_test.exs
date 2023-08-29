@@ -60,4 +60,12 @@ defmodule ExTorchTest.Tensor.InfoTest do
     lt = ExTorch.tensor(l)
     assert ExTorch.Tensor.to_list(lt) == l
   end
+
+  test "requires_grad/1" do
+    tensor = ExTorch.empty({2}, requires_grad: true)
+    assert ExTorch.Tensor.requires_grad(tensor)
+
+    tensor = ExTorch.empty({2})
+    assert !ExTorch.Tensor.requires_grad(tensor)
+  end
 end
