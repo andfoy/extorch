@@ -52,73 +52,87 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
       - `indices`: Indices to select (`ExTorch.Index`)
 
     ## Examples
-        iex> a = ExTorch.rand({3, 4, 4})
+        iex> a = ExTorch.arange(3 * 4 * 4) |> ExTorch.reshape({3, 4, 4})
         #Tensor<
-        (1,.,.) =
-          0.8974  0.6348  0.4760  0.0726
-          0.3809  0.4332  0.9761  0.4656
-          0.8544  0.0605  0.1683  0.4142
-          0.7736  0.1794  0.2732  0.3165
+        [[[ 0.,  1.,  2.,  3.],
+          [ 4.,  5.,  6.,  7.],
+          [ 8.,  9., 10., 11.],
+          [12., 13., 14., 15.]],
 
-        (2,.,.) =
-          0.1967  0.2013  0.7938  0.8738
-          0.0240  0.0098  0.4605  0.3970
-          0.9699  0.1057  0.3176  0.2651
-          0.7698  0.6383  0.0016  0.7198
+         [[16., 17., 18., 19.],
+          [20., 21., 22., 23.],
+          [24., 25., 26., 27.],
+          [28., 29., 30., 31.]],
 
-        (3,.,.) =
-          0.5061  0.0021  0.4804  0.7444
-          0.5725  0.2019  0.3524  0.5345
-          0.3876  0.3622  0.5318  0.0445
-          0.3276  0.2913  0.8069  0.6132
-        [ CPUDoubleType{3,4,4} ]
-        >
+         [[32., 33., 34., 35.],
+          [36., 37., 38., 39.],
+          [40., 41., 42., 43.],
+          [44., 45., 46., 47.]]]
+        [
+          size: {3, 4, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         # Use an integer index
         iex> ExTorch.index(a, 0)
         #Tensor<
-        0.8974  0.6348  0.4760  0.0726
-        0.3809  0.4332  0.9761  0.4656
-        0.8544  0.0605  0.1683  0.4142
-        0.7736  0.1794  0.2732  0.3165
-        [ CPUDoubleType{4,4} ]
-        >
+        [[ 0.,  1.,  2.,  3.],
+         [ 4.,  5.,  6.,  7.],
+         [ 8.,  9., 10., 11.],
+         [12., 13., 14., 15.]]
+        [
+          size: {4, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         # Use a slice index
         iex> ExTorch.index(a, 0..2)
         #Tensor<
-        (1,.,.) =
-          0.8974  0.6348  0.4760  0.0726
-          0.3809  0.4332  0.9761  0.4656
-          0.8544  0.0605  0.1683  0.4142
-          0.7736  0.1794  0.2732  0.3165
+        [[[ 0.,  1.,  2.,  3.],
+          [ 4.,  5.,  6.,  7.],
+          [ 8.,  9., 10., 11.],
+          [12., 13., 14., 15.]],
 
-        (2,.,.) =
-          0.1967  0.2013  0.7938  0.8738
-          0.0240  0.0098  0.4605  0.3970
-          0.9699  0.1057  0.3176  0.2651
-          0.7698  0.6383  0.0016  0.7198
-        [ CPUDoubleType{2,4,4} ]
-        >
+         [[16., 17., 18., 19.],
+          [20., 21., 22., 23.],
+          [24., 25., 26., 27.],
+          [28., 29., 30., 31.]]]
+        [
+          size: {2, 4, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         iex> ExTorch.index(a, ExTorch.slice(0, 1))
         #Tensor<
-        (1,.,.) =
-          0.8974  0.6348  0.4760  0.0726
-          0.3809  0.4332  0.9761  0.4656
-          0.8544  0.0605  0.1683  0.4142
-          0.7736  0.1794  0.2732  0.3165
-        [ CPUDoubleType{1,4,4} ]
-        >
+        [[[ 0.,  1.,  2.,  3.],
+          [ 4.,  5.,  6.,  7.],
+          [ 8.,  9., 10., 11.],
+          [12., 13., 14., 15.]]]
+        [
+          size: {1, 4, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         # Index multiple dimensions
         iex> ExTorch.index(a, [:::, ExTorch.slice(0, 2), 0])
         #Tensor<
-        0.8974  0.3809
-        0.1967  0.0240
-        0.5061  0.5725
-        [ CPUDoubleType{3,2} ]
-        >
+        [[ 0.,  4.],
+         [16., 20.],
+         [32., 36.]]
+        [
+          size: {3, 2},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
     ## Notes
     For more information regarding the kind of accepted indices and their corresponding
@@ -142,73 +156,88 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
         # Assign a particular value
         iex> x = ExTorch.zeros({2, 3, 3})
         #Tensor<
-        (1,.,.) =
-          0  0  0
-          0  0  0
-          0  0  0
+        [[[0., 0., 0.],
+          [0., 0., 0.],
+          [0., 0., 0.]],
 
-        (2,.,.) =
-          0  0  0
-          0  0  0
-          0  0  0
-        [ CPUDoubleType{2,3,3} ]
-        >
+         [[0., 0., 0.],
+          [0., 0., 0.],
+          [0., 0., 0.]]]
+        [
+          size: {2, 3, 3},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
         iex> x = ExTorch.index_put(x, 0, -1)
         #Tensor<
-        (1,.,.) =
-        -1 -1 -1
-        -1 -1 -1
-        -1 -1 -1
+        [[[-1., -1., -1.],
+          [-1., -1., -1.],
+          [-1., -1., -1.]],
 
-        (2,.,.) =
-          0  0  0
-          0  0  0
-          0  0  0
-        [ CPUDoubleType{2,3,3} ]
-        >
+         [[ 0.,  0.,  0.],
+          [ 0.,  0.,  0.],
+          [ 0.,  0.,  0.]]]
+        [
+          size: {2, 3, 3},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         # Assign a value into an slice
         iex> x = ExTorch.index_put(x, [0, ExTorch.slice(1), ExTorch.slice(1)], 0.3)
         #Tensor<
-        (1,.,.) =
-        -1.0000 -1.0000 -1.0000
-        -1.0000  0.3000  0.3000
-        -1.0000  0.3000  0.3000
+        [[[-1.0000, -1.0000, -1.0000],
+          [-1.0000,  0.3000,  0.3000],
+          [-1.0000,  0.3000,  0.3000]],
 
-        (2,.,.) =
-          0  0  0
-          0  0  0
-          0  0  0
-        [ CPUDoubleType{2,3,3} ]
+         [[ 0.0000,  0.0000,  0.0000],
+          [ 0.0000,  0.0000,  0.0000],
+          [ 0.0000,  0.0000,  0.0000]]]
+        [
+          size: {2, 3, 3},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         # Assign a tensor into an index
         iex> value = ExTorch.eye(3)
         iex> x = ExTorch.index_put(x, 1, value)
         #Tensor<
-        (1,.,.) =
-        -1.0000 -1.0000 -1.0000
-        -1.0000  0.3000  0.3000
-        -1.0000  0.3000  0.3000
+        [[[-1.0000, -1.0000, -1.0000],
+          [-1.0000,  0.3000,  0.3000],
+          [-1.0000,  0.3000,  0.3000]],
 
-        (2,.,.) =
-          1  0  0
-          0  1  0
-          0  0  1
-        [ CPUDoubleType{2,3,3} ]
+         [[ 1.0000,  0.0000,  0.0000],
+          [ 0.0000,  1.0000,  0.0000],
+          [ 0.0000,  0.0000,  1.0000]]]
+        [
+          size: {2, 3, 3},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
         # Assign a list of numbers into an index (broadcastable)
         iex> x = ExTorch.index_put(x, [:::, 1], [1, 2, 3])
         #Tensor<
-        (1,.,.) =
-        -1.0000 -1.0000 -1.0000
-          1.0000  2.0000  3.0000
-        -1.0000  0.3000  0.3000
+        [[[-1.0000, -1.0000, -1.0000],
+          [ 1.0000,  2.0000,  3.0000],
+          [-1.0000,  0.3000,  0.3000]],
 
-        (2,.,.) =
-          1  0  0
-          1  2  3
-          0  0  1
-        [ CPUDoubleType{2,3,3} ]
+         [[ 1.0000,  0.0000,  0.0000],
+          [ 1.0000,  2.0000,  3.0000],
+          [ 0.0000,  0.0000,  1.0000]]]
+        [
+          size: {2, 3, 3},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
     """
     @spec index_put(
             ExTorch.Tensor.t(),

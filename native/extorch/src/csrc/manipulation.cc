@@ -8,6 +8,13 @@ std::shared_ptr<CrossTensor> unsqueeze(const std::shared_ptr<CrossTensor> &tenso
     return std::make_shared<CrossTensor>(std::move(ret_tensor));
 }
 
+std::shared_ptr<CrossTensor> reshape(const std::shared_ptr<CrossTensor> &tensor, rust::Vec<int64_t> shape) {
+    CrossTensor cross_tensor = *tensor.get();
+    const int64_t *ptr = shape.data();
+    auto ret_tensor = torch::reshape(cross_tensor, torch::IntArrayRef{ptr, shape.size()});
+    return std::make_shared<CrossTensor>(std::move(ret_tensor));
+}
+
 
 std::shared_ptr<CrossTensor> index(const std::shared_ptr<CrossTensor> &tensor, const rust::Vec<TorchIndex> index) {
     CrossTensor cross_tensor = *tensor.get();

@@ -6,6 +6,10 @@ std::shared_ptr<CrossTensor> unsqueeze(
     const std::shared_ptr<CrossTensor> &tensor,
     int64_t dim);
 
+std::shared_ptr<CrossTensor> reshape(
+    const std::shared_ptr<CrossTensor> &tensor,
+    rust::Vec<int64_t> shape);
+
 std::shared_ptr<CrossTensor> index(
     const std::shared_ptr<CrossTensor> &tensor, const rust::Vec<TorchIndex>);
 

@@ -8,8 +8,11 @@ fn dtype(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
 /// Get the device where the tensor lives on
 fn device(tensor: &SharedPtr<CrossTensor>) -> Result<Device>;
 
+/// Get the `requires_grad` status of a tensor
+fn requires_grad(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
+
 /// Get a string representation of a tensor
-fn repr(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
+fn repr(tensor: &SharedPtr<CrossTensor>, opts: PrintOptions) -> Result<String>;
 
 /// Convert a tensor into a list
 fn to_list(tensor: &SharedPtr<CrossTensor>) -> Result<ScalarList>;

@@ -1,6 +1,6 @@
 use crate::native::torch;
 use crate::shared_types::{
-    AtomString, Complex, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct,
+    AtomString, Complex, ExPrintOptions, ExSlice, ListWrapper, Size, TensorIndex, TensorStruct,
 };
 
 use rustler::types::tuple::{get_tuple, make_tuple};
@@ -481,5 +481,22 @@ impl<'a> Decoder<'a> for TensorIndex {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         let indices: Vec<torch::TorchIndex> = term.decode()?;
         Ok(TensorIndex { indices })
+    }
+}
+
+impl<'a> Decoder<'a> for torch::PrintOptions {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        let print_opts: ExPrintOptions = term.decode()?;
+        let sci_mode = match print_opts.sci_mode {
+            Some(value) => (value as u8) + 1,
+            None => 0,
+        };
+        Ok(torch::PrintOptions {
+            precision: print_opts.precision,
+            threshold: print_opts.threshold,
+            edgeitems: print_opts.edgeitems,
+            linewidth: print_opts.linewidth,
+            sci_mode,
+        })
     }
 }

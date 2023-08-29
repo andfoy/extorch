@@ -70,3 +70,11 @@ struct TorchIndex {
     tensor: SharedPtr<CrossTensor>,
     type_: i64
 }
+
+struct PrintOptions {
+    precision: i64,
+    threshold: f64,
+    edgeitems: i64,
+    linewidth: i64,
+    sci_mode: u8
+}

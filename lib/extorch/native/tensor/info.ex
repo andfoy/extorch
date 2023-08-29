@@ -32,13 +32,39 @@ defmodule ExTorch.Native.Tensor.Info do
     defbinding(device(tensor))
 
     @doc """
-    Get a human readable representation of a tensor.
+    Get the `requires_grad` status of a tensor.
 
     ## Arguments
       - tensor (`ExTorch.Tensor`): Input tensor
     """
-    @spec repr(ExTorch.Tensor.t()) :: binary()
-    defbinding(repr(tensor))
+    @spec requires_grad(ExTorch.Tensor.t()) :: boolean()
+    defbinding(requires_grad(tensor))
+
+    @doc """
+    Get a human readable representation of a tensor.
+
+    ## Arguments
+      - tensor (`ExTorch.Tensor`): Input tensor
+
+    ## Keyword args
+    - `precision`: Number of digits of precision for floating point output. Default: 4
+
+    - `threshold`: Total number of array elements which trigger summarization
+    rather than full `repr`. Default: 1000.
+
+    - `edgeitems`: Number of array items in summary at beginning and end of
+    each dimension. Default: 3.
+
+    - `linewidth`: The number of characters per line for the purpose of
+      inserting line breaks (default = 80). Thresholded matrices will
+      ignore this parameter.
+
+    - `sci_mode`: Enable (`true`) or disable (`false`) scientific notation. If
+      `nil` (default) is specified, the value is defined by
+      the formatter. This value is automatically chosen by the framework.
+    """
+    @spec repr(ExTorch.Tensor.t(), ExTorch.Utils.PrintOptions.t()) :: binary()
+    defbinding(repr(tensor, opts \\ %ExTorch.Utils.PrintOptions{}))
 
     @doc """
     Convert a tensor into a list.

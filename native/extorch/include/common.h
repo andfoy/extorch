@@ -9,4 +9,5 @@ struct Scalar;
 struct ScalarList;
 struct TorchSlice;
 struct TorchIndex;
+struct PrintOptions;
 using CrossTensor = torch::Tensor;
