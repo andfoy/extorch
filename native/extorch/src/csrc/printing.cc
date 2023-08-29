@@ -26,18 +26,29 @@ struct Formatter {
         torch::Tensor tensor_view = tensor.reshape(-1);
 
         if(!floating_dtype) {
-            AT_DISPATCH_INTEGRAL_TYPES(tensor_view.scalar_type(), "max_repr_len", [&] {
-                auto data_ptr = tensor_view.data_ptr<scalar_t>();
-                for(int i = 0; i < tensor_view.numel(); i++) {
-                    // char placeholder[64] = {0};
-                    std::stringstream ss;
-                    ss << data_ptr[i];
-                    auto sz = ss.str().size();
-                    // snprintf(placeholder, 64, "%lld", data_ptr[i]);
-                    // auto sz = strlen(placeholder);
-                    max_width = sz > max_width ? sz : max_width;
-                }
-            });
+            AT_DISPATCH_SWITCH(tensor.scalar_type(), "repr_len",
+                AT_DISPATCH_CASE_INTEGRAL_TYPES(tensor_view.scalar_type(), "max_repr_len", [&] {
+                    auto data_ptr = tensor_view.data_ptr<scalar_t>();
+                    for(int i = 0; i < tensor_view.numel(); i++) {
+                        // char placeholder[64] = {0};
+                        std::stringstream ss;
+                        ss << data_ptr[i];
+                        auto sz = ss.str().size();
+                        // snprintf(placeholder, 64, "%lld", data_ptr[i]);
+                        // auto sz = strlen(placeholder);
+                        max_width = sz > max_width ? sz : max_width;
+                    }
+                })
+                AT_DISPATCH_CASE(torch::ScalarType::Bool, [&] {
+                    auto data_ptr = tensor_view.data_ptr<bool>();
+                    for(int i = 0; i < tensor_view.numel(); i++) {
+                        // char placeholder[64] = {0};
+                        auto sz = data_ptr[i] ? 4 : 5;
+                        // snprintf(placeholder, 64, "%lld", data_ptr[i]);
+                        max_width = sz > max_width ? sz : max_width;
+                    }
+                })
+            );
         } else {
             torch::Tensor nonzero_finite_vals = torch::masked_select(
                 tensor_view, torch::isfinite(tensor_view) & tensor_view.ne(0)
@@ -179,7 +190,6 @@ struct Formatter {
 template<>
 std::string Formatter::format(uint8_t value) {
     std::string ret(max_width, ' ');
-    bool add_dot = false;
     size_t sz;
 
     std::stringstream ss;
@@ -187,10 +197,14 @@ std::string Formatter::format(uint8_t value) {
     ret = ss.str();
     sz = ret.size();
 
-    if(add_dot) {
-        ret += ".";
-    }
+    std::string padding(max_width - sz, ' ');
+    return padding + ret;
+}
 
+template<>
+std::string Formatter::format(bool value) {
+    std::string ret = value ? "true" : "false";
+    auto sz = ret.size();
     std::string padding(max_width - sz, ' ');
     return padding + ret;
 }
@@ -266,7 +280,7 @@ std::string _scalar_str(torch::Tensor tensor, Formatter* formatter1, Formatter* 
         }
     } else {
         std::string result;
-        AT_DISPATCH_ALL_TYPES(tensor.scalar_type(), "repr_value", [&] {
+        AT_DISPATCH_ALL_TYPES_AND(torch::ScalarType::Bool, tensor.scalar_type(), "repr_value", [&] {
             scalar_t value = *tensor.data_ptr<scalar_t>();
             result = formatter1->format<scalar_t>(value);
         });
