@@ -1,5 +1,5 @@
 use crate::native::torch;
-use crate::shared_types::{TensorIndex, TensorStruct};
+use crate::shared_types::{Size, TensorIndex, TensorStruct};
 
 use rustler::{Error, NifResult};
 
@@ -9,6 +9,14 @@ nif_impl!(
     tensor: TensorStruct<'a>,
     dim: i64
 );
+
+nif_impl!(
+    reshape,
+    TensorStruct<'a>,
+    tensor: TensorStruct<'a>,
+    shape: Size
+);
+
 nif_impl!(
     index,
     TensorStruct<'a>,

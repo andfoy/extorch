@@ -1,5 +1,6 @@
 #include "extorch/src/native.rs.h"
 #include "extorch/include/info.h"
+#include "extorch/include/printing.h"
 
 
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
@@ -35,12 +36,13 @@ Device device(const std::shared_ptr<CrossTensor> &tensor) {
     return this_device;
 }
 
-rust::String repr(const std::shared_ptr<CrossTensor> &tensor) {
+rust::String repr(const std::shared_ptr<CrossTensor> &tensor, const PrintOptions opts) {
     CrossTensor cross_tensor = *tensor.get();
+    auto str_repr = _tensor_str(cross_tensor, opts, 0);
     // auto str_repr = cross_tensor.toString();
-    std::stringstream ss;
-    ss << cross_tensor;
-    auto str_repr = ss.str();
+    // std::stringstream ss;
+    // ss << cross_tensor;
+    // auto str_repr = ss.str();
     rust::String tensor_repr(str_repr.data(), str_repr.size());
     return tensor_repr;
 }
@@ -161,4 +163,9 @@ ScalarList to_list(const std::shared_ptr<CrossTensor> &tensor) {
     // result.list = ;
     // result.size = rust_size;
     return result;
+}
+
+bool requires_grad(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.requires_grad();
 }

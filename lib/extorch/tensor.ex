@@ -53,10 +53,22 @@ defmodule ExTorch.Tensor do
   defimpl Inspect, for: ExTorch.Tensor do
     import Inspect.Algebra
 
-    def inspect(tensor, _opts) do
+    def inspect(tensor, opts) do
       # %ExTorch.Tensor{resource: resource} = tensor
-      repr = ExTorch.Native.repr(tensor)
-      concat(["#Tensor<", "\n", repr, "\n", ">"])
+      repr = ExTorch.Native.repr(tensor, ExTorch.Utils.PrintOptions.default())
+
+      concat([
+        Inspect.Algebra.color("#Tensor<", :string, opts),
+        "\n",
+        repr,
+        "\n",
+        to_doc([
+          size: tensor.size,
+          dtype: tensor.dtype,
+          device: tensor.device,
+          requires_grad: ExTorch.Native.requires_grad(tensor)], opts),
+        Inspect.Algebra.color(">", :string, opts)
+      ])
     end
   end
 

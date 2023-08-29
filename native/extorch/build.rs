@@ -155,6 +155,7 @@ fn main() {
         .file("src/csrc/manipulation.cc")
         .file("src/csrc/pointwise.cc")
         .file("src/csrc/other.cc")
+        .file("src/csrc/printing.cc")
         .file("src/csrc/info.cc")
         .flag_if_supported("-std=c++17")
         // .flag_if_supported("-std=gnu++14")

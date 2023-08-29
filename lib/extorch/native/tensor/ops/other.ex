@@ -20,6 +20,32 @@ defmodule ExTorch.Native.Tensor.Ops.Other do
     `:float64` and `:float32`. The input is expected to have the last dimension
     of size 2. In addition, the tensor must have a stride of 1 for its last
     dimension. The strides of all other dimensions must be even numbers.
+
+    ## Examples
+        iex> x = ExTorch.randint(-3, 3, {5, 2})
+        #Tensor<
+        [[ 2., -1.],
+         [ 0., -1.],
+         [-2., -2.],
+         [ 2.,  0.],
+         [ 1., -1.]]
+        [
+          size: {5, 2},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.view_as_complex(x)
+        #Tensor<
+        [ 2.-1.j,  0.-1.j, -2.-2.j,  2.+0.j,  1.-1.j]
+        [
+          size: {5},
+          dtype: :complex_double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
     """
     @spec view_as_complex(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(view_as_complex(input))

@@ -72,3 +72,14 @@ pub struct ExSlice {
     pub step: i64,
     pub mask: u8,
 }
+
+
+#[derive(NifStruct)]
+#[module = "ExTorch.Utils.PrintOptions"]
+pub struct ExPrintOptions {
+    pub precision: i64,
+    pub threshold: f64,
+    pub edgeitems: i64,
+    pub linewidth: i64,
+    pub sci_mode: Option<bool>
+}

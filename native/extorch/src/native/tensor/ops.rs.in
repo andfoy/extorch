@@ -8,8 +8,11 @@ fn index(
 fn index_put(
     tensor: &SharedPtr<CrossTensor>,
     indices: Vec<TorchIndex>,
-    value: &SharedPtr<CrossTensor>
+    value: &SharedPtr<CrossTensor>,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Add an empty dimension to a tensor at the given dimension.
 fn unsqueeze(tensor: &SharedPtr<CrossTensor>, dim: i64) -> Result<SharedPtr<CrossTensor>>;
+
+/// Rearrange a tensor into a new shape
+fn reshape(tensor: &SharedPtr<CrossTensor>, shape: Vec<i64>) -> Result<SharedPtr<CrossTensor>>;
