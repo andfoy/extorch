@@ -11,4 +11,5 @@ nif_impl!(device, torch::Device, tensor: TensorStruct<'a>);
 nif_impl!(dtype, AtomString, tensor: TensorStruct<'a>);
 nif_impl!(to_list, torch::ScalarList, tensor: TensorStruct<'a>);
 nif_impl!(requires_grad, bool, tensor: TensorStruct<'a>);
+nif_impl!(numel, i64, tensor: TensorStruct<'a>);
 // nif_impl!(repr, String, tensor => Tensor);

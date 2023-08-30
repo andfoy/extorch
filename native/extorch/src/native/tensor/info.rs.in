@@ -16,3 +16,6 @@ fn repr(tensor: &SharedPtr<CrossTensor>, opts: PrintOptions) -> Result<String>;
 
 /// Convert a tensor into a list
 fn to_list(tensor: &SharedPtr<CrossTensor>) -> Result<ScalarList>;
+
+/// Return the total number of elements of a tensor.
+fn numel(tensor: &SharedPtr<CrossTensor>) -> Result<i64>;

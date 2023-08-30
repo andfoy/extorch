@@ -71,4 +71,9 @@ defmodule ExTorchTest.Tensor.InfoTest do
     tensor = ExTorch.empty({2})
     assert !ExTorch.Tensor.requires_grad(tensor)
   end
+
+  test "numel/1" do
+    tensor = ExTorch.empty({3, 4, 5})
+    assert ExTorch.Tensor.numel(tensor) == 3 * 4 * 5
+  end
 end
