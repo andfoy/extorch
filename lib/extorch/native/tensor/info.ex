@@ -80,6 +80,11 @@ defmodule ExTorch.Native.Tensor.Info do
 
     ## Arguments
       - `tensor` (`ExTorch.Tensor`): Input tensor.
+
+    ## Examples
+        iex> x = ExTorch.empty({3, 4, 5})
+        iex> ExTorch.Tensor.numel(x)
+        60
     """
     @spec numel(ExTorch.Tensor.t()) :: integer()
     defbinding(numel(tensor))
