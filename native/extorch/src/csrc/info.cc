@@ -169,3 +169,8 @@ bool requires_grad(const std::shared_ptr<CrossTensor> &tensor) {
     CrossTensor cross_tensor = *tensor.get();
     return cross_tensor.requires_grad();
 }
+
+int64_t numel(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.numel();
+}

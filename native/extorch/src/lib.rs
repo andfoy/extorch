@@ -42,11 +42,19 @@ rustler::init!(
     "Elixir.ExTorch.Native",
     [
         add,
+
+        // Tensor information
         repr,
         size,
         device,
         dtype,
         requires_grad,
+        numel,
+        to_list,
+        real,
+        imag,
+
+        // Tensor creation
         empty,
         zeros,
         ones,
@@ -61,14 +69,13 @@ rustler::init!(
         tensor,
         complex,
         polar,
-        to_list,
+        view_as_complex,
+
+        // Tensor manipulation
         unsqueeze,
         reshape,
         index,
         index_put,
-        real,
-        imag,
-        view_as_complex
     ],
     load = load
 );

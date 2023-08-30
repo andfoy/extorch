@@ -74,5 +74,14 @@ defmodule ExTorch.Native.Tensor.Info do
     """
     @spec to_list(ExTorch.Tensor.t()) :: list()
     defbinding(to_list(tensor))
+
+    @doc """
+    Returns the total number of elements in the input tensor.
+
+    ## Arguments
+      - `tensor` (`ExTorch.Tensor`): Input tensor.
+    """
+    @spec numel(ExTorch.Tensor.t()) :: integer()
+    defbinding(numel(tensor))
   end
 end
