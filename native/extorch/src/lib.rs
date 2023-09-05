@@ -70,6 +70,13 @@ rustler::init!(
         complex,
         polar,
         view_as_complex,
+        ones_like,
+        zeros_like,
+        empty_like,
+        full_like,
+        rand_like,
+        randn_like,
+        randint_like,
 
         // Tensor manipulation
         unsqueeze,

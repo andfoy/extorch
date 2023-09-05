@@ -418,4 +418,94 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert tensor_real == real_part
     assert tensor_imag == imag_part
   end
+
+  test "empty_like/1" do
+    base = ExTorch.rand({4, 5, 6}, dtype: :complex128)
+    deriv = ExTorch.empty_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "rand_like/1" do
+    base = ExTorch.empty({3, 4, 5})
+    deriv = ExTorch.rand_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "rand_like/2 with complex" do
+    base = ExTorch.empty({3, 4, 5}, dtype: :complex64)
+    deriv = ExTorch.rand_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "randn_like/1" do
+    base = ExTorch.empty({3, 4, 5})
+    deriv = ExTorch.randn_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "rand_like/2 with float32" do
+    base = ExTorch.empty({3, 4, 5}, dtype: :float32)
+    deriv = ExTorch.randn_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "randint_like/2" do
+    base = ExTorch.empty({3, 1, 4})
+    deriv = ExTorch.randint_like(base, 4)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "randint_like/3" do
+    base = ExTorch.empty({3, 1, 4})
+    deriv = ExTorch.randint_like(base, -3, 6)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "full_like/2" do
+    base = ExTorch.empty({3, 2, 4}, dtype: :complex128)
+    deriv = ExTorch.full_like(base, ExTorch.Complex.complex(-1, 2))
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "zeros_like/1" do
+    base = ExTorch.randint({4, 2, 1}, dtype: :int64)
+    deriv = ExTorch.zeros_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "ones_like/1" do
+    base = ExTorch.randint({4, 2, 1}, dtype: :int32)
+    deriv = ExTorch.ones_like(base)
+
+    assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
 end

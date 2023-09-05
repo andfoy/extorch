@@ -14,8 +14,9 @@ defmodule ExTorch.Layout do
 
   @typedoc """
   A ``torch.layout`` is an object that represents the memory layout of a ``torch.Tensor``.
+  `nil` is only used when copying layouts between tensors.
   """
-  @type layout :: :strided | :sparse
+  @type layout :: :strided | :sparse | nil
 
   @layout [:strided, :sparse]
 

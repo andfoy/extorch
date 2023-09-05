@@ -27,7 +27,7 @@ defmodule ExTorch.Device do
   A torch.device is an object representing the device on which a torch.Tensor is or will be allocated.
   The torch.device argument in functions can generally be substituted with a string. This allows for fast prototyping of code.
   """
-  @type device :: atomic_device() | composed_device() | binary()
+  @type device :: atomic_device() | composed_device() | binary() | nil
 
   @devices [:cpu, :cuda, :hip, :fpga, :vulkan, :msnpu, :xla]
 

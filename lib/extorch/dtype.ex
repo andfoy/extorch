@@ -55,7 +55,7 @@ defmodule ExTorch.DType do
   @typedoc """
   A torch.dtype is an object that represents the data type of a torch.Tensor.
   """
-  @type dtype :: base_type() | complex_type() | quantized_type() | alias_type()
+  @type dtype :: base_type() | complex_type() | quantized_type() | alias_type() | nil
 
   @dtypes [
     :uint8,
