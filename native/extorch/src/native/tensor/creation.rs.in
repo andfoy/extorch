@@ -155,3 +155,24 @@ fn polar(
     abs: &SharedPtr<CrossTensor>,
     angle: &SharedPtr<CrossTensor>,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create an empty tensor with the same shape as the input.
+fn empty_like(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a tensor filled with random values with the same shape as the input.
+fn rand_like(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a tensor filled with random (normal) values with the same shape as the input.
+fn randn_like(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a tensor filled with random integers between `low` and `high`
+fn randint_like(input: &SharedPtr<CrossTensor>, low: i64, high: i64) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a tensor filled with a scalar with the same shape as the input.
+fn full_like(input: &SharedPtr<CrossTensor>, value: Scalar) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a tensor filled with zeros with the same shape as the input.
+fn zeros_like(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Create a tensor filled with ones with the same shape as the input.
+fn ones_like(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;

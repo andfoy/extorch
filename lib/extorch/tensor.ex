@@ -62,11 +62,15 @@ defmodule ExTorch.Tensor do
         "\n",
         repr,
         "\n",
-        to_doc([
-          size: tensor.size,
-          dtype: tensor.dtype,
-          device: tensor.device,
-          requires_grad: ExTorch.Native.requires_grad(tensor)], opts),
+        to_doc(
+          [
+            size: tensor.size,
+            dtype: tensor.dtype,
+            device: tensor.device,
+            requires_grad: ExTorch.Native.requires_grad(tensor)
+          ],
+          opts
+        ),
         Inspect.Algebra.color(">", :string, opts)
       ])
     end

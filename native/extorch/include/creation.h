@@ -130,3 +130,11 @@ std::shared_ptr<CrossTensor> complex(
 std::shared_ptr<CrossTensor> polar(
     const std::shared_ptr<CrossTensor> &abs,
     const std::shared_ptr<CrossTensor> &angle);
+
+std::shared_ptr<CrossTensor> empty_like(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> rand_like(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> randn_like(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> randint_like(const std::shared_ptr<CrossTensor> &input, int64_t low, int64_t high);
+std::shared_ptr<CrossTensor> full_like(const std::shared_ptr<CrossTensor> &input, Scalar scalar);
+std::shared_ptr<CrossTensor> zeros_like(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> ones_like(const std::shared_ptr<CrossTensor> &input);

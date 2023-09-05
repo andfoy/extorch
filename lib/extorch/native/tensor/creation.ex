@@ -736,7 +736,7 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec full(
             tuple() | [integer()],
-            number(),
+            number() | ExTorch.Complex.t(),
             ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
@@ -1003,6 +1003,310 @@ defmodule ExTorch.Native.Tensor.Creation do
             opts
         end
     )
+
+    @doc """
+    Returns an uninitialized tensor, with the same size as `input`.
+
+    `ExTorch.empty_like(input)` is equivalent to
+    `ExTorch.empty(input.size, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        # Create an empty tensor from another
+        iex> a = ExTorch.empty({4, 5})
+        iex> ExTorch.empty_like(a)
+        #Tensor<
+        [[6.9287e-310, 6.9287e-310, 2.1220e-314,  9.8055e-95],
+         [ 9.8055e-95, 9.9766e+141, 3.1620e-322, 2.5691e-322],
+         [6.9285e-310,  0.0000e+00, 4.9407e-324, 6.9287e-310]]
+        [
+          size: {3, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec empty_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(empty_like(input))
+
+    @doc """
+    Returns a tensor filled with random numbers from a uniform distribution
+    on the interval $[0, 1)$, with the same size as `input`.
+
+    `ExTorch.rand_like(input)` is equivalent to
+    `ExTorch.rand(input.size, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        # Derive a new float64 tensor from another one
+        iex> a = ExTorch.empty({3, 2, 2}, dtype: :float64)
+        iex> ExTorch.rand_like(a)
+        #Tensor<
+        [[[0.6495, 0.9480],
+          [0.3083, 0.7135]],
+
+         [[0.5482, 0.3676],
+          [0.2825, 0.1806]],
+
+         [[0.4742, 0.8673],
+          [0.4542, 0.4239]]]
+        [
+          size: {3, 2, 2},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Derive a GPU tensor from another one
+        iex> b = ExTorch.ones({2, 3}, dtype: :complex64, device: :cuda)
+        iex> ExTorch.rand_like(b)
+        #Tensor<
+        [[0.1554+0.6794j, 0.5356+0.2049j, 0.7555+0.3877j],
+         [0.0148+0.0772j, 0.8368+0.3802j, 0.6820+0.1727j]]
+        [
+          size: {2, 3},
+          dtype: :complex_float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+
+    """
+    @spec rand_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(rand_like(input))
+
+    @doc """
+    Returns a tensor filled with random numbers from a normal distribution
+    with mean `0` and variance `1` (also called the standard normal
+    distribution), with the same size as `input`.
+
+    `ExTorch.randn_like(input)` is equivalent to
+    `ExTorch.randn(input.size, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        # Derive a new float64 tensor from another one
+        iex> a = ExTorch.empty({3, 2, 2}, dtype: :float64)
+        iex> ExTorch.rand_like(a)
+        #Tensor<
+        [[[0.6394, 0.0540],
+          [0.8050, 0.6426]],
+
+         [[0.7196, 0.6789],
+          [0.2813, 0.4029]],
+
+         [[0.0898, 0.4235],
+          [0.3301, 0.2744]]]
+        [
+          size: {3, 2, 2},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Derive a new cuda float32 tensor from another one
+        iex> b = ExTorch.empty({3, 2}, dtype: :float32, device: :cuda)
+        iex> ExTorch.rand_like(b)
+        #Tensor<
+        [[0.9275, 0.0341],
+         [0.7541, 0.1688],
+         [0.0879, 0.4028]]
+        [
+          size: {3, 2},
+          dtype: :float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+
+    """
+    @spec randn_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(randn_like(input))
+
+    @doc """
+    Returns a tensor filled with random integers generated uniformly
+    between `low` (inclusive) and `high` (exclusive),
+    with the same size as `input`.
+
+    `ExTorch.randint_like(input, low, high)` is equivalent to
+    `ExTorch.randint(low, high, input.size, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+      - `low`: Lowest integer to be drawn from the distribution. Default: `0`.
+      - `high`: One above the highest integer to be drawn from the distribution.
+
+    ## Examples
+        # Create a random tensor with values between 0 and 10 from a float32 one.
+        iex> a = ExTorch.zeros({3, 4, 5}, dtype: :float32)
+        iex> ExTorch.randint_like(a, 10)
+        #Tensor<
+        [[[2., 5., 0., 7., 5.],
+          [9., 0., 9., 1., 4.],
+          [6., 3., 6., 0., 2.],
+          [2., 6., 5., 9., 0.]],
+
+         [[9., 4., 7., 9., 8.],
+          [2., 8., 0., 8., 3.],
+          [6., 6., 1., 9., 0.],
+          [5., 2., 1., 7., 8.]],
+
+         [[8., 3., 6., 8., 9.],
+          [5., 7., 0., 7., 6.],
+          [5., 4., 0., 3., 3.],
+          [4., 3., 7., 3., 5.]]]
+        [
+          size: {3, 4, 5},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Create a random tensor with values between -1 and 5 from a int32 one.
+        iex> b = ExTorch.ones({3, 3}, dtype: :int32)
+        iex> ExTorch.randint_like(b, -1, 5)
+        #Tensor<
+        [[ 2,  2,  4],
+         [-1,  4, -1],
+         [ 0,  3,  1]]
+        [
+          size: {3, 3},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec randint_like(ExTorch.Tensor.t(), integer(), integer()) :: ExTorch.Tensor.t()
+    defbinding(randint_like(input, low \\ 0, high))
+
+    @doc """
+    Returns a tensor filled with the scalar value `fill_value`, with the same size as `input`.
+
+    `ExTorch.full_like(input, fill_value)` is equivalent to
+    `ExTorch.full(input.size, fill_value, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+      - `fill_value`: the value to fill the output tensor with.
+
+    ## Examples
+        # Create a tensor filled with -1 from an int64 input.
+        iex> a = ExTorch.empty({1, 2, 2}, dtype: :int64)
+        iex> ExTorch.full_like(a, -1)
+        #Tensor<
+        [[[-1, -1],
+          [-1, -1]]]
+        [
+          size: {1, 2, 2},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Create a complex tensor filled with a given value from a gpu input.
+        iex> b = ExTorch.ones({3, 3}, dtype: :complex128, device: :cuda)
+        iex> ExTorch.full_like(b, ExTorch.Complex.complex(0.8, -0.5))
+        #Tensor<
+        [[0.8000-0.5000j, 0.8000-0.5000j, 0.8000-0.5000j],
+         [0.8000-0.5000j, 0.8000-0.5000j, 0.8000-0.5000j],
+         [0.8000-0.5000j, 0.8000-0.5000j, 0.8000-0.5000j]]
+        [
+          size: {3, 3},
+          dtype: :complex_double,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+    """
+    @spec full_like(ExTorch.Tensor.t(), number() | ExTorch.Complex.t()) :: ExTorch.Tensor.t()
+    defbinding(full_like(input, fill_value))
+
+    @doc """
+    Returns a tensor filled with the scalar value 0, with the same size as `input`.
+
+    `ExTorch.zeros_like(input)` is equivalent to
+    `ExTorch.zeros(input.size, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        # Create a tensor filled with ones from another float64 tensor.
+        iex> a = ExTorch.rand({3, 4})
+        iex> ExTorch.zeros_like(a)
+        #Tensor<
+        [[0., 0., 0., 0.],
+         [0., 0., 0., 0.],
+         [0., 0., 0., 0.]]
+        [
+          size: {3, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Create a complex tensor with real part equal to one in GPU from another tensor.
+        iex> a = ExTorch.rand({3, 4}, dtype: :complex64, device: :cuda)
+        iex> ExTorch.zeros_like(a)
+        #Tensor<
+        [[0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+         [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+         [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j]]
+        [
+          size: {3, 4},
+          dtype: :complex_float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+
+    """
+    @spec zeros_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(zeros_like(input))
+
+    @doc """
+    Returns a tensor filled with the scalar value 1, with the same size as `input`.
+
+    `ExTorch.ones_like(input)` is equivalent to
+    `ExTorch.ones(input.size, dtype: input.dtype, layout: input.layout, device: input.device)`
+
+    ## Arguments
+      - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        # Create a tensor filled with ones from another float64 tensor.
+        iex> a = ExTorch.rand({3, 4})
+        iex> ExTorch.ones_like(a)
+        #Tensor<
+        [[1., 1., 1., 1.],
+         [1., 1., 1., 1.],
+         [1., 1., 1., 1.]]
+        [
+          size: {3, 4},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Create a complex tensor with real part equal to one in GPU from another tensor.
+        iex> a = ExTorch.rand({3, 4}, dtype: :complex64, device: :cuda)
+        iex> ExTorch.ones_like(a)
+        #Tensor<
+        [[1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j],
+         [1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j],
+         [1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j]]
+        [
+          size: {3, 4},
+          dtype: :complex_float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+
+    """
+    @spec ones_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(ones_like(input))
 
     @doc """
     Constructs a complex tensor with its real part equal to `real` and its

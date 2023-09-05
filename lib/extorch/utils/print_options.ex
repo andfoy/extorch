@@ -33,20 +33,18 @@ defmodule ExTorch.Utils.PrintOptions do
     the formatter. This value is automatically chosen by the framework.
   """
   @type t :: %__MODULE__{
-    precision: integer(),
-    threshold: float(),
-    edgeitems: integer(),
-    linewidth: integer(),
-    sci_mode: boolean() | nil
-  }
+          precision: integer(),
+          threshold: float(),
+          edgeitems: integer(),
+          linewidth: integer(),
+          sci_mode: boolean() | nil
+        }
 
-  defstruct [
-    precision: 4,
-    threshold: 1000.0,
-    edgeitems: 3,
-    linewidth: 80,
-    sci_mode: nil
-  ]
+  defstruct precision: 4,
+            threshold: 1000.0,
+            edgeitems: 3,
+            linewidth: 80,
+            sci_mode: nil
 
   @doc """
   Retrieve the default print options.
@@ -63,7 +61,7 @@ defmodule ExTorch.Utils.PrintOptions do
   def short() do
     %__MODULE__{
       precision: 2,
-      edgeitems: 2,
+      edgeitems: 2
     }
   end
 
@@ -77,5 +75,4 @@ defmodule ExTorch.Utils.PrintOptions do
       threshold: 1.7e308
     }
   end
-
 end

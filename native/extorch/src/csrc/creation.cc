@@ -237,3 +237,46 @@ std::shared_ptr<CrossTensor> polar(
     torch::Tensor tensor = torch::polar(abs_tensor, angle_tensor);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
+
+std::shared_ptr<CrossTensor> empty_like(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::empty_like(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> rand_like(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::rand_like(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> randn_like(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::randn_like(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> randint_like(const std::shared_ptr<CrossTensor> &input, int64_t low, int64_t high) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::randint_like(in_tensor, low, high);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> full_like(const std::shared_ptr<CrossTensor> &input, Scalar scalar) {
+    CrossTensor in_tensor = *input.get();
+    auto torch_scalar = get_scalar_type(scalar);
+    torch::Tensor tensor = torch::full_like(in_tensor, torch_scalar);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> zeros_like(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::zeros_like(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> ones_like(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::ones_like(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
