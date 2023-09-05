@@ -492,7 +492,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   end
 
   test "zeros_like/1" do
-    base = ExTorch.randint({4, 2, 1}, dtype: :int64)
+    base = ExTorch.randint(5, {4, 2, 1}, dtype: :int64)
     deriv = ExTorch.zeros_like(base)
 
     assert base.dtype == deriv.dtype
@@ -501,7 +501,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   end
 
   test "ones_like/1" do
-    base = ExTorch.randint({4, 2, 1}, dtype: :int32)
+    base = ExTorch.randint(8, {4, 2, 1}, dtype: :int32)
     deriv = ExTorch.ones_like(base)
 
     assert base.dtype == deriv.dtype
