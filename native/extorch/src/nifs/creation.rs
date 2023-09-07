@@ -10,6 +10,7 @@ nif_impl!(zeros, TensorStruct<'a>, size: Size, options: TensorOptions);
 nif_impl!(ones, TensorStruct<'a>, size: Size, options: TensorOptions);
 nif_impl!(rand, TensorStruct<'a>, size: Size, options: TensorOptions);
 nif_impl!(randn, TensorStruct<'a>, size: Size, options: TensorOptions);
+
 nif_impl!(
     randint,
     TensorStruct<'a>,
@@ -80,10 +81,54 @@ nif_impl!(
     angle: TensorStruct<'a>
 );
 
-nif_impl!(empty_like, TensorStruct<'a>, input: TensorStruct<'a>);
-nif_impl!(rand_like, TensorStruct<'a>, input: TensorStruct<'a>);
-nif_impl!(randn_like, TensorStruct<'a>, input: TensorStruct<'a>);
-nif_impl!(randint_like, TensorStruct<'a>, input: TensorStruct<'a>, low: i64, high: i64);
-nif_impl!(full_like, TensorStruct<'a>, input: TensorStruct<'a>, value: Scalar);
-nif_impl!(zeros_like, TensorStruct<'a>, input: TensorStruct<'a>);
-nif_impl!(ones_like, TensorStruct<'a>, input: TensorStruct<'a>);
+nif_impl!(
+    empty_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    options: TensorOptions
+);
+
+nif_impl!(
+    rand_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    options: TensorOptions
+);
+
+nif_impl!(
+    randn_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    options: TensorOptions
+);
+
+nif_impl!(
+    randint_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    low: i64,
+    high: i64,
+    options: TensorOptions
+);
+
+nif_impl!(
+    full_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    value: Scalar,
+    options: TensorOptions
+);
+
+nif_impl!(
+    zeros_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    options: TensorOptions
+);
+
+nif_impl!(
+    ones_like,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    options: TensorOptions
+);

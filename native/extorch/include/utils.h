@@ -4,7 +4,9 @@ extern std::unordered_map<std::string, torch::ScalarType> type_mapping;
 extern std::unordered_map<torch::ScalarType, std::string> inv_type_mapping;
 extern std::unordered_map<std::string, torch::DeviceType> device_mapping;
 extern std::unordered_map<std::string, torch::Layout> layout_mapping;
+extern std::unordered_map<torch::Layout, std::string> inv_layout_mapping;
 extern std::unordered_map<std::string, torch::MemoryFormat> memory_fmt_mapping;
+extern std::unordered_map<torch::MemoryFormat, std::string> inv_memory_fmt_mapping;
 
 torch::TensorOptions get_tensor_options(rust::String s_dtype,
                                         rust::String s_layout, Device ddevice,

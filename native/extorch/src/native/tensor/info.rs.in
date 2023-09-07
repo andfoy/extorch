@@ -19,3 +19,9 @@ fn to_list(tensor: &SharedPtr<CrossTensor>) -> Result<ScalarList>;
 
 /// Return the total number of elements of a tensor.
 fn numel(tensor: &SharedPtr<CrossTensor>) -> Result<i64>;
+
+/// Get the memory format of a tensor.
+fn memory_format(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
+
+/// Get the layout of a tensor.
+fn layout(tensor: &SharedPtr<CrossTensor>) -> Result<String>;

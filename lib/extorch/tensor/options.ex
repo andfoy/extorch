@@ -25,13 +25,13 @@ defmodule ExTorch.Tensor.Options do
 
   defstruct [
     # Type of the tensor reference
-    dtype: :float64,
+    dtype: nil,
 
     # The layout format of the tensor
     layout: :strided,
 
     # Device where the tensor lives on
-    device: :cpu,
+    device: nil,
 
     # true if the tensor will accumulate gradients, false otherwise
     requires_grad: false,
@@ -42,4 +42,53 @@ defmodule ExTorch.Tensor.Options do
     # The memory format which the tensor should have
     memory_format: :contiguous
   ]
+
+  defimpl ExTorch.Protocol.DefaultStruct, for: __MODULE__ do
+    @spec replace_defaults(ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.Options.t()
+    def replace_defaults(%ExTorch.Tensor.Options{dtype: dtype, device: device} = in_struct) do
+      dtype =
+        case dtype do
+          nil -> ExTorch.get_default_dtype()
+          _ -> dtype
+        end
+
+      device =
+        case device do
+          nil -> ExTorch.get_default_device()
+          _ -> device
+        end
+
+      struct(in_struct, dtype: dtype, device: device)
+    end
+  end
+
+  @doc false
+  @spec merge_input(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.Options.t()
+  def merge_input(%ExTorch.Tensor{} = input, options = %ExTorch.Tensor.Options{}) do
+    dtype =
+      case options.dtype do
+        :auto -> ExTorch.Tensor.dtype(input)
+        dtype -> dtype
+      end
+
+    device =
+      case options.device do
+        :auto -> ExTorch.Tensor.device(input)
+        device -> device
+      end
+
+    layout =
+      case options.layout do
+        nil -> ExTorch.Tensor.layout(input)
+        layout -> layout
+      end
+
+    mem_fmt =
+      case options.memory_format do
+        :preserve -> ExTorch.Tensor.memory_format(input)
+        mem_fmt -> mem_fmt
+      end
+
+    struct(options, dtype: dtype, device: device, layout: layout, memory_format: mem_fmt)
+  end
 end
