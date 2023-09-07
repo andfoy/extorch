@@ -37,6 +37,21 @@ defmodule ExTorch.Registry.Device do
   The default device is initially `:cpu`. If you set the default tensor device to
   another device (e.g., `:cuda`) without a device index, tensors will be
   allocated on whatever the current device for the device type.
+
+  ## Examples
+      # By default, the device will be :cpu
+      iex> a = ExTorch.tensor([1.2, 3])
+      iex> a.device
+      :cpu
+
+      # Change the default device to :cuda
+      iex> ExTorch.set_default_device(:cuda)
+
+      # Check that tensors are now being created on gpu
+      iex> a = ExTorch.tensor([1.2, 3])
+      iex> a.device
+      {:cuda, 0}
+
   """
   @doc kind: :process_values
   @spec set_default_device(ExTorch.Device.device()) :: ExTorch.Device.device()

@@ -48,6 +48,31 @@ defmodule ExTorch.Registry.DType do
 
   3. Determine the result of type promotion between bool and integer tensors and
      Elixir floats and `ExTorch.Complex` numbers.
+
+  ## Examples
+      # Initial default for floating point is :float32
+      iex> a = ExTorch.tensor([1.2, 3])
+      iex> a.dtype
+      :float
+
+      # Initial default for floating point complex numbers is :complex64
+      iex> b = ExTorch.tensor([1.2, ExTorch.Complex.complex(0, 3)])
+      iex> b.dtype
+      :complex_float
+
+      # Changing the default dtype to :float64
+      iex> ExTorch.set_default_dtype(:float64)
+
+      # Floats are now interpreted as float64
+      iex> a = ExTorch.tensor([1.2, 3])
+      iex> a.dtype
+      :double
+
+      # Complex numbers are now interpreted as :complex128
+      iex> b = ExTorch.tensor([1.2, ExTorch.Complex.complex(0, 3)])
+      iex> b.dtype
+      :complex_double
+
   """
   @doc kind: :process_values
   @spec set_default_dtype(ExTorch.DType.dtype()) :: ExTorch.DType.dtype()
