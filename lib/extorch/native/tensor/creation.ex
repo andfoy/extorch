@@ -14,14 +14,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -36,11 +36,11 @@ defmodule ExTorch.Native.Tensor.Creation do
     ## Examples
         iex> ExTorch.empty({2, 3})
         #Tensor<
-        [[6.8986e-310,  0.0000e+00,  0.0000e+00],
-         [4.9407e-324, 1.4822e-323,  0.0000e+00]]
+        [[ 6.7262e-44,  0.0000e+00,  7.2868e-44],
+         [ 0.0000e+00, -2.7524e+24,  4.5880e-41]]
         [
           size: {2, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -77,14 +77,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -103,7 +103,7 @@ defmodule ExTorch.Native.Tensor.Creation do
          [0., 0., 0.]]
         [
           size: {2, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -141,14 +141,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -167,7 +167,7 @@ defmodule ExTorch.Native.Tensor.Creation do
          [1., 1., 1.]]
         [
           size: {2, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -205,14 +205,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -240,7 +240,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           [0.5742, 0.5222, 0.0937]]]
         [
           size: {3, 3, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -281,14 +281,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -316,7 +316,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           [-0.4363, -0.1095,  1.3950, -0.4580,  0.2475]]]
         [
           size: {3, 3, 5},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -336,7 +336,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           [-3.2052e-01,  2.3278e+00,  6.2929e-01,  2.5321e-01, -1.4433e+00]]]
         [
           size: {3, 3, 5},
-          dtype: :double,
+          dtype: :float,
           device: {:cuda, 0},
           requires_grad: false
         ]>
@@ -365,14 +365,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -401,7 +401,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           [1., 2., 1., 1.]]]
         [
           size: {3, 3, 4},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -437,7 +437,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           [ 2., -1.,  1., -1.]]]
         [
           size: {2, 2, 4},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -452,7 +452,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           [ 0.,  1., -2.,  1.]]]
         [
           size: {2, 2, 4},
-          dtype: :double,
+          dtype: :float,
           device: {:cuda, 0},
           requires_grad: false
         ]>
@@ -490,14 +490,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -516,7 +516,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         [0., 1., 2., 3., 4.]
         [
           size: {5},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -538,7 +538,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         [1., 2., 3., 4., 5., 6.]
         [
           size: {6},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -560,19 +560,19 @@ defmodule ExTorch.Native.Tensor.Creation do
         [-1.3000, -0.8000, -0.3000,  0.2000,  0.7000,  1.2000,  1.7000,  2.2000]
         [
           size: {8},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
 
 
         # Start to end with step and options
-        iex> ExTorch.arange(-1.3, 2.4, 0.5, dtype: :float32)
+        iex> ExTorch.arange(-1.3, 2.4, 0.5, dtype: :float64)
         #Tensor<
         [-1.3000, -0.8000, -0.3000,  0.2000,  0.7000,  1.2000,  1.7000,  2.2000]
         [
           size: {8},
-          dtype: :float,
+          dtype: :double,
           device: :cpu,
           requires_grad: false
         ]>
@@ -601,14 +601,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -628,7 +628,7 @@ defmodule ExTorch.Native.Tensor.Creation do
          [0., 0., 1.]]
         [
           size: {3, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -640,7 +640,7 @@ defmodule ExTorch.Native.Tensor.Creation do
          [0., 0., 1.]]
         [
           size: {3, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -682,14 +682,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -708,7 +708,7 @@ defmodule ExTorch.Native.Tensor.Creation do
          [2., 2., 2.]]
         [
           size: {2, 3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -724,15 +724,6 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
-        iex> #Tensor<
-        [[3.1416, 3.1416, 3.1416],
-         [3.1416, 3.1416, 3.1416]]
-        [
-          size: {2, 3},
-          dtype: :double,
-          device: :cpu,
-          requires_grad: false
-        ]>
     """
     @spec full(
             tuple() | [integer()],
@@ -764,14 +755,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -791,7 +782,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           8.6667, 10.0000]
         [
           size: {10},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -842,14 +833,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -868,7 +859,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         [1.0000e-10, 1.0000e-05, 1.0000e+00, 1.0000e+05, 1.0000e+10]
         [
           size: {5},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -879,7 +870,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         [ 1.2589,  2.1135,  3.5481,  5.9566, 10.0000]
         [
           size: {5},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -890,18 +881,18 @@ defmodule ExTorch.Native.Tensor.Creation do
         [1.0718, 1.4641, 2.0000]
         [
           size: {3},
-          dtype: :double,
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
 
-        # Returns a float32 tensor containing three logarithmic-spaced (base 2) values between 0.1 and 1.0
-        iex> ExTorch.logspace(0.1, 1.0, 3, base: 2, dtype: :float32)
+        # Returns a float64 tensor containing three logarithmic-spaced (base 2) values between 0.1 and 1.0
+        iex> ExTorch.logspace(0.1, 1.0, 3, base: 2, dtype: :float64)
         #Tensor<
         [1.0718, 1.4641, 2.0000]
         [
           size: {3},
-          dtype: :float,
+          dtype: :double,
           device: :cpu,
           requires_grad: false
         ]>
@@ -931,14 +922,14 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Keyword args
       - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
-        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_tensor_type`).
+        **Default**: if `nil`, uses a global default (see `ExTorch.set_default_dtype`).
 
       - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
         **Default**: `:strided`.
 
       - device (`ExTorch.Device`, optional): the desired device of returned tensor.
           Default: if `nil`, uses the current device for the default tensor type
-          (see `ExTorch.set_default_tensor_type`). `device` will be the CPU
+          (see `ExTorch.set_default_device`). `device` will be the CPU
           for CPU tensor types and the current CUDA device for CUDA tensor types.
 
       - requires_grad (`boolean()`, optional): If autograd should record operations on the
@@ -969,12 +960,12 @@ defmodule ExTorch.Native.Tensor.Creation do
         [0, 1]
         [size: {2}, dtype: :byte, device: :cpu, requires_grad: false]>
 
-        iex> ExTorch.tensor([[0.11111, 0.222222, 0.3333333]], dtype: :float32)
+        iex> ExTorch.tensor([[0.11111, 0.222222, 0.3333333]], dtype: :float64)
         #Tensor<
         [[0.1111, 0.2222, 0.3333]]
         [
           size: {1, 3},
-          dtype: :float,
+          dtype: :double,
           device: :cpu,
           requires_grad: false
         ]>
@@ -986,18 +977,13 @@ defmodule ExTorch.Native.Tensor.Creation do
     defbinding(
       tensor(
         list,
-        opts \\ %ExTorch.Tensor.Options{}
+        opts \\ %ExTorch.Tensor.Options{dtype: :auto}
       ),
       list: ExTorch.Utils.to_list_wrapper(list),
       opts:
         case opts.dtype do
-          :float64 ->
-            kw =
-              opts
-              |> Map.from_struct()
-              |> Map.put(:dtype, list.dtype)
-
-            struct(ExTorch.Tensor.Options, kw)
+          :auto ->
+            struct(opts, dtype: list.dtype)
 
           _ ->
             opts
@@ -1013,23 +999,74 @@ defmodule ExTorch.Native.Tensor.Creation do
     ## Arguments
       - `input`: The input tensor (`ExTorch.Tensor`)
 
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
+
     ## Examples
         # Create an empty tensor from another
         iex> a = ExTorch.empty({4, 5})
         iex> ExTorch.empty_like(a)
         #Tensor<
-        [[6.9287e-310, 6.9287e-310, 2.1220e-314,  9.8055e-95],
-         [ 9.8055e-95, 9.9766e+141, 3.1620e-322, 2.5691e-322],
-         [6.9285e-310,  0.0000e+00, 4.9407e-324, 6.9287e-310]]
+        [[ 8.3624e+06,  4.5880e-41, -2.8874e+24,  4.5880e-41,  2.5223e-44],
+         [ 0.0000e+00,  2.5223e-44,  0.0000e+00,  5.1482e+22,  1.6816e-43],
+         [ 9.8511e-43,  0.0000e+00,  8.3624e+06,  4.5880e-41, -3.1780e+24],
+         [ 4.5880e-41,  2.5223e-44,  0.0000e+00,  2.5223e-44,  0.0000e+00]]
         [
-          size: {3, 4},
-          dtype: :double,
+          size: {4, 5},
+          dtype: :float,
           device: :cpu,
           requires_grad: false
         ]>
+
+        # Create an empty tensor in GPU from a CPU one
+        iex> a = ExTorch.empty({3, 3})
+        iex> ExTorch.empty_like(a, device: :cuda)
+        #Tensor<
+        [[0., 0., 0.],
+         [0., 0., 0.],
+         [0., 0., 0.]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+
     """
-    @spec empty_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
-    defbinding(empty_like(input))
+    @spec empty_like(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.t()
+    defbinding(
+      empty_like(
+        input,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Returns a tensor filled with random numbers from a uniform distribution
@@ -1040,6 +1077,30 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Arguments
       - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
 
     ## Examples
         # Derive a new float64 tensor from another one
@@ -1061,9 +1122,9 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
-        # Derive a GPU tensor from another one
-        iex> b = ExTorch.ones({2, 3}, dtype: :complex64, device: :cuda)
-        iex> ExTorch.rand_like(b)
+        # Derive a GPU tensor from a CPU one
+        iex> b = ExTorch.ones({2, 3}, dtype: :complex64)
+        iex> ExTorch.rand_like(b, device: :cuda)
         #Tensor<
         [[0.1554+0.6794j, 0.5356+0.2049j, 0.7555+0.3877j],
          [0.0148+0.0772j, 0.8368+0.3802j, 0.6820+0.1727j]]
@@ -1075,8 +1136,19 @@ defmodule ExTorch.Native.Tensor.Creation do
         ]>
 
     """
-    @spec rand_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
-    defbinding(rand_like(input))
+    @spec rand_like(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.t()
+    defbinding(
+      rand_like(
+        input,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Returns a tensor filled with random numbers from a normal distribution
@@ -1088,6 +1160,30 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Arguments
       - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
 
     ## Examples
         # Derive a new float64 tensor from another one
@@ -1109,23 +1205,34 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
-        # Derive a new cuda float32 tensor from another one
-        iex> b = ExTorch.empty({3, 2}, dtype: :float32, device: :cuda)
-        iex> ExTorch.rand_like(b)
+        # Derive a new cuda float64 tensor from another one
+        iex> b = ExTorch.empty({3, 2}, device: :cuda)
+        iex> ExTorch.rand_like(b, dtype: :float64)
         #Tensor<
-        [[0.9275, 0.0341],
-         [0.7541, 0.1688],
-         [0.0879, 0.4028]]
+        [[0.2639, 0.7628],
+         [0.5935, 0.4772],
+         [0.0176, 0.2496]]
         [
           size: {3, 2},
-          dtype: :float,
+          dtype: :double,
           device: {:cuda, 0},
           requires_grad: false
         ]>
 
     """
-    @spec randn_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
-    defbinding(randn_like(input))
+    @spec randn_like(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.t()
+    defbinding(
+      randn_like(
+        input,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Returns a tensor filled with random integers generated uniformly
@@ -1139,6 +1246,30 @@ defmodule ExTorch.Native.Tensor.Creation do
       - `input`: The input tensor (`ExTorch.Tensor`)
       - `low`: Lowest integer to be drawn from the distribution. Default: `0`.
       - `high`: One above the highest integer to be drawn from the distribution.
+
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
 
     ## Examples
         # Create a random tensor with values between 0 and 10 from a float32 one.
@@ -1166,9 +1297,24 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
+        # Create a CUDA random tensor with values between 0 and 5 from a CPU one
+        iex> b = ExTorch.rand({3, 3})
+        iex> ExTorch.randint_like(b, 5, device: :cuda)
+        #Tensor<
+        [[4., 1., 4.],
+         [1., 1., 1.],
+         [2., 4., 3.]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+
+
         # Create a random tensor with values between -1 and 5 from a int32 one.
-        iex> b = ExTorch.ones({3, 3}, dtype: :int32)
-        iex> ExTorch.randint_like(b, -1, 5)
+        iex> c = ExTorch.ones({3, 3}, dtype: :int32)
+        iex> ExTorch.randint_like(c, -1, 5)
         #Tensor<
         [[ 2,  2,  4],
          [-1,  4, -1],
@@ -1179,9 +1325,36 @@ defmodule ExTorch.Native.Tensor.Creation do
           device: :cpu,
           requires_grad: false
         ]>
+
+        # Create a float32 CUDA random tensor with values between -1 and 5 from a int32 one.
+        iex> ExTorch.randint_like(c, -1, 5, dtype: :float32, device: :cuda)
+        #Tensor<
+        [[4., 0., 4.],
+         [0., 1., 2.],
+         [1., 2., 1.]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
     """
-    @spec randint_like(ExTorch.Tensor.t(), integer(), integer()) :: ExTorch.Tensor.t()
-    defbinding(randint_like(input, low \\ 0, high))
+    @spec randint_like(ExTorch.Tensor.t(), integer(), integer(), ExTorch.Tensor.Options.t()) ::
+            ExTorch.Tensor.t()
+    defbinding(
+      randint_like(
+        input,
+        low \\ 0,
+        high,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Returns a tensor filled with the scalar value `fill_value`, with the same size as `input`.
@@ -1192,6 +1365,30 @@ defmodule ExTorch.Native.Tensor.Creation do
     ## Arguments
       - `input`: The input tensor (`ExTorch.Tensor`)
       - `fill_value`: the value to fill the output tensor with.
+
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
 
     ## Examples
         # Create a tensor filled with -1 from an int64 input.
@@ -1207,9 +1404,9 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
-        # Create a complex tensor filled with a given value from a gpu input.
-        iex> b = ExTorch.ones({3, 3}, dtype: :complex128, device: :cuda)
-        iex> ExTorch.full_like(b, ExTorch.Complex.complex(0.8, -0.5))
+        # Create a CUDA complex tensor filled with a given value from a CPU input.
+        iex> b = ExTorch.ones({3, 3}, dtype: :complex128)
+        iex> ExTorch.full_like(b, ExTorch.Complex.complex(0.8, -0.5), device: :cuda)
         #Tensor<
         [[0.8000-0.5000j, 0.8000-0.5000j, 0.8000-0.5000j],
          [0.8000-0.5000j, 0.8000-0.5000j, 0.8000-0.5000j],
@@ -1221,8 +1418,24 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
     """
-    @spec full_like(ExTorch.Tensor.t(), number() | ExTorch.Complex.t()) :: ExTorch.Tensor.t()
-    defbinding(full_like(input, fill_value))
+    @spec full_like(
+            ExTorch.Tensor.t(),
+            number() | ExTorch.Complex.t(),
+            ExTorch.Tensor.Options.t()
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      full_like(
+        input,
+        fill_value,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Returns a tensor filled with the scalar value 0, with the same size as `input`.
@@ -1232,6 +1445,30 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Arguments
       - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
 
     ## Examples
         # Create a tensor filled with ones from another float64 tensor.
@@ -1248,9 +1485,9 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
-        # Create a complex tensor with real part equal to one in GPU from another tensor.
-        iex> a = ExTorch.rand({3, 4}, dtype: :complex64, device: :cuda)
-        iex> ExTorch.zeros_like(a)
+        # Create a complex tensor with real part equal to one in GPU from another CPU tensor.
+        iex> a = ExTorch.rand({3, 4}, dtype: :complex64)
+        iex> ExTorch.zeros_like(a, device: :cuda)
         #Tensor<
         [[0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
          [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
@@ -1263,8 +1500,19 @@ defmodule ExTorch.Native.Tensor.Creation do
         ]>
 
     """
-    @spec zeros_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
-    defbinding(zeros_like(input))
+    @spec zeros_like(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.t()
+    defbinding(
+      zeros_like(
+        input,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Returns a tensor filled with the scalar value 1, with the same size as `input`.
@@ -1274,6 +1522,30 @@ defmodule ExTorch.Native.Tensor.Creation do
 
     ## Arguments
       - `input`: The input tensor (`ExTorch.Tensor`)
+
+    ## Keyword args
+      - dtype (`ExTorch.DType`, optional): the desired data type of returned tensor.
+        **Default**: `auto`. If `auto`, it will use the same data type as the input.
+        If `nil`, it will use a global default (see `ExTorch.set_default_dtype`).
+
+      - layout (`ExTorch.Layout`, optional): the desired layout of returned Tensor.
+        **Default**: `nil`. If `nil`, it will use the same layout as the input.
+
+      - device (`ExTorch.Device`, optional): the desired device of returned tensor.
+        Default: `auto`. If `auto`, it will use the same device as the input.
+        If `nil`, it will use the current device for the default tensor type
+        (see `ExTorch.set_default_device`). `device` will be the CPU
+        for CPU tensor types and the current CUDA device for CUDA tensor types.
+
+      - requires_grad (`boolean()`, optional): If autograd should record operations on the
+          returned tensor. **Default**: `false`.
+
+      - pin_memory (`bool`, optional): If set, returned tensor would be allocated in
+          the pinned memory. Works only for CPU tensors. Default: `false`.
+
+      - memory_format (`ExTorch.MemoryFormat`, optional): the desired memory format of
+          returned Tensor. **Default**: `:preserve`. If `preserve`, it will use the same
+          memory format as the input.
 
     ## Examples
         # Create a tensor filled with ones from another float64 tensor.
@@ -1290,9 +1562,9 @@ defmodule ExTorch.Native.Tensor.Creation do
           requires_grad: false
         ]>
 
-        # Create a complex tensor with real part equal to one in GPU from another tensor.
-        iex> a = ExTorch.rand({3, 4}, dtype: :complex64, device: :cuda)
-        iex> ExTorch.ones_like(a)
+        # Create a complex tensor with real part equal to one in GPU from another CPU tensor.
+        iex> a = ExTorch.rand({3, 4}, dtype: :complex64)
+        iex> ExTorch.ones_like(a, device: :cuda)
         #Tensor<
         [[1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j],
          [1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j],
@@ -1305,8 +1577,19 @@ defmodule ExTorch.Native.Tensor.Creation do
         ]>
 
     """
-    @spec ones_like(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
-    defbinding(ones_like(input))
+    @spec ones_like(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.t()
+    defbinding(
+      ones_like(
+        input,
+        opts \\ %ExTorch.Tensor.Options{
+          dtype: :auto,
+          device: :auto,
+          layout: nil,
+          memory_format: :preserve
+        }
+      ),
+      opts: ExTorch.Tensor.Options.merge_input(input, opts)
+    )
 
     @doc """
     Constructs a complex tensor with its real part equal to `real` and its
@@ -1329,7 +1612,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         [0.-5.j, 1.-4.j, 2.-3.j, 3.-2.j, 4.-1.j]
         [
           size: {5},
-          dtype: :complex_double,
+          dtype: :complex_float,
           device: :cpu,
           requires_grad: false
         ]>
@@ -1363,7 +1646,7 @@ defmodule ExTorch.Native.Tensor.Creation do
           2.1612-3.3659j]
         [
           size: {5},
-          dtype: :complex_double,
+          dtype: :complex_float,
           device: :cpu,
           requires_grad: false
         ]>

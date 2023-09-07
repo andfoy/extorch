@@ -78,4 +78,17 @@ defmodule ExTorchTest.Tensor.InfoTest do
     tensor = ExTorch.empty({3, 4, 5})
     assert ExTorch.Tensor.numel(tensor) == 3 * 4 * 5
   end
+
+  test "memory_format/0" do
+    tensor = ExTorch.empty({3, 4, 5})
+    assert ExTorch.Tensor.memory_format(tensor) == :contiguous
+
+    tensor = ExTorch.empty({1, 3, 4, 5}, memory_format: :channels_last)
+    assert ExTorch.Tensor.memory_format(tensor) == :channels_last
+  end
+
+  test "layout/0" do
+    tensor = ExTorch.empty({3, 4, 5})
+    assert ExTorch.Tensor.layout(tensor) == :strided
+  end
 end

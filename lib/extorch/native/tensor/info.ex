@@ -41,6 +41,24 @@ defmodule ExTorch.Native.Tensor.Info do
     defbinding(requires_grad(tensor))
 
     @doc """
+    Get the `memory_format` of a tensor.
+
+    ## Arguments
+      - tensor (`ExTorch.Tensor`): Input tensor
+    """
+    @spec memory_format(ExTorch.Tensor.t()) :: ExTorch.MemoryFormat.memory_format()
+    defbinding(memory_format(tensor))
+
+    @doc """
+    Get the `layout` of a tensor.
+
+    ## Arguments
+      - tensor (`ExTorch.Tensor`): Input tensor
+    """
+    @spec layout(ExTorch.Tensor.t()) :: ExTorch.Layout.layout()
+    defbinding(layout(tensor))
+
+    @doc """
     Get a human readable representation of a tensor.
 
     ## Arguments

@@ -111,7 +111,14 @@ defmodule ExTorch.Utils.Types do
   end
 
   def collect_types(float, acc) when is_float(float) and float <= 3.4_028_235e38 do
-    MapSet.put(acc, :float32)
+    dtype =
+      case ExTorch.get_default_dtype() do
+        :float32 -> :float32
+        :float64 -> :float64
+        _ -> :float32
+      end
+
+    MapSet.put(acc, dtype)
   end
 
   def collect_types(float, acc) when is_float(float) do
@@ -119,15 +126,27 @@ defmodule ExTorch.Utils.Types do
   end
 
   def collect_types(%ExTorch.Complex{real: re, imaginary: im}, acc) do
+    default_dtype =
+      case ExTorch.get_default_dtype() do
+        :float32 -> :complex64
+        :float64 -> :complex128
+        _ -> :complex64
+      end
+
+    choose_complex_dtype = fn
+      :complex64, :complex64 -> :complex64
+      _, :complex128 -> :complex128
+    end
+
     re_dtype =
       case re <= 3.4_028_235e38 do
-        true -> :complex64
+        true -> choose_complex_dtype.(:complex64, default_dtype)
         false -> :complex128
       end
 
     im_dtype =
       case im <= 3.4_028_235e38 do
-        true -> :complex64
+        true -> choose_complex_dtype.(:complex64, default_dtype)
         false -> :complex128
       end
 

@@ -53,6 +53,8 @@ rustler::init!(
         to_list,
         real,
         imag,
+        layout,
+        memory_format,
 
         // Tensor creation
         empty,

@@ -174,3 +174,19 @@ int64_t numel(const std::shared_ptr<CrossTensor> &tensor) {
     CrossTensor cross_tensor = *tensor.get();
     return cross_tensor.numel();
 }
+
+rust::String memory_format(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    auto type = cross_tensor.suggest_memory_format();
+    auto type_name = inv_memory_fmt_mapping[type];
+    rust::String type_rust(type_name.data(), type_name.size());
+    return type_rust;
+}
+
+rust::String layout(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    auto type = cross_tensor.layout();
+    auto type_name = inv_layout_mapping[type];
+    rust::String type_rust(type_name.data(), type_name.size());
+    return type_rust;
+}

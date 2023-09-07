@@ -40,6 +40,7 @@ defmodule ExTorch.Utils.PrintOptions do
           sci_mode: boolean() | nil
         }
 
+  @derive [ExTorch.Protocol.DefaultStruct]
   defstruct precision: 4,
             threshold: 1000.0,
             edgeitems: 3,

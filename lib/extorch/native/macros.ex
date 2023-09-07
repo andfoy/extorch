@@ -584,6 +584,9 @@ defmodule ExTorch.Native.Macros do
         quote do
           unquote(Macro.var(kwarg, nil)) =
             struct(unquote(struct_name), unquote(Macro.var(:kwargs, nil)))
+
+          unquote(Macro.var(kwarg, nil)) =
+            ExTorch.Protocol.DefaultStruct.replace_defaults(unquote(Macro.var(kwarg, nil)))
         end
       end)
 

@@ -6,7 +6,7 @@ defmodule ExTorchTest.Tensor.OtherTest do
     complex_view = ExTorch.view_as_complex(input)
 
     assert complex_view.size == {3, 4}
-    assert complex_view.dtype == :complex_double
+    assert complex_view.dtype == :complex_float
 
     real_part =
       input

@@ -36,6 +36,7 @@ defmodule ExTorch.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {ExTorch.Application, []},
       extra_applications: [:logger, :ssl, :inets]
     ]
   end
@@ -83,6 +84,7 @@ defmodule ExTorch.MixProject do
       # This is useful for custom JS/CSS files you want to include.
       before_closing_body_tag: &before_closing_body_tag/1,
       groups_for_functions: [
+        {:"Per-process settings", &(&1[:kind] == :process_values)},
         {:"Tensor information", &(&1[:kind] == :tensor_info)},
         {:"Tensor creation", &(&1[:kind] == :tensor_creation)},
         {:"Tensor manipulation", &(&1[:kind] == :tensor_manipulation)},

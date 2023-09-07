@@ -5,7 +5,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "zeros/1" do
     tensor = ExTorch.zeros({2, 3, 4, 5})
     assert tensor.size == {2, 3, 4, 5}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -23,7 +23,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "empty/1" do
     tensor = ExTorch.empty({5, 6, 7})
     assert tensor.size == {5, 6, 7}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -41,7 +41,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "ones/1" do
     tensor = ExTorch.ones({8, 10, 2, 1})
     assert tensor.size == {8, 10, 2, 1}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -59,7 +59,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "rand/1" do
     tensor = ExTorch.rand({1, 3, 1, 5})
     assert tensor.size == {1, 3, 1, 5}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -77,7 +77,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "randn/1" do
     tensor = ExTorch.randn({2, 2, 3, 5, 1})
     assert tensor.size == {2, 2, 3, 5, 1}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -95,7 +95,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "randint/2" do
     tensor = ExTorch.randint(5, {3, 3, 3})
     assert tensor.size == {3, 3, 3}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -104,7 +104,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "randint/3" do
     tensor = ExTorch.randint(-3, 10, {3, 3, 3})
     assert tensor.size == {3, 3, 3}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -140,7 +140,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "arange/1" do
     tensor = ExTorch.arange(10)
     assert tensor.size == {10}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -158,7 +158,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "arange/2" do
     tensor = ExTorch.arange(-2, 10)
     assert tensor.size == {12}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -185,7 +185,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "arange/3" do
     tensor = ExTorch.arange(0, 0.5, 0.1)
     assert tensor.size == {5}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -221,7 +221,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "eye/1" do
     tensor = ExTorch.eye(3)
     assert tensor.size == {3, 3}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -239,7 +239,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "eye/2" do
     tensor = ExTorch.eye(3, 5)
     assert tensor.size == {3, 5}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -266,7 +266,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "full/2" do
     tensor = ExTorch.full({3, 4, 5}, 5)
     assert tensor.size == {3, 4, 5}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -284,7 +284,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "full/3 with kwargs" do
     tensor = ExTorch.full({3, 4, 5}, 0.003, requires_grad: true)
     assert tensor.size == {3, 4, 5}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -293,7 +293,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "linspace/3" do
     tensor = ExTorch.linspace(-1.5, 2.6, 10)
     assert tensor.size == {10}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -311,7 +311,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "linspace/4 with kwargs" do
     tensor = ExTorch.linspace(-0.5, 5, 20, requires_grad: true)
     assert tensor.size == {20}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -320,7 +320,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "logspace/3" do
     tensor = ExTorch.logspace(-1.5, 2.6, 10)
     assert tensor.size == {10}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -329,7 +329,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "logspace/4" do
     tensor = ExTorch.logspace(-1.5, 2.6, 20, 2)
     assert tensor.size == {20}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -338,7 +338,7 @@ defmodule ExTorchTest.Tensor.CreationTest do
   test "logspace/4 with kwargs" do
     tensor = ExTorch.logspace(-0.5, 5, 20, requires_grad: true)
     assert tensor.size == {20}
-    assert tensor.dtype == :double
+    assert tensor.dtype == :float
     assert tensor.device == :cpu
 
     assert ExTorch.Tensor.size(tensor) == tensor.size
@@ -428,6 +428,15 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert base.device == deriv.device
   end
 
+  test "empty_like/2" do
+    base = ExTorch.rand({4, 5, 6}, dtype: :complex128)
+    deriv = ExTorch.empty_like(base, dtype: :int32)
+
+    assert :int == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
   test "rand_like/1" do
     base = ExTorch.empty({3, 4, 5})
     deriv = ExTorch.rand_like(base)
@@ -437,11 +446,20 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert base.device == deriv.device
   end
 
-  test "rand_like/2 with complex" do
+  test "rand_like/1 with complex" do
     base = ExTorch.empty({3, 4, 5}, dtype: :complex64)
     deriv = ExTorch.rand_like(base)
 
     assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "rand_like/2" do
+    base = ExTorch.empty({3, 4, 5})
+    deriv = ExTorch.rand_like(base, dtype: :float64)
+
+    assert :double == deriv.dtype
     assert base.size == deriv.size
     assert base.device == deriv.device
   end
@@ -455,11 +473,20 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert base.device == deriv.device
   end
 
-  test "rand_like/2 with float32" do
-    base = ExTorch.empty({3, 4, 5}, dtype: :float32)
+  test "randn_like/1 with float64" do
+    base = ExTorch.empty({3, 4, 5}, dtype: :float64)
     deriv = ExTorch.randn_like(base)
 
     assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "randn_like/2 with float64" do
+    base = ExTorch.empty({3, 4, 5})
+    deriv = ExTorch.randn_like(base, dtype: :float64)
+
+    assert :double == deriv.dtype
     assert base.size == deriv.size
     assert base.device == deriv.device
   end
@@ -482,11 +509,38 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert base.device == deriv.device
   end
 
+  test "randint_like/3 with opts" do
+    base = ExTorch.empty({3, 1, 4})
+    deriv = ExTorch.randint_like(base, 5, dtype: :int64)
+
+    assert :long == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "randint_like/4" do
+    base = ExTorch.empty({3, 1, 4})
+    deriv = ExTorch.randint_like(base, -3, 6, dtype: :int64)
+
+    assert :long == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
   test "full_like/2" do
     base = ExTorch.empty({3, 2, 4}, dtype: :complex128)
     deriv = ExTorch.full_like(base, ExTorch.Complex.complex(-1, 2))
 
     assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "full_like/3" do
+    base = ExTorch.empty({3, 2, 4}, dtype: :complex128)
+    deriv = ExTorch.full_like(base, ExTorch.Complex.complex(-1, 2), dtype: :complex64)
+
+    assert :complex_float == deriv.dtype
     assert base.size == deriv.size
     assert base.device == deriv.device
   end
@@ -500,11 +554,29 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert base.device == deriv.device
   end
 
+  test "zeros_like/2" do
+    base = ExTorch.randint(5, {4, 2, 1})
+    deriv = ExTorch.zeros_like(base, dtype: :int32)
+
+    assert :int == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
   test "ones_like/1" do
     base = ExTorch.randint(8, {4, 2, 1}, dtype: :int32)
     deriv = ExTorch.ones_like(base)
 
     assert base.dtype == deriv.dtype
+    assert base.size == deriv.size
+    assert base.device == deriv.device
+  end
+
+  test "ones_like/2" do
+    base = ExTorch.randint(8, {4, 2, 1})
+    deriv = ExTorch.ones_like(base, dtype: :int64)
+
+    assert :long == deriv.dtype
     assert base.size == deriv.size
     assert base.device == deriv.device
   end

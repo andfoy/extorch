@@ -238,45 +238,104 @@ std::shared_ptr<CrossTensor> polar(
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> empty_like(const std::shared_ptr<CrossTensor> &input) {
+std::shared_ptr<CrossTensor> empty_like(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
-    torch::Tensor tensor = torch::empty_like(in_tensor);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::empty_like(in_tensor, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> rand_like(const std::shared_ptr<CrossTensor> &input) {
+std::shared_ptr<CrossTensor> rand_like(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
-    torch::Tensor tensor = torch::rand_like(in_tensor);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::rand_like(in_tensor, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> randn_like(const std::shared_ptr<CrossTensor> &input) {
+std::shared_ptr<CrossTensor> randn_like(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
-    torch::Tensor tensor = torch::randn_like(in_tensor);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::randn_like(in_tensor, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> randint_like(const std::shared_ptr<CrossTensor> &input, int64_t low, int64_t high) {
+std::shared_ptr<CrossTensor> randint_like(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t low,
+        int64_t high,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
-    torch::Tensor tensor = torch::randint_like(in_tensor, low, high);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::randint_like(in_tensor, low, high, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> full_like(const std::shared_ptr<CrossTensor> &input, Scalar scalar) {
+std::shared_ptr<CrossTensor> full_like(
+        const std::shared_ptr<CrossTensor> &input,
+        Scalar scalar,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
     auto torch_scalar = get_scalar_type(scalar);
-    torch::Tensor tensor = torch::full_like(in_tensor, torch_scalar);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::full_like(in_tensor, torch_scalar, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> zeros_like(const std::shared_ptr<CrossTensor> &input) {
+std::shared_ptr<CrossTensor> zeros_like(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
-    torch::Tensor tensor = torch::zeros_like(in_tensor);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::zeros_like(in_tensor, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
 
-std::shared_ptr<CrossTensor> ones_like(const std::shared_ptr<CrossTensor> &input) {
+std::shared_ptr<CrossTensor> ones_like(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::String s_dtype,
+        rust::String s_layout,
+        struct Device s_device,
+        bool requires_grad,
+        bool pin_memory,
+        rust::String s_mem_fmt) {
     CrossTensor in_tensor = *input.get();
-    torch::Tensor tensor = torch::ones_like(in_tensor);
+    torch::TensorOptions opts = get_tensor_options(s_dtype, s_layout, s_device, requires_grad, pin_memory, s_mem_fmt);
+    torch::Tensor tensor = torch::ones_like(in_tensor, opts);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
