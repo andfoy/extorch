@@ -64,7 +64,7 @@ defmodule ExTorch.Tensor.Options do
 
   @doc false
   @spec merge_input(ExTorch.Tensor.t(), ExTorch.Tensor.Options.t()) :: ExTorch.Tensor.Options.t()
-  def merge_input(%ExTorch.Tensor{} = input, options = %ExTorch.Tensor.Options{}) do
+  def merge_input(%ExTorch.Tensor{} = input, %ExTorch.Tensor.Options{} = options) do
     dtype =
       case options.dtype do
         :auto -> ExTorch.Tensor.dtype(input)
