@@ -11,7 +11,6 @@ defmodule ExTorch.Native do
   use ExTorch.Native.Tensor.Creation
   use ExTorch.Native.Tensor.Info
   use ExTorch.Native.Tensor.Ops.Indexing
-  use ExTorch.Native.Tensor.Ops.Mutating
   use ExTorch.Native.Tensor.Ops.Manipulation
   use ExTorch.Native.Tensor.Ops.PointWise
   use ExTorch.Native.Tensor.Ops.Other
