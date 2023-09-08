@@ -1,0 +1,3 @@
+
+/// Returns a view of input with a flipped conjugate bit.
+fn conj(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;

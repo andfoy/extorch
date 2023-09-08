@@ -49,5 +49,28 @@ defmodule ExTorch.Native.Tensor.Ops.Other do
     """
     @spec view_as_complex(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(view_as_complex(input))
+
+    @doc """
+    Returns a new tensor with materialized conjugation if `input`’s conjugate
+    bit is set to `true`, else returns `input`. The output tensor will always
+    have its conjugate bit set to `false`.
+
+    ## Arguments
+    - input: The input `ExTorch.Tensor`
+
+    ## Examples
+        # Create a conjugated view.
+        iex> a = ExTorch.rand({3, 3}, dtype: :complex128)
+        iex> b = ExTorch.conj(a)
+        iex> ExTorch.Tensor.is_conj(b)
+        true
+
+        # Materialize the view.
+        iex> c = ExTorch.resolve_conj(b)
+        iex> ExTorch.Tensor.is_conj(c)
+        false
+    """
+    @spec resolve_conj(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(resolve_conj(input))
   end
 end

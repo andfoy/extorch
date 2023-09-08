@@ -190,3 +190,23 @@ rust::String layout(const std::shared_ptr<CrossTensor> &tensor) {
     rust::String type_rust(type_name.data(), type_name.size());
     return type_rust;
 }
+
+bool is_complex(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.is_complex();
+}
+
+bool is_floating_point(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.is_floating_point();
+}
+
+bool is_conj(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.is_conj();
+}
+
+bool is_nonzero(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.is_nonzero();
+}

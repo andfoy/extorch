@@ -55,6 +55,10 @@ rustler::init!(
         imag,
         layout,
         memory_format,
+        is_complex,
+        is_floating_point,
+        is_conj,
+        is_nonzero,
 
         // Tensor creation
         empty,
@@ -85,6 +89,12 @@ rustler::init!(
         reshape,
         index,
         index_put,
+
+        // Tensor mutating operations
+        conj,
+
+        // Other operations
+        resolve_conj,
     ],
     load = load
 );

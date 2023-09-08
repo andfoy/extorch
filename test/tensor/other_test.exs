@@ -31,4 +31,27 @@ defmodule ExTorchTest.Tensor.OtherTest do
     assert complex_view_real == real_part
     assert complex_view_imag == imag_part
   end
+
+  test "resolve_conj/1" do
+    input = [ExTorch.Complex.complex(-1, 5), ExTorch.Complex.complex(2.3, -4)]
+    a = ExTorch.tensor(input)
+    b = ExTorch.conj(a)
+    c = ExTorch.resolve_conj(b)
+
+    assert ExTorch.Tensor.is_conj(b)
+    assert !ExTorch.Tensor.is_conj(c)
+
+    back = ExTorch.Tensor.to_list(c)
+    signs = [-1, 1]
+    back_signs = Enum.map(back,
+      fn %ExTorch.Complex{imaginary: imag} ->
+        case imag >= 0 do
+          true -> 1
+          false -> -1
+        end
+      end
+    )
+
+    assert signs == back_signs
+  end
 end

@@ -25,3 +25,15 @@ fn memory_format(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
 
 /// Get the layout of a tensor.
 fn layout(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
+
+/// Determine if a tensor is complex.
+fn is_complex(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
+
+/// Determine if a tensor has a floating data type.
+fn is_floating_point(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
+
+/// Determine if a tensor has the conjugated part set to `true`.
+fn is_conj(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
+
+/// Determine if a tensor contains a single non-zero element.
+fn is_nonzero(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
