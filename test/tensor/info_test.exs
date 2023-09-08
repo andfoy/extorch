@@ -91,4 +91,44 @@ defmodule ExTorchTest.Tensor.InfoTest do
     tensor = ExTorch.empty({3, 4, 5})
     assert ExTorch.Tensor.layout(tensor) == :strided
   end
+
+  test "is_complex/1" do
+    tensor = ExTorch.empty({2, 2}, dtype: :complex64)
+    assert ExTorch.Tensor.is_complex(tensor)
+
+    tensor = ExTorch.empty({2, 2})
+    assert !ExTorch.Tensor.is_complex(tensor)
+  end
+
+  test "is_floating_point/1" do
+    tensor = ExTorch.empty({2, 3})
+    assert ExTorch.Tensor.is_floating_point(tensor)
+
+    tensor = ExTorch.empty({3, 4}, dtype: :float64)
+    assert ExTorch.Tensor.is_floating_point(tensor)
+
+    tensor = ExTorch.empty({3, 4}, dtype: :int32)
+    assert !ExTorch.Tensor.is_floating_point(tensor)
+  end
+
+  test "is_conj/1" do
+    tensor = ExTorch.empty({2, 2})
+    assert !ExTorch.Tensor.is_conj(tensor)
+
+    tensor = ExTorch.empty({2, 2}, dtype: :complex128)
+    assert !ExTorch.Tensor.is_conj(tensor)
+
+    conj = ExTorch.conj(tensor)
+    assert ExTorch.Tensor.is_conj(conj)
+
+    materialized = ExTorch.resolve_conj(conj)
+    assert !ExTorch.Tensor.is_conj(materialized)
+  end
+
+  test "is_nonzero/1" do
+    assert !ExTorch.Tensor.is_nonzero(ExTorch.tensor([0.0]))
+    assert ExTorch.Tensor.is_nonzero(ExTorch.tensor([1.5]))
+    assert !ExTorch.Tensor.is_nonzero(ExTorch.tensor([false]))
+    assert ExTorch.Tensor.is_nonzero(ExTorch.tensor([3]))
+  end
 end

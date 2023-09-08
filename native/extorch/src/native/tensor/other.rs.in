@@ -1,2 +1,6 @@
 
+/// Return a view of a tensor with the last dimension interpreted as the real and imaginary parts of a complex tensor.
 fn view_as_complex(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Materialize a tensor whose conjugate bit is set to `true`.
+fn resolve_conj(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;

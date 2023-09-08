@@ -12,6 +12,7 @@ defmodule ExTorch do
   extends(ExTorch.Native.Tensor.Creation)
   extends(ExTorch.Native.Tensor.Ops.Manipulation)
   extends(ExTorch.Native.Tensor.Ops.Indexing)
+  extends(ExTorch.Native.Tensor.Ops.Mutating)
   extends(ExTorch.Native.Tensor.Ops.PointWise)
   extends(ExTorch.Native.Tensor.Ops.Other)
   extends(ExTorch.Registry.DType)
