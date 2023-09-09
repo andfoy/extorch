@@ -7,7 +7,7 @@ use rustler::ResourceArc;
 impl<'a> From<SharedPtr<torch::CrossTensor>> for TensorStruct<'a> {
     fn from(value: SharedPtr<torch::CrossTensor>) -> Self {
         let size = Size {
-            size: torch::size(&value).unwrap().to_vec(),
+            size: torch::size(&value).unwrap_or_else(|_| &[0]).to_vec(),
         };
         let device = torch::device(&value).unwrap();
         let dtype_name: String = torch::dtype(&value).unwrap();

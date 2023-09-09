@@ -36,7 +36,14 @@ impl<'a> Decoder<'a> for torch::Device {
                 if device_copy.contains(":") {
                     let device_parts: Vec<&str> = device_copy.split(":").collect();
                     device_name = device_parts[0].to_owned();
-                    device_index = device_parts[1].parse().unwrap();
+                    match device_parts[1].parse() {
+                        Ok(idx) => {
+                            device_index = idx;
+                        },
+                        Err(_) => {
+                            return Err(Error::RaiseAtom("Bad device index"));
+                        }
+                    }
                 }
             }
         }
