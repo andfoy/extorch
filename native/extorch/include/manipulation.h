@@ -17,3 +17,5 @@ std::shared_ptr<CrossTensor> index_put(
     const std::shared_ptr<CrossTensor> &tensor,
     const rust::Vec<TorchIndex> index,
     const std::shared_ptr<CrossTensor> &value);
+
+std::shared_ptr<CrossTensor> conj(const std::shared_ptr<CrossTensor> &input);

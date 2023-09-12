@@ -4,5 +4,5 @@
 #include "info.h"
 #include "manipulation.h"
 #include "pointwise.h"
-#include "mutating.h"
+#include "comparison.h"
 #include "other.h"

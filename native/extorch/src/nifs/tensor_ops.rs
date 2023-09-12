@@ -30,3 +30,5 @@ nif_impl!(
     indices: TensorIndex,
     value: TensorStruct<'a>
 );
+
+nif_impl!(conj, TensorStruct<'a>, input: TensorStruct<'a>);

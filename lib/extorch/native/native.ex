@@ -13,6 +13,7 @@ defmodule ExTorch.Native do
   use ExTorch.Native.Tensor.Ops.Indexing
   use ExTorch.Native.Tensor.Ops.Manipulation
   use ExTorch.Native.Tensor.Ops.PointWise
+  use ExTorch.Native.Tensor.Ops.Comparison
   use ExTorch.Native.Tensor.Ops.Other
 
   use ExTorch.Utils.DownloadTorch

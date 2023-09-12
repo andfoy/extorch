@@ -115,3 +115,9 @@ std::shared_ptr<CrossTensor> index_put(
     auto out_tensor = cross_tensor.index_put_(act_index, value_tensor);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> conj(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::conj(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}

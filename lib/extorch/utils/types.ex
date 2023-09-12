@@ -152,4 +152,15 @@ defmodule ExTorch.Utils.Types do
 
     MapSet.put(acc, compare_types(re_dtype, im_dtype))
   end
+
+  def collect_types(atom_value, acc) when atom_value in [:nan, :inf, :ninf] do
+    dtype =
+      case ExTorch.get_default_dtype() do
+        :float32 -> :float32
+        :float64 -> :float64
+        _ -> :float32
+      end
+
+    MapSet.put(acc, dtype)
+  end
 end

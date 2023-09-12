@@ -1,0 +1,8 @@
+
+/// Check if two tensors are close (element-wise).
+fn allclose(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    rtol: f64,
+    atol: f64,
+    equal_nan: bool) -> Result<bool>;
