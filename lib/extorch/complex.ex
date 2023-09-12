@@ -32,24 +32,29 @@ defmodule ExTorch.Complex do
   end
 
   defimpl String.Chars, for: ExTorch.Tensor do
+    defp parse_im(im) do
+      case im do
+        :nan -> {"+", "nan"}
+        :inf -> {"+", "inf"}
+        :ninf -> {"-", "inf"}
+        im when im >= 0 -> {"+", im}
+        im -> {"-", Kernel.abs(im)}
+      end
+    end
+
+    defp parse_re(re) do
+      case re do
+        :nan -> "nan"
+        :inf -> "inf"
+        :ninf -> "-inf"
+        r -> r
+      end
+    end
+
     def to_string(%ExTorch.Complex{real: re, imaginary: im}) do
-      {sign, im} =
-        case im do
-          :nan -> {"+", "nan"}
-          :inf -> {"+", "inf"}
-          :ninf -> {"-", "inf"}
-          im when im >= 0 -> {"+", im}
-          im -> {"-", Kernel.abs(im)}
-        end
-
-      re =
-        case re do
-          :nan -> "nan"
-          :inf -> "inf"
-          :ninf -> "-inf"
-          r -> r
-        end
-
+      # {re, sign, im} = parse_parts(re, im)
+      re = parse_re(re)
+      {sign, im} = parse_im(im)
       "#{re} #{sign} #{im}j"
     end
   end
@@ -67,15 +72,17 @@ defmodule ExTorch.Complex do
   - `complex` - An imaginary number with real part `re` and imaginary part `im` (`ExTorch.Complex`)
   """
   def complex(re, im) do
-    re = case re do
-      r when is_number(r) -> r / 1.0
-      _ -> re
-    end
+    re =
+      case re do
+        r when is_number(r) -> r / 1.0
+        _ -> re
+      end
 
-    im = case im do
-      i when is_number(i) -> i / 1.0
-      _ -> im
-    end
+    im =
+      case im do
+        i when is_number(i) -> i / 1.0
+        _ -> im
+      end
 
     %ExTorch.Complex{
       real: re,
