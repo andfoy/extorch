@@ -10,8 +10,8 @@ defmodule ExTorch.Complex do
   An ``ExTorch.Complex`` is a struct that represents a complex number with real and imaginary parts.
   """
   @type t :: %__MODULE__{
-          real: number(),
-          imaginary: number()
+          real: number() | :nan | :inf | :ninf,
+          imaginary: number() | :nan | :inf | :ninf
         }
 
   defstruct real: 0,
@@ -34,34 +34,56 @@ defmodule ExTorch.Complex do
   defimpl String.Chars, for: ExTorch.Tensor do
     def to_string(%ExTorch.Complex{real: re, imaginary: im}) do
       {sign, im} =
-        case im >= 0 do
-          true -> {"+", im}
-          false -> {"-", Kernel.abs(im)}
+        case im do
+          :nan -> {"+", "nan"}
+          :inf -> {"+", "inf"}
+          :ninf -> {"-", "inf"}
+          im when im >= 0 -> {"+", im}
+          im -> {"-", Kernel.abs(im)}
+        end
+
+      re =
+        case re do
+          :nan -> "nan"
+          :inf -> "inf"
+          :ninf -> "-inf"
+          r -> r
         end
 
       "#{re} #{sign} #{im}j"
     end
   end
 
-  @spec complex(number(), number()) :: ExTorch.Complex.t()
+  @spec complex(number() | :nan | :inf | :ninf, number() | :nan | :inf | :ninf) ::
+          ExTorch.Complex.t()
   @doc """
   Create an `ExTorch.Complex` struct with real and imaginary parts.
 
   ## Arguments
-  - `re` - The real part of the complex number (`number()`)
-  - `im` - The imaginary part of the complex number (`number()`)
+  - `re` - The real part of the complex number (`number() | :nan | :inf | :ninf`)
+  - `im` - The imaginary part of the complex number (`number() | :nan | :inf | :ninf`)
 
   ## Returns
   - `complex` - An imaginary number with real part `re` and imaginary part `im` (`ExTorch.Complex`)
   """
   def complex(re, im) do
+    re = case re do
+      r when is_number(r) -> r / 1.0
+      _ -> re
+    end
+
+    im = case im do
+      i when is_number(i) -> i / 1.0
+      _ -> im
+    end
+
     %ExTorch.Complex{
-      real: re / 1.0,
-      imaginary: im / 1.0
+      real: re,
+      imaginary: im
     }
   end
 
-  @spec re(ExTorch.Complex.t()) :: number()
+  @spec re(ExTorch.Complex.t()) :: number() | :nan | :inf | :ninf
   @doc """
   Retrieve the real part of a complex number
 
@@ -69,13 +91,13 @@ defmodule ExTorch.Complex do
   - `complex` - A complex number (`ExTorch.Complex`)
 
   ## Returns
-  - `re` - The real part of the input complex number. (`number()`)
+  - `re` - The real part of the input complex number. (`number() | :nan | :inf | :ninf`)
   """
   def re(%ExTorch.Complex{real: real}) do
     real
   end
 
-  @spec im(ExTorch.Complex.t()) :: number()
+  @spec im(ExTorch.Complex.t()) :: number() | :nan | :inf | :ninf
   @doc """
   Retrieve the imaginary part of a complex number
 
@@ -83,7 +105,7 @@ defmodule ExTorch.Complex do
   - `complex` - A complex number (`ExTorch.Complex`)
 
   ## Returns
-  - `im` - The imaginary part of the input complex number. (`number()`)
+  - `im` - The imaginary part of the input complex number. (`number() | :nan | :inf | :ninf`)
   """
   def im(%ExTorch.Complex{imaginary: im}) do
     im

@@ -419,6 +419,33 @@ defmodule ExTorchTest.Tensor.CreationTest do
     assert tensor_imag == imag_part
   end
 
+  test "tensor/1 with nan, inf and ninf" do
+    tensor = ExTorch.tensor([:nan, -3.0, :inf, :ninf, 4])
+    assert tensor.size == {5}
+    assert tensor.dtype == :float
+    assert tensor.device == :cpu
+
+    expected_tensor = [:nan, -3.0, :inf, :ninf, 4.0]
+    assert ExTorch.Tensor.to_list(tensor) == expected_tensor
+  end
+
+  test "tensor/1 with nan, inf and ninf and complex" do
+    tensor = ExTorch.tensor([:nan, ExTorch.Complex.complex(-1, 8), :inf, :ninf, 4.0])
+    assert tensor.size == {5}
+    assert tensor.dtype == :complex_float
+    assert tensor.device == :cpu
+
+    expected_tensor = [
+      ExTorch.Complex.complex(:nan, 0),
+      ExTorch.Complex.complex(-1, 8),
+      ExTorch.Complex.complex(:inf, 0),
+      ExTorch.Complex.complex(:ninf, 0),
+      ExTorch.Complex.complex(4.0, 0)
+    ]
+
+    assert ExTorch.Tensor.to_list(tensor) == expected_tensor
+  end
+
   test "empty_like/1" do
     base = ExTorch.rand({4, 5, 6}, dtype: :complex128)
     deriv = ExTorch.empty_like(base)

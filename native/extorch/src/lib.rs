@@ -89,9 +89,11 @@ rustler::init!(
         reshape,
         index,
         index_put,
-
-        // Tensor mutating operations
         conj,
+
+        // Tensor comparing operations
+        allclose,
+
 
         // Other operations
         resolve_conj,

@@ -31,9 +31,9 @@ pub mod torch {
         // ----------------------------------------------------------------
         {% include "tensor/pointwise.rs.in" %}
 
-        // Tensor pointwise math operations.
+        // Tensor comparison operations.
         // ----------------------------------------------------------------
-        {% include "tensor/mutating.rs.in" %}
+        {% include "tensor/comparison.rs.in" %}
 
         // Other tensor operations.
         // ----------------------------------------------------------------

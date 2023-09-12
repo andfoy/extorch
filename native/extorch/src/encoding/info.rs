@@ -88,17 +88,22 @@ impl From<String> for AtomString {
 
 impl<'a> Decoder<'a> for Size {
     fn decode(term: Term<'a>) -> NifResult<Self> {
-        let ex_sizes: Vec<Term<'a>>;
-        ex_sizes = match get_tuple(term) {
-            Ok(tup) => tup,
-            Err(_) => term.decode().unwrap(),
+        let partial_ex_sizes = match get_tuple(term) {
+            Ok(tup) => Ok(tup),
+            Err(_) => term.decode(),
         };
 
-        let mut sizes: Vec<i64> = Vec::new();
-        for term in ex_sizes {
-            sizes.push(term.decode()?);
+        match partial_ex_sizes {
+            Ok(ex_sizes) => {
+                let mut sizes: Vec<i64> = Vec::new();
+                for term in ex_sizes {
+                    sizes.push(term.decode()?);
+                }
+                Ok(Size { size: sizes })
+            },
+            Err(err) => Err(err)
         }
-        Ok(Size { size: sizes })
+
     }
 }
 
@@ -141,13 +146,32 @@ impl<'a> EncodeTorchScalar<'a> for bool {
     }
 }
 
-impl<'a> EncodeTorchScalar<'a> for Complex {
+fn match_special_atoms<'a>(term: Term<'a>) -> Result<f64, Error> {
+    match term.atom_to_string()?.as_str() {
+        "nan" => Ok(f64::NAN),
+        "inf" => Ok(f64::INFINITY),
+        "ninf" => Ok(f64::NEG_INFINITY),
+        _ => Err(Error::RaiseAtom("invalid_atom_value"))
+    }
+}
+
+impl<'a> EncodeTorchScalar<'a> for Complex<'a> {
     fn encode_scalar(term: Term<'a>) -> NifResult<torch::Scalar> {
         let complex_value: NifResult<Complex> = term.decode();
         match complex_value {
             Ok(value) => {
-                let re_bytes = value.real.to_ne_bytes();
-                let im_bytes = value.imaginary.to_ne_bytes();
+                let real_value = match value.real.is_atom() {
+                    true => match_special_atoms(value.real)?,
+                    false => value.real.decode::<f64>()?
+                };
+
+                let im_value = match value.imaginary.is_atom() {
+                    true => match_special_atoms(value.imaginary)?,
+                    false => value.imaginary.decode::<f64>()?
+                };
+
+                let re_bytes = real_value.to_ne_bytes();
+                let im_bytes = im_value.to_ne_bytes();
                 let mut repr: Vec<u8> = re_bytes.to_vec();
                 repr.append(&mut im_bytes.to_vec());
                 Ok(torch::Scalar {
@@ -160,6 +184,36 @@ impl<'a> EncodeTorchScalar<'a> for Complex {
     }
 }
 
+impl<'a> EncodeTorchScalar<'a> for AtomString {
+    fn encode_scalar(term: Term<'a>) -> NifResult<torch::Scalar> {
+        let atom_value: NifResult<AtomString> = term.decode();
+        match atom_value {
+            Ok(atom_str) => {
+                let value = match atom_str.name.as_str() {
+                    "nan" => Some(f32::NAN),
+                    "inf" => Some(f32::INFINITY),
+                    "ninf" => Some(f32::NEG_INFINITY),
+                    _ => None
+                };
+
+                match value {
+                    Some(val) => {
+                        let bytes = val.to_ne_bytes();
+                        let repr: Vec<u8> = bytes.to_vec();
+                        Ok(torch::Scalar {
+                            _repr: repr,
+                            entry_used: "float32".to_owned()
+                        })
+                    },
+                    None => Err(Error::RaiseAtom("invalid numeric atom"))
+                }
+            },
+            Err(err) => Err(err)
+        }
+    }
+}
+
+
 impl DecodeTorchScalar for bool {
     fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
         let value = scalar._repr.get(0).unwrap();
@@ -168,21 +222,44 @@ impl DecodeTorchScalar for bool {
     }
 }
 
-impl DecodeTorchScalar for Complex {
+fn pack_possible_special_atom<'a>(value: f64, env: Env<'a>) -> Term<'a> {
+    let inf_value = match value.is_infinite() && value.is_sign_positive() {
+        true => Some(Atom::from_str(env, "inf").unwrap().to_term(env)),
+        false => None
+    };
+
+    let ninf_value= match value.is_infinite() && value.is_sign_negative() {
+        true => Some(Atom::from_str(env, "ninf").unwrap().to_term(env)),
+        false => inf_value
+    };
+
+    let nan_value = match value.is_nan() {
+        true => Some(Atom::from_str(env, "nan").unwrap().to_term(env)),
+        false => ninf_value
+    };
+
+    match nan_value {
+        Some(value) => value,
+        None => value.encode(env)
+    }
+}
+
+impl DecodeTorchScalar for Complex<'_> {
     fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
         let real_part = &scalar._repr[..8];
         let im_part = &scalar._repr[8..];
         let real = f64::from_ne_bytes(real_part.try_into().unwrap());
         let im = f64::from_ne_bytes(im_part.try_into().unwrap());
+
         let complex = Complex {
-            real,
-            imaginary: im,
+            real: pack_possible_special_atom(real, env),
+            imaginary: pack_possible_special_atom(im, env),
         };
         complex.encode(env)
     }
 }
 
-macro_rules! impl_scalar_for_types {
+macro_rules! impl_full_scalar_for_types {
     ($(($t:ty, $dtype:tt)),*) => {
         $(
             impl<'a> EncodeTorchScalar<'a> for $t {
@@ -213,6 +290,81 @@ macro_rules! impl_scalar_for_types {
     };
 }
 
+macro_rules! impl_float_scalar_for_types {
+    ($(($t:ty, $dtype:tt)),*) => {
+        $(
+            impl<'a> EncodeTorchScalar<'a> for $t {
+                fn encode_scalar(term: Term<'a>) -> NifResult<torch::Scalar> {
+                    let atom_value: NifResult<AtomString> = term.decode();
+                    match atom_value {
+                        Ok(atom_str) => {
+                            let value = match atom_str.name.as_str() {
+                                "nan" => Some(<$t>::NAN),
+                                "inf" => Some(<$t>::INFINITY),
+                                "ninf" => Some(<$t>::NEG_INFINITY),
+                                _ => None
+                            };
+
+                            match value {
+                                Some(val) => {
+                                    let bytes = val.to_ne_bytes();
+                                    let repr: Vec<u8> = bytes.to_vec();
+                                    Ok(torch::Scalar {
+                                        _repr: repr,
+                                        entry_used: $dtype.to_owned()
+                                    })
+                                },
+                                None => Err(Error::RaiseAtom("invalid numeric atom"))
+                            }
+                        },
+                        Err(_) => {
+                            let value: NifResult<$t> = term.decode();
+                            match value {
+                                Ok(act_value) => {
+                                    let bytes = act_value.to_ne_bytes();
+                                    let repr: Vec<u8> = bytes.to_vec();
+                                    Ok(torch::Scalar {
+                                        _repr: repr,
+                                        entry_used: $dtype.to_owned()
+                                    })
+                                },
+                                Err(err) => Err(err)
+                            }
+                        }
+                    }
+                }
+            }
+
+            impl DecodeTorchScalar for $t {
+                fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
+                    let slice = &scalar._repr[..];
+                    let value = <$t>::from_ne_bytes(slice.try_into().unwrap());
+
+                    let nan_value = match value.is_nan() {
+                        true => Some(Atom::from_str(env, "nan").unwrap().encode(env)),
+                        false => None
+                    };
+
+                    let pinf_value = match value.is_infinite() && value.is_sign_positive() {
+                        true => Some(Atom::from_str(env, "inf").unwrap().encode(env)),
+                        false => nan_value
+                    };
+
+                    let ninf_value = match value.is_infinite() && value.is_sign_negative() {
+                        true => Some(Atom::from_str(env, "ninf").unwrap().encode(env)),
+                        false => pinf_value
+                    };
+
+                    match ninf_value {
+                        Some(term) => term,
+                        None => value.encode(env)
+                    }
+                }
+            }
+        )*
+    };
+}
+
 macro_rules! nested_type_encoding {
     ($term:ident, $t:ty $(, $rest:ty)+) => {
         match <$t>::encode_scalar($term) {
@@ -232,7 +384,7 @@ macro_rules! nested_type_encoding {
     }
 }
 
-impl_scalar_for_types!(
+impl_full_scalar_for_types!(
     (i8, "int8"),
     (i16, "int16"),
     (i32, "int32"),
@@ -240,7 +392,10 @@ impl_scalar_for_types!(
     (u8, "uint8"),
     (u16, "uint16"),
     (u32, "uint32"),
-    (u64, "uint64"),
+    (u64, "uint64")
+);
+
+impl_float_scalar_for_types!(
     (f32, "float32"),
     (f64, "float64")
 );
@@ -249,7 +404,7 @@ impl<'a> Decoder<'a> for torch::Scalar {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         // let mut result: NifResult<Self> = Err(Error::RaiseAtom("invalid_type"));
         let result = nested_type_encoding!(
-            term, bool, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, Complex
+            term, bool, i8, i16, i32, i64, u8, u16, u32, u64, f32, f64, Complex, AtomString
         );
 
         match result {

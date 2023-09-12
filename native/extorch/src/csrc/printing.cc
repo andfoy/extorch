@@ -55,22 +55,28 @@ struct Formatter {
             );
 
             if(nonzero_finite_vals.numel() == 0) {
+                max_width = 3;
+                if((tensor_view < 0).numel() > 0) {
+                    max_width++;
+                }
                 return;
+            } else if(nonzero_finite_vals.numel() != tensor_view.numel()) {
+                int_mode = false;
+            } else {
+                for(int i = 0; i < nonzero_finite_vals.numel(); i++) {
+                    auto value = nonzero_finite_vals[i];
+                    auto diff = value != torch::ceil(value);
+                    bool is_diff = *(diff.data_ptr<bool>());
+                    if(is_diff) {
+                        int_mode = false;
+                        break;
+                    }
+                }
             }
 
             auto nonzero_finite_abs = tensor_totype(nonzero_finite_vals.abs());
             auto nonzero_finite_min = tensor_totype(nonzero_finite_abs.min());
             auto nonzero_finite_max = tensor_totype(nonzero_finite_abs.max());
-
-            for(int i = 0; i < nonzero_finite_vals.numel(); i++) {
-                auto value = nonzero_finite_vals[i];
-                auto diff = value != torch::ceil(value);
-                bool is_diff = *(diff.data_ptr<bool>());
-                if(is_diff) {
-                    int_mode = false;
-                    break;
-                }
-            }
 
             if(int_mode) {
                 if(*(nonzero_finite_max / nonzero_finite_min > 1000.0).data_ptr<bool>()
@@ -156,8 +162,10 @@ struct Formatter {
                 fmt_ss << "%" << max_width << "." << opts.precision << "e";
                 format = fmt_ss.str();
             } else if(int_mode) {
-                format = "%.0f";
-                if(!(std::isinf(value) || std::isnan(value))) {
+                if(std::isinf(value) || std::isnan(value)) {
+                    format = "%f";
+                } else {
+                    format = "%.0f";
                     add_dot = true;
                 }
             } else {
