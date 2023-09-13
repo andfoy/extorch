@@ -43,14 +43,17 @@ defmodule ExTorchTest.Tensor.OtherTest do
 
     back = ExTorch.Tensor.to_list(c)
     signs = [-1, 1]
-    back_signs = Enum.map(back,
-      fn %ExTorch.Complex{imaginary: imag} ->
-        case imag >= 0 do
-          true -> 1
-          false -> -1
+
+    back_signs =
+      Enum.map(
+        back,
+        fn %ExTorch.Complex{imaginary: imag} ->
+          case imag >= 0 do
+            true -> 1
+            false -> -1
+          end
         end
-      end
-    )
+      )
 
     assert signs == back_signs
   end

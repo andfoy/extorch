@@ -78,3 +78,9 @@ struct PrintOptions {
     linewidth: i64,
     sci_mode: u8
 }
+
+struct SortResult {
+    values: SharedPtr<CrossTensor>,
+    indices: SharedPtr<CrossTensor>,
+    used: bool
+}

@@ -6,7 +6,9 @@ defmodule ExTorchTest.RegistryTest do
     assert ExTorch.get_default_dtype() == :float32
 
     # Assert that default dtypes are independent across processes
-    proc_value = Agent.get_and_update(pid, fn val -> {val, ExTorch.set_default_dtype(:float64)} end)
+    proc_value =
+      Agent.get_and_update(pid, fn val -> {val, ExTorch.set_default_dtype(:float64)} end)
+
     assert proc_value == :float32
     assert ExTorch.get_default_dtype() == :float32
 
@@ -24,14 +26,19 @@ defmodule ExTorchTest.RegistryTest do
 
   test "set_default_device/1" do
     nvcc = System.find_executable("nvcc")
+
     case nvcc do
-      nil -> nil
+      nil ->
+        nil
+
       _ ->
         {:ok, pid} = Agent.start(fn -> ExTorch.get_default_device() end)
         assert ExTorch.get_default_device() == :cpu
 
         # Assert that default devices are independent across processes
-        proc_value = Agent.get_and_update(pid, fn val -> {val, ExTorch.set_default_device(:cuda)} end)
+        proc_value =
+          Agent.get_and_update(pid, fn val -> {val, ExTorch.set_default_device(:cuda)} end)
+
         assert proc_value == :cpu
         assert ExTorch.get_default_device() == :cpu
 

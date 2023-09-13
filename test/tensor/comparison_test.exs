@@ -31,5 +31,288 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.allclose(t1, t2, 1.0e-5, 1.0e-8, true)
   end
 
+  test "argsort/1" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
 
+    expected_list = [
+      [3, 0, 4, 1, 5, 6, 2],
+      [1, 6, 2, 3, 0, 4, 5],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    argsort = ExTorch.argsort(in_tensor)
+    assert ExTorch.Tensor.to_list(argsort) == expected_list
+  end
+
+  test "argsort/1 with kwargs" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_list = [
+      [3, 0, 4, 1, 5, 6, 2],
+      [1, 6, 2, 3, 0, 4, 5],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    argsort = ExTorch.argsort(in_tensor, dim: -1)
+    assert ExTorch.Tensor.to_list(argsort) == expected_list
+  end
+
+  test "argsort/2" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_list = [
+      [0, 1, 1, 0, 0, 0, 1],
+      [2, 2, 2, 1, 2, 2, 0],
+      [1, 0, 0, 2, 1, 1, 2]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    argsort = ExTorch.argsort(in_tensor, 0)
+    assert ExTorch.Tensor.to_list(argsort) == expected_list
+  end
+
+  test "argsort/2 with kwargs" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_list = [
+      [1, 0, 0, 1, 1, 1, 2],
+      [2, 2, 1, 2, 2, 2, 0],
+      [0, 1, 2, 0, 0, 0, 1]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    argsort = ExTorch.argsort(in_tensor, 0, descending: true)
+    assert ExTorch.Tensor.to_list(argsort) == expected_list
+  end
+
+  test "argsort/3" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_list = [
+      [2, 6, 5, 1, 4, 0, 3],
+      [5, 4, 0, 3, 2, 6, 1],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    argsort = ExTorch.argsort(in_tensor, -1, true)
+    assert ExTorch.Tensor.to_list(argsort) == expected_list
+  end
+
+  test "argsort/4" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_list = [
+      [2, 6, 5, 1, 4, 0, 3],
+      [5, 4, 0, 3, 2, 6, 1],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    argsort = ExTorch.argsort(in_tensor, -1, true, true)
+    assert ExTorch.Tensor.to_list(argsort) == expected_list
+  end
+
+  test "sort/1" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [-2, -1, 0, 3, 4, 5, 10],
+      [-5, 1, 2, 3, 5, 7, 20],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_indices = [
+      [3, 0, 4, 1, 5, 6, 2],
+      [1, 6, 2, 3, 0, 4, 5],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    {values, indices} = ExTorch.sort(in_tensor)
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
+
+  test "sort/2 with kwargs" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [-2, -1, 0, 3, 4, 5, 10],
+      [-5, 1, 2, 3, 5, 7, 20],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_indices = [
+      [3, 0, 4, 1, 5, 6, 2],
+      [1, 6, 2, 3, 0, 4, 5],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    {values, indices} = ExTorch.sort(in_tensor, dim: 1, descending: false)
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
+
+  test "sort/2" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [-1, -5, 2, -2, 0, 4, 1],
+      [0, 1, 2, 3, 4, 5, 5],
+      [5, 3, 10, 3, 7, 20, 6]
+    ]
+
+    expected_indices = [
+      [0, 1, 1, 0, 0, 0, 1],
+      [2, 2, 2, 1, 2, 2, 0],
+      [1, 0, 0, 2, 1, 1, 2]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    {values, indices} = ExTorch.sort(in_tensor, 0)
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
+
+  test "sort/3" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [5, 3, 10, 3, 7, 20, 6],
+      [0, 1, 2, 3, 4, 5, 5],
+      [-1, -5, 2, -2, 0, 4, 1]
+    ]
+
+    expected_indices = [
+      [1, 0, 0, 1, 1, 1, 2],
+      [2, 2, 1, 2, 2, 2, 0],
+      [0, 1, 2, 0, 0, 0, 1]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    {values, indices} = ExTorch.sort(in_tensor, 0, true)
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
+
+  test "sort/3 with kwargs" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [10, 5, 4, 3, 0, -1, -2],
+      [20, 7, 5, 3, 2, 1, -5],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    expected_indices = [
+      [2, 6, 5, 1, 4, 0, 3],
+      [5, 4, 0, 3, 2, 6, 1],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    {values, indices} = ExTorch.sort(in_tensor, 1, descending: true)
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
+
+  test "sort/4" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [10, 5, 4, 3, 0, -1, -2],
+      [20, 7, 5, 3, 2, 1, -5],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    expected_indices = [
+      [2, 6, 5, 1, 4, 0, 3],
+      [5, 4, 0, 3, 2, 6, 1],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list)
+    {values, indices} = ExTorch.sort(in_tensor, 1, true, true)
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
+
+  test "sort/5" do
+    input_list = [
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ]
+
+    expected_values = [
+      [10, 5, 4, 3, 0, -1, -2],
+      [20, 7, 5, 3, 2, 1, -5],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    expected_indices = [
+      [2, 6, 5, 1, 4, 0, 3],
+      [5, 4, 0, 3, 2, 6, 1],
+      [6, 5, 4, 3, 2, 1, 0]
+    ]
+
+    in_tensor = ExTorch.tensor(input_list, dtype: :float32)
+    values = ExTorch.empty_like(in_tensor)
+    indices = ExTorch.empty_like(in_tensor, dtype: :int64)
+    ExTorch.sort(in_tensor, 1, true, true, {values, indices})
+    assert ExTorch.Tensor.to_list(values) == expected_values
+    assert ExTorch.Tensor.to_list(indices) == expected_indices
+  end
 end

@@ -10,4 +10,5 @@ struct ScalarList;
 struct TorchSlice;
 struct TorchIndex;
 struct PrintOptions;
+struct SortResult;
 using CrossTensor = torch::Tensor;

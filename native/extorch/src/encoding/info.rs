@@ -662,3 +662,44 @@ impl<'a> Decoder<'a> for torch::PrintOptions {
         })
     }
 }
+
+impl<'a> Decoder<'a> for torch::SortResult {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        match term.atom_to_string() {
+            Ok(str) => {
+                match str.as_str() {
+                    "nil" => Ok(Self {
+                        values: SharedPtr::<torch::CrossTensor>::null(),
+                        indices: SharedPtr::<torch::CrossTensor>::null(),
+                        used: false
+                    }),
+                    _ => Err(Error::RaiseAtom("invalid_value"))
+                }
+            },
+            Err(_) => {
+                let tensor_vec: Vec<Term<'a>> = get_tuple(term)?;
+                match tensor_vec.len() {
+                    2 => {
+                        let values: TensorStruct<'a> = tensor_vec[0].decode()?;
+                        let indices: TensorStruct<'a> = tensor_vec[1].decode()?;
+                        Ok(Self {
+                            values: values.resource.tensor.clone(),
+                            indices: indices.resource.tensor.clone(),
+                            used: true
+                        })
+                    },
+                    _ => Err(Error::RaiseAtom("must be a tuple of two elements"))
+                }
+            }
+        }
+    }
+}
+
+impl Encoder for torch::SortResult {
+    fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
+        let values_struct: TensorStruct<'a> = self.values.clone().into();
+        let indices_struct: TensorStruct<'a> = self.indices.clone().into();
+
+        make_tuple(env, &[values_struct.encode(env), indices_struct.encode(env)])
+    }
+}

@@ -147,7 +147,8 @@ defmodule ExTorch.Utils do
     ExTorch.Complex.complex(number, 0.0)
   end
 
-  defp convert_list(value, type, _) when value in [:nan, :inf, :ninf] and type in [:complex64, :complex128] do
+  defp convert_list(value, type, _)
+       when value in [:nan, :inf, :ninf] and type in [:complex64, :complex128] do
     ExTorch.Complex.complex(value, 0)
   end
 

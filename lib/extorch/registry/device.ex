@@ -23,7 +23,9 @@ defmodule ExTorch.Registry.Device do
       [] ->
         Registry.register(__MODULE__, :device, :cpu)
         :cpu
-      [device] -> device
+
+      [device] ->
+        device
     end
   end
 
@@ -59,6 +61,7 @@ defmodule ExTorch.Registry.Device do
     case Registry.values(__MODULE__, :device, self()) do
       [] ->
         Registry.register(__MODULE__, :device, device)
+
       _ ->
         Registry.unregister(__MODULE__, :device)
         Registry.register(__MODULE__, :device, device)

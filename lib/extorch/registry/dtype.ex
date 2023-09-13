@@ -24,7 +24,9 @@ defmodule ExTorch.Registry.DType do
       [] ->
         Registry.register(__MODULE__, :dtype, :float32)
         :float32
-      [value] -> value
+
+      [value] ->
+        value
     end
   end
 
@@ -80,6 +82,7 @@ defmodule ExTorch.Registry.DType do
     case Registry.values(__MODULE__, :dtype, self()) do
       [] ->
         Registry.register(__MODULE__, :dtype, dtype)
+
       _ ->
         Registry.unregister(__MODULE__, :dtype)
         Registry.register(__MODULE__, :dtype, dtype)

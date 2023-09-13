@@ -783,6 +783,8 @@ defmodule ExTorch.Native.Macros do
       case type do
         {{:., _, [{:__aliases__, [line: 122], [:ExTorch, :Tensor]}, :t]}} -> :tensor
         {{:., _, [{:__aliases__, _, [:ExTorch, _]}, extorch_type]}, _, []} -> extorch_type
+        {_, _} -> :tuple
+        nil -> nil
         {type, _, _} -> type
         [_] -> :list
       end
