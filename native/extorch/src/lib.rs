@@ -93,7 +93,8 @@ rustler::init!(
 
         // Tensor comparing operations
         allclose,
-
+        argsort,
+        sort,
 
         // Other operations
         resolve_conj,

@@ -1,8 +1,24 @@
-
 /// Check if two tensors are close (element-wise).
 fn allclose(
     input: &SharedPtr<CrossTensor>,
     other: &SharedPtr<CrossTensor>,
     rtol: f64,
     atol: f64,
-    equal_nan: bool) -> Result<bool>;
+    equal_nan: bool,
+) -> Result<bool>;
+
+/// Return the indices used to sort a tensor in a given dimension.
+fn argsort(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    descending: bool,
+    stable: bool,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Sort a tensor along a dimension.
+fn sort(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    descending: bool,
+    stable: bool,
+    out: SortResult) -> Result<SortResult>;
