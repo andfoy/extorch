@@ -61,6 +61,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
           requires_grad: false
         ]>
 
+        # Sort alongside an specific dimension
         iex> ExTorch.argsort(a, dim: 1)
         #Tensor<
         [[0, 2, 3, 1],
@@ -99,6 +100,68 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     output buffers. (`{ExTorch.Tensor, ExTorch.Tensor}`). Default: `nil`
 
     ## Examples
+        iex> a = ExTorch.randn({3, 4})
+        #Tensor<
+        [[ 0.7517,  0.5590, -0.1417, -0.1662],
+         [-0.1247,  0.5669,  0.0484,  0.4289],
+         [ 0.0876, -0.5951, -1.0296,  0.0093]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Sort tensor on the last dimension
+        iex> {values, indices} = ExTorch.sort(a)
+        iex> values
+        #Tensor<
+        [[-0.1662, -0.1417,  0.5590,  0.7517],
+         [-0.1247,  0.0484,  0.4289,  0.5669],
+         [-1.0296, -0.5951,  0.0093,  0.0876]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[3, 2, 1, 0],
+         [0, 2, 3, 1],
+         [2, 1, 3, 0]]
+        [
+          size: {3, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Sort tensor on the first dimension while reusing values and indices
+        iex> ExTorch.sort(a, 0, out: {values, indices})
+        iex> values
+        #Tensor<
+        [[-0.1247, -0.5951, -1.0296, -0.1662],
+         [ 0.0876,  0.5590, -0.1417,  0.0093],
+         [ 0.7517,  0.5669,  0.0484,  0.4289]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[1, 2, 2, 0],
+         [2, 0, 0, 2],
+         [0, 1, 1, 1]]
+        [
+          size: {3, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
     """
     @spec sort(
             ExTorch.Tensor.t(),
