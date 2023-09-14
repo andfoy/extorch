@@ -181,7 +181,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
 
     ## Arguments
     - `input` - the tensor to compare (`ExTorch.Tensor`).
-    - `other` - the tensor or value to compare (`Extorch.Tensor` or value)
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
 
     ## Optional arguments
     - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
