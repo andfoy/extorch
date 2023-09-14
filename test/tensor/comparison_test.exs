@@ -344,4 +344,9 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     ExTorch.eq(a, ExTorch.tensor([[1, 1], [4, 4]]), out)
     assert ExTorch.all(ExTorch.eq(expected, out)) |> ExTorch.Tensor.item()
   end
+
+  test "equal/2" do
+    assert ExTorch.equal(ExTorch.tensor([1, 2]), ExTorch.tensor([1, 2]))
+    assert !ExTorch.equal(ExTorch.tensor([1, 2]), ExTorch.tensor([1]))
+  end
 end
