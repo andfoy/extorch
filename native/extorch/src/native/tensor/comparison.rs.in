@@ -21,4 +21,15 @@ fn sort(
     dim: i64,
     descending: bool,
     stable: bool,
-    out: SortResult) -> Result<SortResult>;
+    out: SortResult,
+) -> Result<SortResult>;
+
+/// Compare two tensors for equality element-wise.
+fn eq(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compare two tensors for strict element and size equality.
+fn equal(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<bool>;

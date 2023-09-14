@@ -19,3 +19,11 @@ SortResult sort(
         bool descending,
         bool stable,
         SortResult out_r);
+
+std::shared_ptr<CrossTensor> eq(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+bool equal(const std::shared_ptr<CrossTensor> &input,
+           const std::shared_ptr<CrossTensor> &other);

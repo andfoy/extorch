@@ -171,5 +171,97 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(sort(input, dim \\ -1, descending \\ false, stable \\ false, out \\ nil))
+
+    @doc """
+    Computes element-wise equality.
+
+    The second argument can be a number or a tensor whose shape is broadcastable with the first argument.
+    It will return a boolean tensor of the same shape as `input`, where a `true` entry
+    represents a value that is equal on both `input` and `other`, and `false` otherwise.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`Extorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Examples
+        # Compare against an scalar value.
+        iex> a = ExTorch.tensor([[1, 2], [3, 4]])
+        iex> ExTorch.eq(a, 1)
+        #Tensor<
+        [[ true, false],
+         [false, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compare against a broadcastable value.
+        iex> ExTorch.eq(a, [1, 2])
+        #Tensor<
+        [[ true,  true],
+         [false, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compare against another tensor.
+        iex> ExTorch.eq(a, ExTorch.tensor([[1, 1], [4, 4]]))
+        #Tensor<
+        [[ true, false],
+         [false,  true]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec eq(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t() | list() | number() | boolean() | ExTorch.Complex.t() | :nan | :inf | :ninf,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(eq(input, other, out \\ nil),
+      other:
+        case other do
+          %ExTorch.Tensor{} ->
+            other
+
+          _ ->
+            ExTorch.tensor(other,
+              device: ExTorch.Tensor.device(input),
+              requires_grad: false
+            )
+        end
+    )
+
+    @doc """
+    Strict element-wise equality for two tensors.
+
+    This function will return `true` if both inputs have the same size and elements.
+    `false`, otherwise.
+
+    ## Arguments
+      - `input` - tensor to compare (`ExTorch.Tensor`)
+      - `other` - tensor to compare (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> ExTorch.equal(ExTorch.tensor([1, 2]), ExTorch.tensor([1, 2]))
+        true
+
+        iex> ExTorch.equal(ExTorch.tensor([1, 2]), ExTorch.tensor([1]))
+        false
+    """
+    @spec equal(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: boolean()
+    defbinding(equal(input, other))
   end
 end

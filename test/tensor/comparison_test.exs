@@ -315,4 +315,33 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.Tensor.to_list(values) == expected_values
     assert ExTorch.Tensor.to_list(indices) == expected_indices
   end
+
+  test "eq/2" do
+    expected = ExTorch.tensor([[true, false], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.eq(a, 1)
+    assert ExTorch.all(ExTorch.eq(expected, cmp)) |> ExTorch.Tensor.item()
+  end
+
+  test "eq/2 with broadcastable" do
+    expected = ExTorch.tensor([[true, true], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.eq(a,[1, 2])
+    assert ExTorch.all(ExTorch.eq(expected, cmp)) |> ExTorch.Tensor.item()
+  end
+
+  test "eq/2 with tensor" do
+    expected = ExTorch.tensor([[true, false], [false, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.eq(a, ExTorch.tensor([[1, 1], [4, 4]]))
+    assert ExTorch.all(ExTorch.eq(expected, cmp)) |> ExTorch.Tensor.item()
+  end
+
+  test "eq/3" do
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.empty_like(a, dtype: :bool)
+    expected = ExTorch.tensor([[true, false], [false, true]])
+    ExTorch.eq(a, ExTorch.tensor([[1, 1], [4, 4]]), out)
+    assert ExTorch.all(ExTorch.eq(expected, out)) |> ExTorch.Tensor.item()
+  end
 end
