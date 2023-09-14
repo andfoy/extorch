@@ -10,41 +10,6 @@ struct Device {
     index: i64,
 }
 
-/// DType enum.
-// pub enum DType {
-//     // Full name types
-//     UInt8 = 0,
-//     Int8 = 1,
-//     Int16 = 2,
-//     Int32 = 3,
-//     Int64 = 4,
-//     Float16 = 5,
-//     Float32 = 6,
-//     Float64 = 7,
-//     BFloat16 = 8,
-//     Complex32 = 9,
-//     Complex64 = 10,
-//     Complex128 = 11,
-//     Bool = 12,
-//     QUInt8 = 13,
-//     QInt8 = 14,
-//     QUInt2x4 = 15,
-//     QUInt4x2 = 16,
-//
-//     // C-like type aliases
-//     Byte = 0,
-//     Char = 1,
-//     Short = 2,
-//     Int = 3,
-//     Long = 4,
-//     Half = 5,
-//     Float = 6,
-//     Double = 7,
-//     CHalf = 9,
-//     CFloat = 10,
-//     CDouble = 11,
-// }
-
 /// Scalar number representation
 struct Scalar {
     _repr: Vec<u8>,
@@ -82,5 +47,15 @@ struct PrintOptions {
 struct SortResult {
     values: SharedPtr<CrossTensor>,
     indices: SharedPtr<CrossTensor>,
+    used: bool
+}
+
+struct OptionalInt {
+    value: i64,
+    used: bool
+}
+
+struct TensorOut {
+    tensor: SharedPtr<CrossTensor>,
     used: bool
 }

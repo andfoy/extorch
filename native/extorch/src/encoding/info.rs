@@ -703,3 +703,19 @@ impl Encoder for torch::SortResult {
         make_tuple(env, &[values_struct.encode(env), indices_struct.encode(env)])
     }
 }
+
+impl<'a> Decoder<'a> for torch::OptionalInt {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        let value: Option<i64> = term.decode()?;
+        match value {
+            Some(value) => Ok(Self {
+                value,
+                used: true
+            }),
+            None => Ok(Self {
+                value: -1,
+                used: false
+            })
+        }
+    }
+}

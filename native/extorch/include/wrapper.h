@@ -5,4 +5,5 @@
 #include "manipulation.h"
 #include "pointwise.h"
 #include "comparison.h"
+#include "reduction.h"
 #include "other.h"

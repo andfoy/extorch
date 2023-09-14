@@ -51,6 +51,7 @@ rustler::init!(
         requires_grad,
         numel,
         to_list,
+        item,
         real,
         imag,
         layout,
@@ -95,6 +96,10 @@ rustler::init!(
         allclose,
         argsort,
         sort,
+
+        // Tensor reduction operations
+        all,
+        any,
 
         // Other operations
         resolve_conj,

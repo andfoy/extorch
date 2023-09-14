@@ -35,9 +35,13 @@ pub mod torch {
         // ----------------------------------------------------------------
         {% include "tensor/comparison.rs.in" %}
 
+        // Tensor reduction operations.
+        {% include "tensor/reduction.rs.in" %}
+
         // Other tensor operations.
         // ----------------------------------------------------------------
         {% include "tensor/other.rs.in" %}
+
     }
 }
 

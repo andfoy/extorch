@@ -333,6 +333,21 @@ defmodule ExTorch.Native.Macros do
             unquote(guard_call)(unquote(Macro.var(variable, nil)))
           end
 
+        {variable, [_ | _] = guards} ->
+          guards
+          |> Keyword.keys()
+          |> Enum.map(fn guard ->
+            guard_call = String.to_atom("is_#{Atom.to_string(guard)}")
+            quote do
+              unquote(guard_call)(unquote(Macro.var(variable, nil)))
+            end
+          end)
+          |> Enum.reduce(fn guard, acc ->
+            quote do
+              unquote(guard) or unquote(acc)
+            end
+          end)
+
         {variable, {:., _, [struct_alias, :t]}} ->
           quote do
             is_struct(unquote(Macro.var(variable, nil)), unquote(struct_alias))

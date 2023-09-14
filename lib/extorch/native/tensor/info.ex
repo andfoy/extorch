@@ -200,5 +200,33 @@ defmodule ExTorch.Native.Tensor.Info do
     """
     @spec is_nonzero(ExTorch.Tensor.t()) :: boolean()
     defbinding(is_nonzero(tensor))
+
+    @doc """
+    Returns the value of this tensor as a standard Elixir value.
+
+    This only works for tensors with one element. For other cases, see `ExTorch.Tensor.to_list/1`.
+
+    ## Arguments
+      - `tensor` (`ExTorch.Tensor`): Input tensor.
+
+    ## Examples
+        iex> x = ExTorch.tensor([false])
+        iex> ExTorch.Tensor.item(x)
+        false
+
+        iex> x = ExTorch.tensor([-3.5])
+        iex> ExTorch.Tensor.item(x)
+        -3.5
+
+        iex> x = ExTorch.tensor([ExTorch.Complex.complex(-2, 1)])
+        iex> ExTorch.Tensor.item(x)
+        -2.0 + 1.0j
+
+        iex> x = ExTorch.tensor([:nan])
+        iex> ExTorch.Tensor.item(x)
+        :nan
+    """
+    @spec item(ExTorch.Tensor.t()) :: number() | boolean() | ExTorch.Complex.t() | :nan | :inf | :ninf
+    defbinding(item(tensor))
   end
 end

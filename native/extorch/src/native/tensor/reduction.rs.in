@@ -1,0 +1,15 @@
+/// Check if all elements in a tensor (or dimension) are true.
+fn all(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Check if any element in a tensor (or dimension) is true.
+fn any(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;

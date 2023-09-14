@@ -165,6 +165,25 @@ ScalarList to_list(const std::shared_ptr<CrossTensor> &tensor) {
     return result;
 }
 
+Scalar item(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    auto scalar_value = cross_tensor.item();
+    Scalar scalar;
+
+    AT_DISPATCH_SWITCH(cross_tensor.scalar_type(), "to_list",
+        AT_DISPATCH_CASE_ALL_TYPES_AND2(torch::ScalarType::Half, torch::ScalarType::Bool,
+        [&] {
+            scalar = pack_scalar<scalar_t>(scalar_value.to<scalar_t>(), cross_tensor.scalar_type());
+        })
+        AT_DISPATCH_CASE_COMPLEX_TYPES_AND(torch::ScalarType::ComplexHalf,
+        [&] {
+            scalar = pack_complex_scalar<scalar_t>(scalar_value.to<scalar_t>(), cross_tensor.scalar_type());
+        })
+    );
+
+    return std::move(scalar);
+}
+
 bool requires_grad(const std::shared_ptr<CrossTensor> &tensor) {
     CrossTensor cross_tensor = *tensor.get();
     return cross_tensor.requires_grad();
