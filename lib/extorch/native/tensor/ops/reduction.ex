@@ -72,7 +72,6 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
             ExTorch.Tensor.t()
     defbinding(all(input, dim \\ nil, keepdim \\ false, out \\ nil))
 
-
     @doc """
     Check if at least one element (or element in a dimension) in `input` evaluates to `true`.
 

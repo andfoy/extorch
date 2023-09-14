@@ -338,6 +338,7 @@ defmodule ExTorch.Native.Macros do
           |> Keyword.keys()
           |> Enum.map(fn guard ->
             guard_call = String.to_atom("is_#{Atom.to_string(guard)}")
+
             quote do
               unquote(guard_call)(unquote(Macro.var(variable, nil)))
             end
