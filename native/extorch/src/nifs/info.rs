@@ -13,6 +13,7 @@ nif_impl!(requires_grad, bool, tensor: TensorStruct<'a>);
 nif_impl!(memory_format, AtomString, tensor: TensorStruct<'a>);
 nif_impl!(layout, AtomString, tensor: TensorStruct<'a>);
 nif_impl!(to_list, torch::ScalarList, tensor: TensorStruct<'a>);
+nif_impl!(item, torch::Scalar, tensor: TensorStruct<'a>);
 nif_impl!(numel, i64, tensor: TensorStruct<'a>);
 nif_impl!(is_complex, bool, tensor: TensorStruct<'a>);
 nif_impl!(is_floating_point, bool, tensor: TensorStruct<'a>);

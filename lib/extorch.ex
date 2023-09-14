@@ -14,6 +14,7 @@ defmodule ExTorch do
   extends(ExTorch.Native.Tensor.Ops.Indexing)
   extends(ExTorch.Native.Tensor.Ops.PointWise)
   extends(ExTorch.Native.Tensor.Ops.Comparison)
+  extends(ExTorch.Native.Tensor.Ops.Reduction)
   extends(ExTorch.Native.Tensor.Ops.Other)
   extends(ExTorch.Registry.DType)
   extends(ExTorch.Registry.Device)

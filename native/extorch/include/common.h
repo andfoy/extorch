@@ -11,4 +11,6 @@ struct TorchSlice;
 struct TorchIndex;
 struct PrintOptions;
 struct SortResult;
+struct OptionalInt;
+struct TensorOut;
 using CrossTensor = torch::Tensor;

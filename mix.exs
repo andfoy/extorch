@@ -89,8 +89,9 @@ defmodule ExTorch.MixProject do
         {:"Tensor creation", &(&1[:kind] == :tensor_creation)},
         {:"Tensor manipulation", &(&1[:kind] == :tensor_manipulation)},
         {:"Tensor indexing", &(&1[:kind] == :tensor_indexing)},
-        {:"Tensor comparison", &(&1[:kind] == :tensor_comparison)},
         {:"Pointwise math operations", &(&1[:kind] == :tensor_pointwise)},
+        {:"Reduction operations", &(&1[:kind] == :tensor_reduction)},
+        {:"Comparison operations", &(&1[:kind] == :tensor_comparison)},
         {:"Other operations", &(&1[:kind] == :tensor_other_ops)}
       ]
       # ...

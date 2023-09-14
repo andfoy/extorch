@@ -153,6 +153,7 @@ fn main() {
         .file("src/csrc/utils.cc")
         .file("src/csrc/creation.cc")
         .file("src/csrc/manipulation.cc")
+        .file("src/csrc/reduction.cc")
         .file("src/csrc/pointwise.cc")
         .file("src/csrc/comparison.cc")
         .file("src/csrc/other.cc")

@@ -131,4 +131,27 @@ defmodule ExTorchTest.Tensor.InfoTest do
     assert !ExTorch.Tensor.is_nonzero(ExTorch.tensor([false]))
     assert ExTorch.Tensor.is_nonzero(ExTorch.tensor([3]))
   end
+
+  test "item/1" do
+    a = ExTorch.tensor(false)
+    assert !ExTorch.Tensor.item(a)
+
+    a = ExTorch.tensor(3)
+    assert ExTorch.Tensor.item(a) == 3
+
+    a = ExTorch.tensor(-3.5)
+    assert ExTorch.Tensor.item(a) == -3.5
+
+    a = ExTorch.tensor(:inf)
+    assert ExTorch.Tensor.item(a) == :inf
+
+    a = ExTorch.tensor(:ninf)
+    assert ExTorch.Tensor.item(a) == :ninf
+
+    a = ExTorch.tensor(:nan)
+    assert ExTorch.Tensor.item(a) == :nan
+
+    a = ExTorch.tensor(ExTorch.Complex.complex(-3, 2))
+    assert ExTorch.Tensor.item(a) == ExTorch.Complex.complex(-3, 2)
+  end
 end
