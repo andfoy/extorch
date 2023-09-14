@@ -326,7 +326,7 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
   test "eq/2 with broadcastable" do
     expected = ExTorch.tensor([[true, true], [false, false]])
     a = ExTorch.tensor([[1, 2], [3, 4]])
-    cmp = ExTorch.eq(a,[1, 2])
+    cmp = ExTorch.eq(a, [1, 2])
     assert ExTorch.all(ExTorch.eq(expected, cmp)) |> ExTorch.Tensor.item()
   end
 

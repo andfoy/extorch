@@ -227,7 +227,14 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec eq(
             ExTorch.Tensor.t(),
-            ExTorch.Tensor.t() | list() | number() | boolean() | ExTorch.Complex.t() | :nan | :inf | :ninf,
+            ExTorch.Tensor.t()
+            | list()
+            | number()
+            | boolean()
+            | ExTorch.Complex.t()
+            | :nan
+            | :inf
+            | :ninf,
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(eq(input, other, out \\ nil),
