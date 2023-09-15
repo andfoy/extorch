@@ -48,6 +48,11 @@ std::shared_ptr<CrossTensor> lt(
         const std::shared_ptr<CrossTensor> &other,
         TensorOut out);
 
+std::shared_ptr<CrossTensor> ne(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
 std::shared_ptr<CrossTensor> isclose(
         const std::shared_ptr<CrossTensor> &input,
         const std::shared_ptr<CrossTensor> &other,

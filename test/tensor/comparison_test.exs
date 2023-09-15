@@ -466,6 +466,35 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.equal(out, expected)
   end
 
+  test "ne/2" do
+    expected = ExTorch.tensor([[true, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.ne(a, 2)
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "ne/2 with broadcastable" do
+    expected = ExTorch.tensor([[false, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.ne(a, [1, 2])
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "ne/2 with tensor" do
+    expected = ExTorch.tensor([[true, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.ne(a, ExTorch.tensor([[3, 2], [4, -2]]))
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "ne/3" do
+    expected = ExTorch.tensor([[true, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.empty_like(a, dtype: :bool)
+    ExTorch.ne(a, ExTorch.tensor([[3, 2], [4, -2]]), out)
+    assert ExTorch.equal(out, expected)
+  end
+
   test "isclose/2" do
     expected = ExTorch.tensor([true, false])
     t1 = ExTorch.tensor([10_000.0, 1.0e-07])

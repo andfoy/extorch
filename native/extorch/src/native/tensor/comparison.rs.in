@@ -62,6 +62,13 @@ fn lt(
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
 
+/// Compute `input != other` element-wise.
+fn ne(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
 /// Check which elements between two tensors are close.
 fn isclose(
     input: &SharedPtr<CrossTensor>,
