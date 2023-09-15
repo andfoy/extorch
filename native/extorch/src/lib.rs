@@ -96,6 +96,8 @@ rustler::init!(
         allclose,
         argsort,
         sort,
+        eq,
+        equal,
 
         // Tensor reduction operations
         all,

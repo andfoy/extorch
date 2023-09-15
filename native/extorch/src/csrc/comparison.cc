@@ -49,3 +49,28 @@ SortResult sort(
     return std::move(SortResult{values_out, indices_out, true});
 }
 
+std::shared_ptr<CrossTensor> eq(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::eq_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::eq(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
+
+bool equal(const std::shared_ptr<CrossTensor> &input,
+           const std::shared_ptr<CrossTensor> &other) {
+
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+    return torch::equal(in_tensor, other_tensor);
+}

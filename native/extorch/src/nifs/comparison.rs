@@ -1,6 +1,6 @@
-use crate::native::torch;
 use crate::native::torch::SortResult;
 use crate::shared_types::TensorStruct;
+use crate::{native::torch, torch::TensorOut};
 
 use rustler::{Error, NifResult};
 
@@ -31,4 +31,19 @@ nif_impl!(
     descending: bool,
     stable: bool,
     out: SortResult
+);
+
+nif_impl!(
+    eq,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    out: TensorOut
+);
+
+nif_impl!(
+    equal,
+    bool,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>
 );
