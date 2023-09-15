@@ -161,7 +161,7 @@ defmodule ExTorch.Native.Macros do
 
     {arg_names, arg_info} = collect_arg_info(args)
     {ret_type, arg_types} = collect_arg_types(func_name, spec, arg_names)
-    transforms = assemble_transforms(transforms)
+    {transforms, aliases} = assemble_transforms(transforms)
 
     {args, kwargs, derived_kwargs, defaults, first_optional_signatures} =
       compose_potential_middle_signatures(
@@ -224,20 +224,44 @@ defmodule ExTorch.Native.Macros do
 
     arity_docs = Enum.into(arity_docs, %{})
 
-    compose_binding_call(
-      func_name,
-      doc_section,
-      func_docstring,
-      ret_type,
-      max_arity,
-      arity_docs,
-      valid_signatures,
-      signature_map
-    )
+    signature_bodies =
+      compose_binding_call(
+        {func_name, nil},
+        doc_section,
+        func_docstring,
+        ret_type,
+        max_arity,
+        arity_docs,
+        valid_signatures,
+        signature_map
+      )
+
+    Enum.reduce(aliases, signature_bodies, fn alias_, sigs ->
+      alias_bodies =
+        compose_binding_call(
+          {alias_, func_name},
+          doc_section,
+          func_docstring,
+          ret_type,
+          max_arity,
+          arity_docs,
+          valid_signatures,
+          signature_map
+        )
+
+      sigs ++ alias_bodies
+    end)
+  end
+
+  defp get_alias_docstring(original_alias, arity, func_docstring) do
+    case original_alias do
+      nil -> func_docstring
+      _ -> "Alias to `#{original_alias}/#{arity}`"
+    end
   end
 
   defp compose_binding_call(
-         func_name,
+         {func_name, original_alias},
          doc_section,
          func_docstring,
          ret_type,
@@ -260,6 +284,8 @@ defmodule ExTorch.Native.Macros do
           @spec unquote(func_name)(unquote_splicing(sig_spec)) :: unquote(ret_type)
         end
 
+      func_docstring = get_alias_docstring(original_alias, max_arity, func_docstring)
+
       doc_headers =
         case {func_docstring, guards} do
           {_docstring, []} when arity == max_arity ->
@@ -269,7 +295,7 @@ defmodule ExTorch.Native.Macros do
             end
 
           _ ->
-            arity_doc = Map.get(arity_docs, arity)
+            arity_doc = get_alias_docstring(original_alias, arity, Map.get(arity_docs, arity))
 
             quote do
               @doc unquote(arity_doc)
@@ -809,26 +835,29 @@ defmodule ExTorch.Native.Macros do
   end
 
   defp assemble_transforms(transforms) do
-    {transforms, output_transform} =
-      Enum.reduce(transforms, {[], nil}, fn
-        {:output, {transform, [no_parens: true, line: _], _}}, {transforms, _} ->
-          {transforms, transform}
+    {transforms, aliases, output_transform} =
+      Enum.reduce(transforms, {[], [], nil}, fn
+        {:output, {transform, [no_parens: true, line: _], _}}, {transforms, aliases, _} ->
+          {transforms, aliases, transform}
 
-        {:output, transform}, {transforms, _} ->
-          {transforms, transform}
+        {:output, transform}, {transforms, aliases, _} ->
+          {transforms, aliases, transform}
 
-        {:extra, transform}, {transforms, output_transform} ->
-          {[transform | transforms], output_transform}
+        {:extra, transform}, {transforms, aliases, output_transform} ->
+          {[transform | transforms], aliases, output_transform}
 
-        {variable, transform}, {transforms, output_transform} ->
+        {:fn_aliases, aliases}, {transforms, _, output_transform} ->
+          {transforms, aliases, output_transform}
+
+        {variable, transform}, {transforms, aliases, output_transform} ->
           transform =
             quote do
               unquote(Macro.var(variable, nil)) = unquote(transform)
             end
 
-          {[transform | transforms], output_transform}
+          {[transform | transforms], aliases, output_transform}
       end)
 
-    {{:__block__, [], Enum.reverse(transforms)}, output_transform}
+    {{{:__block__, [], Enum.reverse(transforms)}, output_transform}, aliases}
   end
 end

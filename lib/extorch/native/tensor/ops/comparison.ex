@@ -270,5 +270,163 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec equal(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: boolean()
     defbinding(equal(input, other))
+
+    @doc """
+    Computes `input >= other` element-wise.
+
+    The second argument can be a number or a tensor whose shape is broadcastable with the first argument.
+    It will return a boolean tensor of the same shape as `input`, where a `true` entry
+    represents a value that is equal on both `input` and `other`, and `false` otherwise.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Examples
+        # Compare against an scalar value.
+        iex> a = ExTorch.tensor([[1, 2], [3, 4]])
+        iex> ExTorch.ge(a, 2)
+        #Tensor<
+        [[false,  true],
+         [ true,  true]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compare against a broadcastable value.
+        iex> ExTorch.ge(a, [2, 5])
+        #Tensor<
+        [[false, false],
+         [ true, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compare against another tensor.
+        iex> ExTorch.ge(a, ExTorch.tensor([[3, 1], [2, 5]]))
+        #Tensor<
+        [[false,  true],
+         [ true, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec ge(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t()
+            | list()
+            | number()
+            | boolean()
+            | ExTorch.Complex.t()
+            | :nan
+            | :inf
+            | :ninf,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(ge(input, other, out \\ nil),
+      other:
+        case other do
+          %ExTorch.Tensor{} ->
+            other
+
+          _ ->
+            ExTorch.tensor(other,
+              device: ExTorch.Tensor.device(input),
+              requires_grad: false
+            )
+        end,
+      fn_aliases: [:greater_equal]
+    )
+
+    @doc """
+    Computes `input > other` element-wise.
+
+    The second argument can be a number or a tensor whose shape is broadcastable with the first argument.
+    It will return a boolean tensor of the same shape as `input`, where a `true` entry
+    represents a value that is equal on both `input` and `other`, and `false` otherwise.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Examples
+        # Compare against an scalar value.
+        iex> a = ExTorch.tensor([[1, 2], [3, 4]])
+        iex> ExTorch.gt(a, 2)
+        #Tensor<
+        [[false, false],
+         [ true,  true]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compare against a broadcastable value.
+        iex> ExTorch.gt(a, [0, 5])
+        #Tensor<
+        [[ true, false],
+         [ true, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compare against another tensor.
+        iex> ExTorch.gt(a, ExTorch.tensor([[0, 1], [2, 5]]))
+        #Tensor<
+        [[ true,  true],
+         [ true, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec gt(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t()
+            | list()
+            | number()
+            | boolean()
+            | ExTorch.Complex.t()
+            | :nan
+            | :inf
+            | :ninf,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(gt(input, other, out \\ nil),
+      other:
+        case other do
+          %ExTorch.Tensor{} ->
+            other
+
+          _ ->
+            ExTorch.tensor(other,
+              device: ExTorch.Tensor.device(input),
+              requires_grad: false
+            )
+        end,
+      fn_aliases: [:greater]
+    )
   end
 end

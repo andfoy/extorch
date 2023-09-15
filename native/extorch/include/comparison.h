@@ -27,3 +27,14 @@ std::shared_ptr<CrossTensor> eq(
 
 bool equal(const std::shared_ptr<CrossTensor> &input,
            const std::shared_ptr<CrossTensor> &other);
+
+std::shared_ptr<CrossTensor> ge(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+
+std::shared_ptr<CrossTensor> gt(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);

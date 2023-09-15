@@ -33,3 +33,17 @@ fn eq(
 
 /// Compare two tensors for strict element and size equality.
 fn equal(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<bool>;
+
+/// Compute `input >= other` element-wise.
+fn ge(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute `input > other` element-wise.
+fn gt(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
