@@ -104,7 +104,13 @@ defmodule ExTorch.MixProject do
           ExTorch.Utils.PrintOptions,
           ExTorch.Utils.ListWrapper
         ],
-        "Spec types": [ExTorch.DType, ExTorch.Device, ExTorch.Layout, ExTorch.MemoryFormat],
+        "Spec types": [
+          ExTorch.Scalar,
+          ExTorch.DType,
+          ExTorch.Device,
+          ExTorch.Layout,
+          ExTorch.MemoryFormat
+        ],
         Protocols: [ExTorch.Protocol.DefaultStruct],
         Macros: [
           ExTorch.Native.Macros,

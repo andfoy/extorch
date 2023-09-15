@@ -242,7 +242,7 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     @spec index_put(
             ExTorch.Tensor.t(),
             ExTorch.Index.t(),
-            ExTorch.Tensor.t() | ExTorch.Complex.t() | number() | list() | tuple() | boolean()
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list()
           ) :: ExTorch.Tensor.t()
     defbinding(index_put(tensor, indices, value),
       indices: ExTorch.Utils.Indices.parse_indices(indices),

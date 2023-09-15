@@ -227,14 +227,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec eq(
             ExTorch.Tensor.t(),
-            ExTorch.Tensor.t()
-            | list()
-            | number()
-            | boolean()
-            | ExTorch.Complex.t()
-            | :nan
-            | :inf
-            | :ninf,
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(eq(input, other, out \\ nil),
@@ -325,14 +318,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec ge(
             ExTorch.Tensor.t(),
-            ExTorch.Tensor.t()
-            | list()
-            | number()
-            | boolean()
-            | ExTorch.Complex.t()
-            | :nan
-            | :inf
-            | :ninf,
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(ge(input, other, out \\ nil),
@@ -404,14 +390,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec gt(
             ExTorch.Tensor.t(),
-            ExTorch.Tensor.t()
-            | list()
-            | number()
-            | boolean()
-            | ExTorch.Complex.t()
-            | :nan
-            | :inf
-            | :ninf,
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(gt(input, other, out \\ nil),
@@ -483,14 +462,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec le(
             ExTorch.Tensor.t(),
-            ExTorch.Tensor.t()
-            | list()
-            | number()
-            | boolean()
-            | ExTorch.Complex.t()
-            | :nan
-            | :inf
-            | :ninf,
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(le(input, other, out \\ nil),
@@ -562,14 +534,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec lt(
             ExTorch.Tensor.t(),
-            ExTorch.Tensor.t()
-            | list()
-            | number()
-            | boolean()
-            | ExTorch.Complex.t()
-            | :nan
-            | :inf
-            | :ninf,
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(lt(input, other, out \\ nil),
