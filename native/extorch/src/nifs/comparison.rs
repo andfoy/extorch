@@ -81,6 +81,14 @@ nif_impl!(
 );
 
 nif_impl!(
+    ne,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    out: TensorOut
+);
+
+nif_impl!(
     isclose,
     TensorStruct<'a>,
     input: TensorStruct<'a>,

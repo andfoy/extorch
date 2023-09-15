@@ -102,6 +102,7 @@ rustler::init!(
         gt,
         le,
         lt,
+        ne,
         isclose,
         isfinite,
         isin,
