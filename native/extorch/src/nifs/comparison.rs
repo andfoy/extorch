@@ -89,3 +89,5 @@ nif_impl!(
     atol: f64,
     equal_nan: bool
 );
+
+nif_impl!(isfinite, TensorStruct<'a>, input: TensorStruct<'a>);

@@ -70,3 +70,6 @@ fn isclose(
     atol: f64,
     equal_nan: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Check which elements in a tensor are finite.
+fn isfinite(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
