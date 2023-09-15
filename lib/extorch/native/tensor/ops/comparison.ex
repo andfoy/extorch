@@ -638,5 +638,71 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec isfinite(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(isfinite(input))
+
+    @doc """
+    Tests if each element of `elements` is in `test_elements`.
+    Returns a boolean tensor of the same shape as `elements` that is `true` for
+    elements in `test_elements` and `false` otherwise.
+
+    ## Arguments
+    - `elements` - input elements (`ExTorch.Tensor | ExTorch.Scalar`)
+    - `test_elements` - values to compare against for each input element. (`ExTorch.Tensor | ExTorch.Scalar`)
+
+    ## Optional arguments
+    - `assume_unique` - If `true`, assumes both `elements` and `test_elements` contain unique
+    elements, which can speed up the calculation. Default: `false`. (`boolean`)
+    - `invert` -  If `true`, inverts the boolean return tensor, resulting in `true` values
+    for `elements` not in `test_elements`. Default: `false`. (`boolean`)
+
+    ## Examples
+        # Check if any of the values is 2
+        iex> x = ExTorch.tensor([[1, 2], [3, 4]])
+        iex> ExTorch.isin(x, 2)
+        #Tensor<
+        [[false,  true],
+         [false, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Check if any of the values in x is in [1, 3, 5]
+        iex> ExTorch.isin(x, [1, 3, 5])
+        #Tensor<
+        [[ true, false],
+         [ true, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Invert result
+        iex> ExTorch.isin(x, ExTorch.tensor([[1, 3], [5, 4]]), invert: true)
+        #Tensor<
+        [[false,  true],
+         [false, false]]
+        [
+          size: {2, 2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec isin(
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
+            boolean(),
+            boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(isin(elements, test_elements, assume_unique \\ false, invert \\ false),
+      elements: ExTorch.Tensor.scalar_to_tensor(elements),
+      test_elements:
+        ExTorch.Tensor.scalar_to_tensor(test_elements, ExTorch.Tensor.device(elements))
+    )
   end
 end

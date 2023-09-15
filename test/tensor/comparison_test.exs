@@ -508,4 +508,32 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     isfinite = ExTorch.isfinite(input)
     assert ExTorch.equal(isfinite, expected)
   end
+
+  test "isin/2" do
+    expected = ExTorch.tensor([[false, true], [false, false]])
+    input = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.isin(input, 2)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "isin/3" do
+    expected = ExTorch.tensor([[true, false], [true, false]])
+    input = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.isin(input, [1, 3, 5], true)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "isin/3 with kwargs" do
+    expected = ExTorch.tensor([[false, true], [false, true]])
+    input = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.isin(input, [1, 3, 5], invert: true)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "isin/4" do
+    expected = ExTorch.tensor([[true, false], [false, true]])
+    input = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.isin(input, ExTorch.tensor([[-1, 3], [2, 5]]), true, true)
+    assert ExTorch.equal(out, expected)
+  end
 end

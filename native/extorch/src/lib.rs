@@ -104,6 +104,7 @@ rustler::init!(
         lt,
         isclose,
         isfinite,
+        isin,
 
         // Tensor reduction operations
         all,

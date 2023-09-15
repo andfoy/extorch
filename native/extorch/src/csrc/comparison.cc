@@ -165,3 +165,15 @@ std::shared_ptr<CrossTensor> isfinite(const std::shared_ptr<CrossTensor> &input)
     out_tensor = torch::isfinite(in_tensor);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> isin(
+        const std::shared_ptr<CrossTensor> &elements,
+        const std::shared_ptr<CrossTensor> &test_elements,
+        bool assume_unique, bool invert) {
+
+    CrossTensor out_tensor;
+    CrossTensor elements_tensor = *elements.get();
+    CrossTensor test_tensor = *test_elements.get();
+    out_tensor = torch::isin(elements_tensor, test_tensor, assume_unique, invert);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

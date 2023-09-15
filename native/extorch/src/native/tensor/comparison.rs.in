@@ -73,3 +73,11 @@ fn isclose(
 
 /// Check which elements in a tensor are finite.
 fn isfinite(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Check if the values of a given tensor are in another tensor.
+fn isin(
+    elements: &SharedPtr<CrossTensor>,
+    test_elements: &SharedPtr<CrossTensor>,
+    assume_unique: bool,
+    invert: bool,
+) -> Result<SharedPtr<CrossTensor>>;
