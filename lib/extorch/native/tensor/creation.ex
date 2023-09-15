@@ -727,7 +727,7 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec full(
             tuple() | [integer()],
-            number() | ExTorch.Complex.t() | :nan | :inf | :ninf,
+            ExTorch.Scalar.t(),
             ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
@@ -971,7 +971,7 @@ defmodule ExTorch.Native.Tensor.Creation do
         ]>
     """
     @spec tensor(
-            list() | tuple() | number() | boolean() | ExTorch.Complex.t() | :nan | :inf | :ninf,
+            ExTorch.Scalar.scalar_or_list(),
             ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(
@@ -1420,7 +1420,7 @@ defmodule ExTorch.Native.Tensor.Creation do
     """
     @spec full_like(
             ExTorch.Tensor.t(),
-            number() | ExTorch.Complex.t(),
+            ExTorch.Scalar.t(),
             ExTorch.Tensor.Options.t()
           ) :: ExTorch.Tensor.t()
     defbinding(

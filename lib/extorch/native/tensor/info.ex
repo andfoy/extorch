@@ -226,8 +226,7 @@ defmodule ExTorch.Native.Tensor.Info do
         iex> ExTorch.Tensor.item(x)
         :nan
     """
-    @spec item(ExTorch.Tensor.t()) ::
-            number() | boolean() | ExTorch.Complex.t() | :nan | :inf | :ninf
+    @spec item(ExTorch.Tensor.t()) :: ExTorch.Scalar.t()
     defbinding(item(tensor))
   end
 end
