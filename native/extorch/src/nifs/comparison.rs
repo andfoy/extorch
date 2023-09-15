@@ -79,3 +79,13 @@ nif_impl!(
     other: TensorStruct<'a>,
     out: TensorOut
 );
+
+nif_impl!(
+    isclose,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    rtol: f64,
+    atol: f64,
+    equal_nan: bool
+);

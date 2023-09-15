@@ -586,5 +586,68 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
         end,
       fn_aliases: [:less]
     )
+
+    @doc ~S"""
+    Returns a new tensor with boolean elements representing if each element of `input` is
+    “close” to the corresponding element of `other`. Closeness is defined as:
+
+    $$|\text{input} - \text{other}| \leq \texttt{atol} + \texttt{rtol} \times |\text{other}|$$
+
+    Where `input` and/or `other` are nonfinite they are close if and only if they are
+    equal, with `:nan`s being considered equal to each other when `equal_nan` is `true`.
+
+    ## Arguments
+    - `input` - First tensor to compare (`ExTorch.Tensor`)
+    - `other` - Second tensor to compare (`ExTorch.Tensor`)
+
+    ## Optional arguments
+    - `rtol` - Relative tolerance (`float`). Default: 1.0e-5
+    - `atol` - Absolute tolerance (`float`). Default: 1.0e-8
+    - `equal_nan` - If `true`, then two `NaN`s will be considered equal. Default: `false`.
+
+    ## Examples
+        iex> ExTorch.isclose(ExTorch.tensor([10000.0, 1.0e-07]), ExTorch.tensor([10000.1, 1.0e-08]))
+        #Tensor<
+        [ true, false]
+        [
+          size: {2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.isclose(ExTorch.tensor([10000.0, 1.0e-08]), ExTorch.tensor([10000.1, 1.0e-09]))
+        #Tensor<
+        [true, true]
+        [
+          size: {2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.isclose(ExTorch.tensor([1.0, :nan]), ExTorch.tensor([1.0, :nan]))
+        #Tensor<
+        [ true, false]
+        [
+          size: {2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.isclose(ExTorch.tensor([1.0, :nan]), ExTorch.tensor([1.0, :nan]), equal_nan: true)
+        #Tensor<
+        [true, true]
+        [
+          size: {2},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isclose(ExTorch.Tensor.t(), ExTorch.Tensor.t(), float(), float(), boolean()) ::
+            ExTorch.Tensor.t()
+    defbinding(isclose(input, other, rtol \\ 1.0e-5, atol \\ 1.0e-8, equal_nan \\ false))
   end
 end

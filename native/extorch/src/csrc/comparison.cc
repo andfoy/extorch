@@ -146,3 +146,15 @@ std::shared_ptr<CrossTensor> lt(
     }
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> isclose(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        double rtol, double atol, bool equal_nan) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+    out_tensor = torch::isclose(in_tensor, other_tensor, rtol, atol, equal_nan);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

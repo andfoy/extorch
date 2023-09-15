@@ -47,3 +47,8 @@ std::shared_ptr<CrossTensor> lt(
         const std::shared_ptr<CrossTensor> &input,
         const std::shared_ptr<CrossTensor> &other,
         TensorOut out);
+
+std::shared_ptr<CrossTensor> isclose(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        double rtol, double atol, bool equal_nan);

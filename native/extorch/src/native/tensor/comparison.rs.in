@@ -61,3 +61,12 @@ fn lt(
     other: &SharedPtr<CrossTensor>,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Check which elements between two tensors are close.
+fn isclose(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    rtol: f64,
+    atol: f64,
+    equal_nan: bool,
+) -> Result<SharedPtr<CrossTensor>>;
