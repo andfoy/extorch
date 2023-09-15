@@ -349,4 +349,46 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.equal(ExTorch.tensor([1, 2]), ExTorch.tensor([1, 2]))
     assert !ExTorch.equal(ExTorch.tensor([1, 2]), ExTorch.tensor([1]))
   end
+
+  test "ge/2" do
+    expected = ExTorch.tensor([[false, true], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.ge(a, 2)
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "ge/2 with broadcastable" do
+    expected = ExTorch.tensor([[true, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.ge(a, [0, 3])
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "ge/2 with tensor" do
+    expected = ExTorch.tensor([[false, true], [true, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.ge(a, ExTorch.tensor([[3, 1], [2, 5]]))
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "gt/2" do
+    expected = ExTorch.tensor([[false, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.gt(a, 2)
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "gt/2 with broadcastable" do
+    expected = ExTorch.tensor([[false, false], [true, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.gt(a, [1, 2])
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "gt/2 with tensor" do
+    expected = ExTorch.tensor([[false, true], [false, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.gt(a, ExTorch.tensor([[3, 1], [3, 2]]))
+    assert ExTorch.equal(cmp, expected)
+  end
 end
