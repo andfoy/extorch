@@ -649,5 +649,29 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     @spec isclose(ExTorch.Tensor.t(), ExTorch.Tensor.t(), float(), float(), boolean()) ::
             ExTorch.Tensor.t()
     defbinding(isclose(input, other, rtol \\ 1.0e-5, atol \\ 1.0e-8, equal_nan \\ false))
+
+    @doc """
+    Returns a new tensor with boolean elements representing if each element is finite or not.
+
+    Real values are finite when they are not NaN (`:nan`), negative infinity (`:ninf`), or infinity (`:inf`).
+    `ExTorch.Complex` values are finite when both their real and imaginary parts are finite.
+
+    ## Arguments
+    - `input` - the input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+        iex> ExTorch.isfinite(input)
+        #Tensor<
+        [ true, false,  true, false, false]
+        [
+          size: {5},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isfinite(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(isfinite(input))
   end
 end

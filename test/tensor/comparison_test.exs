@@ -501,4 +501,11 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     t2 = ExTorch.tensor([1.0, :nan])
     assert ExTorch.equal(ExTorch.isclose(t1, t2, 1.0e-5, 1.0e-8, true), expected)
   end
+
+  test "isfinite/1" do
+    expected = ExTorch.tensor([true, false, true, false, false])
+    input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+    isfinite = ExTorch.isfinite(input)
+    assert ExTorch.equal(isfinite, expected)
+  end
 end
