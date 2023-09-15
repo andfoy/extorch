@@ -125,7 +125,7 @@ Scalar pack_scalar(scalar_t scalar, torch::ScalarType type) {
 
 ScalarList to_list(const std::shared_ptr<CrossTensor> &tensor) {
     CrossTensor cross_tensor = *tensor.get();
-    auto conv_tensor = cross_tensor.contiguous();
+    auto conv_tensor = cross_tensor.contiguous().to(torch::kCPU);
     auto size = cross_tensor.sizes().vec();
 
     rust::Vec<int64_t> rust_size;
