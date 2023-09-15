@@ -33,8 +33,17 @@ std::shared_ptr<CrossTensor> ge(
         const std::shared_ptr<CrossTensor> &other,
         TensorOut out);
 
-
 std::shared_ptr<CrossTensor> gt(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+std::shared_ptr<CrossTensor> le(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+std::shared_ptr<CrossTensor> lt(
         const std::shared_ptr<CrossTensor> &input,
         const std::shared_ptr<CrossTensor> &other,
         TensorOut out);

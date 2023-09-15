@@ -93,6 +93,27 @@ defmodule ExTorch.MixProject do
         {:"Reduction operations", &(&1[:kind] == :tensor_reduction)},
         {:"Comparison operations", &(&1[:kind] == :tensor_comparison)},
         {:"Other operations", &(&1[:kind] == :tensor_other_ops)}
+      ],
+      groups_for_modules: [
+        "General API": [ExTorch, ExTorch.Tensor],
+        "Exchange types": [
+          ExTorch.Complex,
+          ExTorch.Index,
+          ExTorch.Index.Slice,
+          ExTorch.Tensor.Options,
+          ExTorch.Utils.PrintOptions,
+          ExTorch.Utils.ListWrapper
+        ],
+        "Spec types": [ExTorch.DType, ExTorch.Device, ExTorch.Layout, ExTorch.MemoryFormat],
+        Protocols: [ExTorch.Protocol.DefaultStruct],
+        Macros: [
+          ExTorch.Native.Macros,
+          ExTorch.Native.BindingDeclaration,
+          ExTorch.DelegateWithDocs,
+          ExTorch.ModuleMixin
+        ],
+        "Native API": [ExTorch.Native],
+        "Other utilities": [ExTorch.Utils, ExTorch.Utils.Types]
       ]
       # ...
     ]

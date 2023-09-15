@@ -100,6 +100,8 @@ rustler::init!(
         equal,
         ge,
         gt,
+        le,
+        lt,
 
         // Tensor reduction operations
         all,
