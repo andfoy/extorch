@@ -110,3 +110,39 @@ std::shared_ptr<CrossTensor> gt(
     }
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> le(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::le_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::le(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
+
+std::shared_ptr<CrossTensor> lt(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::lt_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::lt(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

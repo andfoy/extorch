@@ -371,6 +371,14 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.equal(cmp, expected)
   end
 
+  test "ge/3" do
+    expected = ExTorch.tensor([[false, true], [true, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.empty_like(a, dtype: :bool)
+    ExTorch.ge(a, ExTorch.tensor([[3, 1], [2, 5]]), out)
+    assert ExTorch.equal(out, expected)
+  end
+
   test "gt/2" do
     expected = ExTorch.tensor([[false, false], [true, true]])
     a = ExTorch.tensor([[1, 2], [3, 4]])
@@ -390,5 +398,71 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     a = ExTorch.tensor([[1, 2], [3, 4]])
     cmp = ExTorch.gt(a, ExTorch.tensor([[3, 1], [3, 2]]))
     assert ExTorch.equal(cmp, expected)
+  end
+
+  test "gt/3" do
+    expected = ExTorch.tensor([[false, true], [false, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.empty_like(a, dtype: :bool)
+    ExTorch.gt(a, ExTorch.tensor([[3, 1], [3, 2]]), out)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "le/2" do
+    expected = ExTorch.tensor([[true, true], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.le(a, 2)
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "le/2 with broadcastable" do
+    expected = ExTorch.tensor([[true, true], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.le(a, [1, 3])
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "le/2 with tensor" do
+    expected = ExTorch.tensor([[true, false], [false, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.le(a, ExTorch.tensor([[3, 1], [2, 5]]))
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "le/3 with tensor" do
+    expected = ExTorch.tensor([[true, false], [false, true]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.empty_like(a, dtype: :bool)
+    ExTorch.le(a, ExTorch.tensor([[3, 1], [2, 5]]), out)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "lt/2" do
+    expected = ExTorch.tensor([[true, false], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.lt(a, 2)
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "lt/2 with broadcastable" do
+    expected = ExTorch.tensor([[false, false], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.lt(a, [1, 2])
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "lt/2 with tensor" do
+    expected = ExTorch.tensor([[true, false], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    cmp = ExTorch.lt(a, ExTorch.tensor([[3, 1], [3, 2]]))
+    assert ExTorch.equal(cmp, expected)
+  end
+
+  test "lt/3" do
+    expected = ExTorch.tensor([[true, false], [false, false]])
+    a = ExTorch.tensor([[1, 2], [3, 4]])
+    out = ExTorch.empty_like(a, dtype: :bool)
+    ExTorch.lt(a, ExTorch.tensor([[3, 1], [3, 2]]), out)
+    assert ExTorch.equal(out, expected)
   end
 end

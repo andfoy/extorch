@@ -47,3 +47,17 @@ fn gt(
     other: &SharedPtr<CrossTensor>,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute `input <= other` element-wise.
+fn le(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute `input < other` element-wise.
+fn lt(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
