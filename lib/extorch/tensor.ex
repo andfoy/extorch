@@ -94,5 +94,31 @@ defmodule ExTorch.Tensor do
     {:error, :not_implemented}
   end
 
+  @doc """
+  Take a `ExTorch.Tensor` or `ExTorch.Scalar` definition and convert it into
+  a `ExTorch.Tensor`.
+
+  ## Arguments
+  - `input` - the input to convert into an `ExTorch.Tensor`.
+  - `device` - an optional device to map the tensor into. This will only take effect
+  when `input` is one of any `ExTorch.Scalar` definitions. Default: `:cpu`
+  """
+  @spec scalar_to_tensor(
+          ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
+          ExTorch.Device.device()
+        ) :: ExTorch.Tensor.t()
+  def scalar_to_tensor(input, device \\ :cpu) do
+    case input do
+      %ExTorch.Tensor{} ->
+        input
+
+      _ ->
+        ExTorch.tensor(input,
+          device: device,
+          requires_grad: false
+        )
+    end
+  end
+
   extends(ExTorch.Native.Tensor.Info)
 end

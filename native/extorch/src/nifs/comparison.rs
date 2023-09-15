@@ -91,3 +91,12 @@ nif_impl!(
 );
 
 nif_impl!(isfinite, TensorStruct<'a>, input: TensorStruct<'a>);
+
+nif_impl!(
+    isin,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    assume_unique: bool,
+    invert: bool
+);
