@@ -62,6 +62,7 @@ std::shared_ptr<CrossTensor> isfinite(const std::shared_ptr<CrossTensor> &input)
 std::shared_ptr<CrossTensor> isinf(const std::shared_ptr<CrossTensor> &input);
 std::shared_ptr<CrossTensor> isposinf(const std::shared_ptr<CrossTensor> &input);
 std::shared_ptr<CrossTensor> isneginf(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> isnan(const std::shared_ptr<CrossTensor> &input);
 
 std::shared_ptr<CrossTensor> isin(
         const std::shared_ptr<CrossTensor> &elements,

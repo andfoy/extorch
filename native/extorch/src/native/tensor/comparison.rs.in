@@ -90,6 +90,9 @@ fn isposinf(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
 /// Check which elements in a tensor are negative infinite.
 fn isneginf(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
 
+/// Check which elements in a tensor are NaN.
+fn isnan(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
 /// Check if the values of a given tensor are in another tensor.
 fn isin(
     elements: &SharedPtr<CrossTensor>,

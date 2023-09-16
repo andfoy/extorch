@@ -559,6 +559,13 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.equal(isfinite, expected)
   end
 
+  test "isnan/1" do
+    expected = ExTorch.tensor([false, false, false, false, true])
+    input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+    isfinite = ExTorch.isnan(input)
+    assert ExTorch.equal(isfinite, expected)
+  end
+
   test "isin/2" do
     expected = ExTorch.tensor([[false, true], [false, false]])
     input = ExTorch.tensor([[1, 2], [3, 4]])

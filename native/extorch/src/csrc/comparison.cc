@@ -205,6 +205,13 @@ std::shared_ptr<CrossTensor> isneginf(const std::shared_ptr<CrossTensor> &input)
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
 
+std::shared_ptr<CrossTensor> isnan(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    out_tensor = torch::isnan(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
+
 std::shared_ptr<CrossTensor> isin(
         const std::shared_ptr<CrossTensor> &elements,
         const std::shared_ptr<CrossTensor> &test_elements,

@@ -781,7 +781,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     Returns a new tensor with boolean elements representing if each element is
     infinity (both positive and negative).
 
-    `ExTorch.Complex` values are infinity when either of their real and imaginary
+    `ExTorch.Complex` values are infinity when either of their real or imaginary
     parts are infinite.
 
     ## Arguments
@@ -806,7 +806,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     Returns a new tensor with boolean elements representing if each element is
     positive infinity.
 
-    `ExTorch.Complex` values are infinity when either of their real and imaginary
+    `ExTorch.Complex` values are infinity when either of their real or imaginary
     parts are positive infinite.
 
     ## Arguments
@@ -831,7 +831,7 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     Returns a new tensor with boolean elements representing if each element is
     negative infinity.
 
-    `ExTorch.Complex` values are infinity when either of their real and imaginary
+    `ExTorch.Complex` values are infinity when either of their real or imaginary
     parts are negative infinite.
 
     ## Arguments
@@ -851,5 +851,30 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec isneginf(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(isneginf(input))
+
+    @doc """
+    Returns a new tensor with boolean elements representing if each element is
+    `:nan`.
+
+    `ExTorch.Complex` values are infinity when either of their real or imaginary
+    parts are `:nan`.
+
+    ## Arguments
+    - `input` - the input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+        iex> ExTorch.isnan(input)
+        #Tensor<
+        [ false, false, false, false, true]
+        [
+          size: {5},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isnan(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(isnan(input))
   end
 end
