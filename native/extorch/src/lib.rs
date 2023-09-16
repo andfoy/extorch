@@ -109,6 +109,7 @@ rustler::init!(
         isposinf,
         isneginf,
         isnan,
+        isreal,
         isin,
 
         // Tensor reduction operations
