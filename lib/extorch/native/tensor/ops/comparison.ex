@@ -876,5 +876,30 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec isnan(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(isnan(input))
+
+    @doc """
+    Returns a new tensor with boolean elements representing if each element is
+    real valued.
+
+    All real-valued types are considered real. `ExTorch.Complex` values are real when their imaginary
+    parts are zero.
+
+    ## Arguments
+    - `input` - the input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> input = ExTorch.tensor([1, ExTorch.Complex.complex(-2, 0), ExTorch.Complex.complex(0, 1)])
+        iex> ExTorch.isreal(input)
+        #Tensor<
+        [ true,  true, false]
+        [
+          size: {3},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isreal(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(isreal(input))
   end
 end

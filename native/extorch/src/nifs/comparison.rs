@@ -103,6 +103,7 @@ nif_impl!(isinf, TensorStruct<'a>, input: TensorStruct<'a>);
 nif_impl!(isposinf, TensorStruct<'a>, input: TensorStruct<'a>);
 nif_impl!(isneginf, TensorStruct<'a>, input: TensorStruct<'a>);
 nif_impl!(isnan, TensorStruct<'a>, input: TensorStruct<'a>);
+nif_impl!(isreal, TensorStruct<'a>, input: TensorStruct<'a>);
 
 nif_impl!(
     isin,

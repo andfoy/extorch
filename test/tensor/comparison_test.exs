@@ -566,6 +566,13 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.equal(isfinite, expected)
   end
 
+  test "isreal/1" do
+    expected = ExTorch.tensor([true, true, false])
+    input = ExTorch.tensor([1, ExTorch.Complex.complex(-2, 0), ExTorch.Complex.complex(0, 1)])
+    isreal = ExTorch.isreal(input)
+    assert ExTorch.equal(isreal, expected)
+  end
+
   test "isin/2" do
     expected = ExTorch.tensor([[false, true], [false, false]])
     input = ExTorch.tensor([[1, 2], [3, 4]])
