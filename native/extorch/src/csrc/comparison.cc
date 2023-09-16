@@ -230,3 +230,30 @@ std::shared_ptr<CrossTensor> isin(
     out_tensor = torch::isin(elements_tensor, test_tensor, assume_unique, invert);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+SortResult kthvalue(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t k,
+        int64_t dim,
+        bool keepdim,
+        SortResult out_r) {
+
+    CrossTensor values_tensor;
+    CrossTensor indices_tensor;
+
+    CrossTensor in_tensor = *input.get();
+    if(out_r.used) {
+        values_tensor = *out_r.values.get();
+        indices_tensor = *out_r.indices.get();
+
+        std::tie(values_tensor, indices_tensor) = torch::kthvalue_out(
+            values_tensor, indices_tensor, in_tensor, k, dim, keepdim);
+    } else {
+        std::tie(values_tensor, indices_tensor) = torch::kthvalue(
+            in_tensor, k, dim, keepdim);
+    }
+
+    auto values_out = std::make_shared<CrossTensor>(std::move(values_tensor));
+    auto indices_out = std::make_shared<CrossTensor>(std::move(indices_tensor));
+    return std::move(SortResult{values_out, indices_out, true});
+}

@@ -111,6 +111,7 @@ rustler::init!(
         isnan,
         isreal,
         isin,
+        kthvalue,
 
         // Tensor reduction operations
         all,

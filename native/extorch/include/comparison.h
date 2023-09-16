@@ -69,3 +69,10 @@ std::shared_ptr<CrossTensor> isin(
         const std::shared_ptr<CrossTensor> &elements,
         const std::shared_ptr<CrossTensor> &test_elements,
         bool assume_unique, bool invert);
+
+SortResult kthvalue(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t k,
+        int64_t dim,
+        bool keepdim,
+        SortResult out_r);

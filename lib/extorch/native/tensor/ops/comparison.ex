@@ -901,5 +901,93 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     """
     @spec isreal(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(isreal(input))
+
+    @doc """
+    Returns a tuple `{values, indices}` where `values` is the kth smallest element of
+    each row of the `input` tensor in the given dimension `dim`. And `indices` is the
+    index location of each element found.
+
+    * If `dim` is not given, the last dimension of the `input` is chosen.
+    * If keepdim is `true`, both the `values` and `indices` tensors are the same size as `input`,
+    except in the dimension `dim` where they are of size 1. Otherwise, dim is squeezed
+    (see `ExTorch.squeeze`), resulting in both the `values` and `indices` tensors having
+    1 fewer dimension than the `input` tensor.
+
+    ## Arguments
+    - `input` - the input tensor. (`ExTorch.Tensor`)
+    - `k` - k for the kth smallest value. (`integer`)
+
+    ## Optional arguments
+    - `dim` - the dimension to find the kth smallest value along. Default: -1. (`integer`)
+    - `keepdim` - whether the output tensor has `dim` retained or not. Default: `false` (`boolean`)
+    - `out` - the output tuple of `{values, indices}` that can be optionally given as
+    output buffers. (`{ExTorch.Tensor, ExTorch.Tensor}`). Default: `nil`
+
+    ## Notes
+    When `input` is a CUDA tensor and there are multiple valid k th values, this function
+    may nondeterministically return `indices` for any of them.
+
+    ## Examples
+        # Retrieve the fourth smallest value.
+        iex> x = ExTorch.arange(6)
+        #Tensor<
+        [0.0000, 1.0000, 2.0000, 3.0000, 4.0000, 5.0000]
+        [
+          size: {6},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> {values, indices} = ExTorch.kthvalue(x, 4)
+        iex> values
+        #Tensor<
+        3.
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> indices
+        #Tensor<
+        3
+        [size: {}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Retrieve the second smallest value in the first dimension
+        iex> x = ExTorch.rand({3, 4})
+        #Tensor<
+        [[0.7375, 0.2798, 0.7146, 0.0654],
+         [0.0163, 0.8829, 0.8946, 0.3852],
+         [0.2225, 0.3258, 0.6905, 0.1512]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> {values, indices} = ExTorch.kthvalue(x, 2, 0, keepdim: true)
+        iex> values
+        #Tensor<
+        [[0.2225, 0.3258, 0.7146, 0.1512]]
+        [
+          size: {1, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex(12)> indices
+        #Tensor<
+        [[2, 2, 0, 2]]
+        [
+          size: {1, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec kthvalue(
+            ExTorch.Tensor.t(),
+            integer(),
+            integer(),
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(kthvalue(input, k, dim \\ -1, keepdim \\ false, out \\ nil))
   end
 end
