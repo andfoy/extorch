@@ -105,6 +105,9 @@ rustler::init!(
         ne,
         isclose,
         isfinite,
+        isinf,
+        isposinf,
+        isneginf,
         isin,
 
         // Tensor reduction operations

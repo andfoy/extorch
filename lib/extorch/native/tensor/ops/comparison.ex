@@ -776,5 +776,80 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
         end,
       fn_aliases: [:not_equal]
     )
+
+    @doc """
+    Returns a new tensor with boolean elements representing if each element is
+    infinity (both positive and negative).
+
+    `ExTorch.Complex` values are infinity when either of their real and imaginary
+    parts are infinite.
+
+    ## Arguments
+    - `input` - the input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+        iex> ExTorch.isinf(input)
+        #Tensor<
+        [ false, true,  false, true, false]
+        [
+          size: {5},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isinf(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(isinf(input))
+
+    @doc """
+    Returns a new tensor with boolean elements representing if each element is
+    positive infinity.
+
+    `ExTorch.Complex` values are infinity when either of their real and imaginary
+    parts are positive infinite.
+
+    ## Arguments
+    - `input` - the input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+        iex> ExTorch.isposinf(input)
+        #Tensor<
+        [ false, true,  false, false, false]
+        [
+          size: {5},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isposinf(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(isposinf(input))
+
+    @doc """
+    Returns a new tensor with boolean elements representing if each element is
+    negative infinity.
+
+    `ExTorch.Complex` values are infinity when either of their real and imaginary
+    parts are negative infinite.
+
+    ## Arguments
+    - `input` - the input tensor (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> input = ExTorch.tensor([1, :inf, 2, :ninf, :nan])
+        iex> ExTorch.isneginf(input)
+        #Tensor<
+        [ false, false, false, true, false]
+        [
+          size: {5},
+          dtype: :bool,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec isneginf(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(isneginf(input))
   end
 end

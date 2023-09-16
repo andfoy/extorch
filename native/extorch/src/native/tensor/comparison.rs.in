@@ -81,6 +81,15 @@ fn isclose(
 /// Check which elements in a tensor are finite.
 fn isfinite(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
 
+/// Check which elements in a tensor are infinite (positive or negative).
+fn isinf(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Check which elements in a tensor are positive infinite.
+fn isposinf(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Check which elements in a tensor are negative infinite.
+fn isneginf(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
 /// Check if the values of a given tensor are in another tensor.
 fn isin(
     elements: &SharedPtr<CrossTensor>,
