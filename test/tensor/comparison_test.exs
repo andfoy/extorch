@@ -600,4 +600,95 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     out = ExTorch.isin(input, ExTorch.tensor([[-1, 3], [2, 5]]), true, true)
     assert ExTorch.equal(out, expected)
   end
+
+  test "kthvalue/2" do
+    input = ExTorch.tensor([
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ])
+
+    expected_values = ExTorch.tensor([0, 2, 2], dtype: :int)
+    expected_indices = ExTorch.tensor([4, 2, 2], dtype: :long)
+    {values, indices} = ExTorch.kthvalue(input, 3)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "kthvalue/3" do
+    input = ExTorch.tensor([
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ])
+
+    expected_values = ExTorch.tensor([0, 1, 2, 3, 4, 5, 5], dtype: :int)
+    expected_indices = ExTorch.tensor([2, 2, 2, 1, 2, 2, 0], dtype: :long)
+    {values, indices} = ExTorch.kthvalue(input, 2, 0)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "kthvalue/3 with kwargs" do
+    input = ExTorch.tensor([
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ])
+
+    expected_values = ExTorch.tensor([[0], [2], [2]], dtype: :int)
+    expected_indices = ExTorch.tensor([[4], [2], [2]], dtype: :long)
+    {values, indices} = ExTorch.kthvalue(input, 3, keepdim: true)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "kthvalue/4" do
+    input = ExTorch.tensor([
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ])
+
+    expected_values = ExTorch.tensor([[0], [2], [2]], dtype: :int)
+    expected_indices = ExTorch.tensor([[4], [2], [2]], dtype: :long)
+    {values, indices} = ExTorch.kthvalue(input, 3, 1, true)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "kthvalue/4 with kwargs" do
+    input = ExTorch.tensor([
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ])
+
+    values = ExTorch.empty({7}, dtype: :int)
+    indices = ExTorch.empty({7}, dtype: :long)
+    expected_values = ExTorch.tensor([0, 1, 2, 3, 4, 5, 5], dtype: :int)
+    expected_indices = ExTorch.tensor([2, 2, 2, 1, 2, 2, 0], dtype: :long)
+
+    ExTorch.kthvalue(input, 2, 0, false, out: {values, indices})
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "kthvalue/5" do
+    input = ExTorch.tensor([
+      [-1, 3, 10, -2, 0, 4, 5],
+      [5, -5, 2, 3, 7, 20, 1],
+      [0, 1, 2, 3, 4, 5, 6]
+    ])
+
+    values = ExTorch.empty({7}, dtype: :int)
+    indices = ExTorch.empty({7}, dtype: :long)
+    expected_values = ExTorch.tensor([0, 1, 2, 3, 4, 5, 5], dtype: :int)
+    expected_indices = ExTorch.tensor([2, 2, 2, 1, 2, 2, 0], dtype: :long)
+
+    ExTorch.kthvalue(input, 2, 0, false, {values, indices})
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
 end

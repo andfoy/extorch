@@ -113,3 +113,13 @@ nif_impl!(
     assume_unique: bool,
     invert: bool
 );
+
+nif_impl!(
+    kthvalue,
+    SortResult,
+    input: TensorStruct<'a>,
+    k: i64,
+    dim: i64,
+    keepdim: bool,
+    out: SortResult
+);
