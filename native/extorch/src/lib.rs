@@ -117,6 +117,7 @@ rustler::init!(
         fmax,
         fmin,
         topk,
+        msort,
 
         // Tensor reduction operations
         all,

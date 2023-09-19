@@ -1206,5 +1206,45 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(topk(input, k, dim \\ -1, largest \\ true, sorted \\ true, out \\ nil))
+
+    @doc """
+    Sorts the elements of the `input` tensor along its first dimension in ascending order by value.
+
+    * `ExTorch.msort/2` is equivalent to `{values, _} = ExTorch.sort(input, 0)`. See `ExTorch.sort/5`
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor`) - an optional pre-allocated tensor used to store the comparison result. Default: `nil`.
+
+    ## Examples
+        iex> t = ExTorch.randn({3, 4})
+        #Tensor<
+        [[-1.5470, -1.5603, -0.9216,  3.0246],
+         [ 0.3064,  1.1371,  0.3475,  1.3003],
+         [-2.0710, -0.0693, -1.5537, -0.3430]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.msort(t)
+        #Tensor<
+        [[-2.0710, -1.5603, -1.5537, -0.3430],
+         [-1.5470, -0.0693, -0.9216,  1.3003],
+         [ 0.3064,  1.1371,  0.3475,  3.0246]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec msort(ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    defbinding(msort(input, out \\ nil))
   end
 end

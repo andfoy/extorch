@@ -106,3 +106,7 @@ SortResult topk(
         bool sorted,
         SortResult out_r
 );
+
+std::shared_ptr<CrossTensor> msort(
+        const std::shared_ptr<CrossTensor> &input,
+        TensorOut out);

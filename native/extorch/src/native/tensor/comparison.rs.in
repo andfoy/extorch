@@ -150,3 +150,10 @@ fn topk(
     sorted: bool,
     out: SortResult,
 ) -> Result<SortResult>;
+
+
+// Sort an array in ascending order alongside its first dimension.
+fn msort(
+    input: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
