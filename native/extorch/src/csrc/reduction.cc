@@ -50,3 +50,32 @@ std::shared_ptr<CrossTensor> any(
     }
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> argmax(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    torch::optional<int64_t> dim = torch::nullopt;
+    if(opt_dim.used) {
+        dim = opt_dim.value;
+    }
+    out_tensor = torch::argmax(in_tensor, dim, keepdim);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
+
+
+std::shared_ptr<CrossTensor> argmin(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    torch::optional<int64_t> dim = torch::nullopt;
+    if(opt_dim.used) {
+        dim = opt_dim.value;
+    }
+    out_tensor = torch::argmin(in_tensor, dim, keepdim);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

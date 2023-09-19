@@ -22,3 +22,19 @@ nif_impl!(
     keepdim: bool,
     out: TensorOut
 );
+
+nif_impl!(
+    argmax,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool
+);
+
+nif_impl!(
+    argmin,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool
+);
