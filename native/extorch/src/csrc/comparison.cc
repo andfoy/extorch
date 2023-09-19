@@ -257,3 +257,79 @@ SortResult kthvalue(
     auto indices_out = std::make_shared<CrossTensor>(std::move(indices_tensor));
     return std::move(SortResult{values_out, indices_out, true});
 }
+
+std::shared_ptr<CrossTensor> minimum(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::minimum_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::minimum(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+
+}
+
+std::shared_ptr<CrossTensor> maximum(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::maximum_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::maximum(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+
+}
+
+std::shared_ptr<CrossTensor> fmax(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::fmax_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::fmax(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+
+}
+
+std::shared_ptr<CrossTensor> fmin(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        other_tensor = torch::fmin_out(out_tensor, in_tensor, other_tensor);
+    } else {
+        out_tensor = torch::fmin(in_tensor, other_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+
+}

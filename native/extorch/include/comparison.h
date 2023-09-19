@@ -76,3 +76,23 @@ SortResult kthvalue(
         int64_t dim,
         bool keepdim,
         SortResult out_r);
+
+std::shared_ptr<CrossTensor> maximum(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+std::shared_ptr<CrossTensor> minimum(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+std::shared_ptr<CrossTensor> fmax(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);
+
+std::shared_ptr<CrossTensor> fmin(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        TensorOut out);

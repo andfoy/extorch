@@ -123,3 +123,35 @@ nif_impl!(
     keepdim: bool,
     out: SortResult
 );
+
+nif_impl!(
+    maximum,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    out: TensorOut
+);
+
+nif_impl!(
+    minimum,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    out: TensorOut
+);
+
+nif_impl!(
+    fmax,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    out: TensorOut
+);
+
+nif_impl!(
+    fmin,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    other: TensorStruct<'a>,
+    out: TensorOut
+);
