@@ -989,5 +989,136 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(kthvalue(input, k, dim \\ -1, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Computes the element-wise maximum of `input` and `other`.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Notes
+    If one of the elements being compared is a NaN, then that element is returned. `ExTorch.maximum/3` is not
+    supported for tensors with complex dtypes.
+
+    ## Examples
+        iex> a = ExTorch.tensor([1, 2, -1])
+        iex> b = ExTorch.tensor([3, 0, 4])
+        iex> ExTorch.maximum(a, b)
+        #Tensor<
+        [3, 2, 4]
+        [size: {3}, dtype: :int, device: :cpu, requires_grad: false]>
+
+    """
+    @spec maximum(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(maximum(input, other, out \\ nil))
+
+    @doc """
+    Computes the element-wise minimum of `input` and `other`.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Notes
+    If one of the elements being compared is a NaN, then that element is returned. `ExTorch.minimum/3` is not
+    supported for tensors with complex dtypes.
+
+    ## Examples
+        iex> a = ExTorch.tensor([1, 2, -1])
+        iex> b = ExTorch.tensor([3, 0, 4])
+        iex> ExTorch.minimum(a, b)
+        #Tensor<
+        [ 1,  0, -1]
+        [
+          size: {3},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec minimum(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(minimum(input, other, out \\ nil))
+
+    @doc """
+    Computes the element-wise maximum of `input` and `other`.
+
+    This is like `ExTorch.maximum/3` except it handles NaNs differently:
+    if exactly one of the two elements being compared is a NaN then the
+    non-NaN element is taken as the maximum. Only if both elements are NaN is NaN propagated.
+
+    This function is a wrapper around C++’s `std::fmax` and is similar to NumPy’s `fmax` function.
+
+    Supports broadcasting to a common shape, type promotion, and integer and floating-point inputs.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> a = ExTorch.tensor([9.7, :nan, 3.1, :nan])
+        iex> b = ExTorch.tensor([-2.2, 0.5, :nan, :nan])
+        iex> ExTorch.fmax(a, b)
+        #Tensor<
+        [9.7000, 0.5000, 3.1000,    nan]
+        [
+          size: {4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec fmax(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(fmax(input, other, out \\ nil))
+
+    @doc """
+    Computes the element-wise minimum of `input` and `other`.
+
+    This is like `ExTorch.minimum/3` except it handles NaNs differently:
+    if exactly one of the two elements being compared is a NaN then the
+    non-NaN element is taken as the minimum. Only if both elements are NaN is NaN propagated.
+
+    This function is a wrapper around C++’s `std::fmin` and is similar to NumPy’s `fmin` function.
+
+    Supports broadcasting to a common shape, type promotion, and integer and floating-point inputs.
+
+    ## Arguments
+    - `input` - the tensor to compare (`ExTorch.Tensor`).
+    - `other` - the tensor or value to compare (`ExTorch.Tensor` or value)
+
+    ## Optional arguments
+    - `out` - an optional pre-allocated tensor used to store the comparison result. (`ExTorch.Tensor`)
+
+    ## Examples
+        iex> a = ExTorch.tensor([9.7, :nan, 3.1, :nan])
+        iex> b = ExTorch.tensor([-2.2, 0.5, :nan, :nan])
+        iex> ExTorch.fmin(a, b)
+        #Tensor<
+        [-2.2000,  0.5000,  3.1000,     nan]
+        [
+          size: {4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec fmin(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(fmin(input, other, out \\ nil))
   end
 end

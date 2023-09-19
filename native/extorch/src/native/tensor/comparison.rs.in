@@ -112,3 +112,31 @@ fn kthvalue(
     keepdim: bool,
     out: SortResult,
 ) -> Result<SortResult>;
+
+/// Pick the maximum (element-wise) between two tensors.
+fn maximum(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Pick the minimum (element-wise) between two tensors.
+fn minimum(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Pick the maximum (element-wise) between two tensors, taking into account NaNs.
+fn fmax(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Pick the minimum (element-wise) between two tensors, taking into account NaNs.
+fn fmin(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
