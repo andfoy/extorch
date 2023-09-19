@@ -96,3 +96,13 @@ std::shared_ptr<CrossTensor> fmin(
         const std::shared_ptr<CrossTensor> &input,
         const std::shared_ptr<CrossTensor> &other,
         TensorOut out);
+
+
+SortResult topk(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t k,
+        int64_t dim,
+        bool largest,
+        bool sorted,
+        SortResult out_r
+);

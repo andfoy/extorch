@@ -155,3 +155,14 @@ nif_impl!(
     other: TensorStruct<'a>,
     out: TensorOut
 );
+
+nif_impl!(
+    topk,
+    SortResult,
+    input: TensorStruct<'a>,
+    k: i64,
+    dim: i64,
+    largest: bool,
+    sorted: bool,
+    out: SortResult
+);

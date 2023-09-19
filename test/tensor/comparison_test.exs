@@ -712,11 +712,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-1, 3, :inf],
-      [6, -2, 2],
-      [0, 10, 2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-1, 3, :inf],
+        [6, -2, 2],
+        [0, 10, 2]
+      ])
 
     out = ExTorch.maximum(input, other)
     assert ExTorch.equal(out, expected)
@@ -737,11 +738,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-1, 3, :inf],
-      [6, -2, 2],
-      [0, 10, 2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-1, 3, :inf],
+        [6, -2, 2],
+        [0, 10, 2]
+      ])
 
     out = ExTorch.empty_like(other)
     ExTorch.maximum(input, other, out)
@@ -763,11 +765,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-2, :ninf, 10],
-      [5, -5, 2],
-      [-7, 1, -2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-2, :ninf, 10],
+        [5, -5, 2],
+        [-7, 1, -2]
+      ])
 
     out = ExTorch.minimum(input, other)
     assert ExTorch.equal(out, expected)
@@ -788,11 +791,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-2, :ninf, 10],
-      [5, -5, 2],
-      [-7, 1, -2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-2, :ninf, 10],
+        [5, -5, 2],
+        [-7, 1, -2]
+      ])
 
     out = ExTorch.empty_like(other)
     ExTorch.minimum(input, other, out)
@@ -814,11 +818,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-1, 3, :inf],
-      [6, -2, :nan],
-      [-7, 10, 2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-1, 3, :inf],
+        [6, -2, :nan],
+        [-7, 10, 2]
+      ])
 
     out = ExTorch.fmax(input, other)
     assert ExTorch.allclose(out, expected, equal_nan: true)
@@ -839,11 +844,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-1, 3, :inf],
-      [6, -2, :nan],
-      [-7, 10, 2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-1, 3, :inf],
+        [6, -2, :nan],
+        [-7, 10, 2]
+      ])
 
     out = ExTorch.empty_like(input)
     ExTorch.fmax(input, other, out)
@@ -865,11 +871,12 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-2, :ninf, 10],
-      [5, -5, :nan],
-      [-7, 1, -2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-2, :ninf, 10],
+        [5, -5, :nan],
+        [-7, 1, -2]
+      ])
 
     out = ExTorch.fmin(input, other)
     assert ExTorch.allclose(out, expected, equal_nan: true)
@@ -890,14 +897,232 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
         [-7, 10, -2]
       ])
 
-    expected = ExTorch.tensor([
-      [-2, :ninf, 10],
-      [5, -5, :nan],
-      [-7, 1, -2]
-    ])
+    expected =
+      ExTorch.tensor([
+        [-2, :ninf, 10],
+        [5, -5, :nan],
+        [-7, 1, -2]
+      ])
 
     out = ExTorch.empty_like(input)
     ExTorch.fmin(input, other, out)
     assert ExTorch.allclose(out, expected, equal_nan: true)
+  end
+
+  test "topk/2" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [10, 5, 4],
+        [20, 7, 5],
+        [6, 5, 4]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [2, 6, 5],
+        [5, 4, 0],
+        [6, 5, 4]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 3)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/3" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [5, 3, 10, 3, 7, 20, 6],
+        [0, 1, 2, 3, 4, 5, 5]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [1, 0, 0, 1, 1, 1, 2],
+        [2, 2, 1, 2, 2, 2, 0]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 2, 0)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [10, 5, 4],
+        [20, 7, 5],
+        [6, 5, 4]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [2, 6, 5],
+        [5, 4, 0],
+        [6, 5, 4]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 3, dim: -1)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/4" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-2, -1, 0],
+        [-5, 1, 2],
+        [0, 1, 2]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [3, 0, 4],
+        [1, 6, 2],
+        [0, 1, 2]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 3, -1, false)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/4 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [10, 5, 4],
+        [20, 7, 5],
+        [6, 5, 4]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [2, 6, 5],
+        [5, 4, 0],
+        [6, 5, 4]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 3, -1, sorted: true)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/5 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-2, -1, 0],
+        [-5, 1, 2],
+        [0, 1, 2]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [3, 0, 4],
+        [1, 6, 2],
+        [0, 1, 2]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 3, -1, false, sorted: true)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/5" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-2, -1, 0],
+        [-5, 1, 2],
+        [0, 1, 2]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [3, 0, 4],
+        [1, 6, 2],
+        [0, 1, 2]
+      ])
+
+    {values, indices} = ExTorch.topk(input, 3, -1, false, true)
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
+  end
+
+  test "topk/6" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-2, -1, 0],
+        [-5, 1, 2],
+        [0, 1, 2]
+      ])
+
+    expected_indices =
+      ExTorch.tensor([
+        [3, 0, 4],
+        [1, 6, 2],
+        [0, 1, 2]
+      ])
+
+    values = ExTorch.empty({3, 3}, dtype: :int)
+    indices = ExTorch.empty({3, 3}, dtype: :long)
+
+    ExTorch.topk(input, 3, -1, false, true, {values, indices})
+    assert ExTorch.equal(values, expected_values)
+    assert ExTorch.equal(indices, expected_indices)
   end
 end

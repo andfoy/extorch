@@ -1120,5 +1120,91 @@ defmodule ExTorch.Native.Tensor.Ops.Comparison do
     @spec fmin(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
             ExTorch.Tensor.t()
     defbinding(fmin(input, other, out \\ nil))
+
+    @doc """
+    Returns the `k` largest elements of the given `input` tensor along a given dimension.
+
+    * If `dim` is not given, the last dimension of the input is chosen.
+    * If `largest` is `false` then the `k` smallest elements are returned.
+    * A tuple of `{values, indices}` is returned with the `values` and `indices` of the
+    largest `k` elements of each row of the `input` tensor in the given dimension `dim`.
+    * The boolean option `sorted` if `true`, will make sure that the returned `k` elements
+    are themselves sorted.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor
+    - `k` (`integer`) - the k in _top-k_
+
+    ## Optional arguments
+    - dim (`integer`) - the dimension to sort along. Default: -1
+    - largest (`boolean`) - controls whether to return largest or smallest elements. Default: `true`
+    - sorted (`boolean`) - controls whether to return the elements in sorted order. Default: `true`
+    - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - the output tuple of
+    `{values, indices}` that can be optionally given as output buffers. Default: `nil`
+
+    ## Examples
+        # Retrieve the top-3 elements in the last dimension.
+        iex> input = ExTorch.tensor([
+        ...>   [-1, 3, 10, -2, 0, 4, 5],
+        ...>   [5, -5, 2, 3, 7, 20, 1],
+        ...>   [0, 1, 2, 3, 4, 5, 6]
+        ...> ])
+        iex> {values, indices} = ExTorch.topk(input, 3)
+        iex> values
+        #Tensor<
+        [[10,  5,  4],
+         [20,  7,  5],
+         [ 6,  5,  4]]
+        [
+          size: {3, 3},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[2, 6, 5],
+         [5, 4, 0],
+         [6, 5, 4]]
+        [
+          size: {3, 3},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Retrieve the top-2 smallest elements in the first dimension.
+        iex> {values, indices} = ExTorch.topk(input, 2, dim: 0, largest: false)
+        iex> values
+        #Tensor<
+        [[-1, -5,  2, -2,  0,  4,  1],
+         [ 0,  1,  2,  3,  4,  5,  5]]
+        [
+          size: {2, 7},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex(10)> indices
+        #Tensor<
+        [[0, 1, 1, 0, 0, 0, 1],
+         [2, 2, 2, 1, 2, 2, 0]]
+        [
+          size: {2, 7},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec topk(
+            ExTorch.Tensor.t(),
+            integer(),
+            integer(),
+            boolean(),
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(topk(input, k, dim \\ -1, largest \\ true, sorted \\ true, out \\ nil))
   end
 end
