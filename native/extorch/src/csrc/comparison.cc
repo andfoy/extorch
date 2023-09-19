@@ -362,3 +362,18 @@ SortResult topk(
     return std::move(SortResult{values_out, indices_out, true});
 
 }
+
+std::shared_ptr<CrossTensor> msort(
+        const std::shared_ptr<CrossTensor> &input,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::msort_out(out_tensor, in_tensor);
+    } else {
+        out_tensor = torch::msort(in_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

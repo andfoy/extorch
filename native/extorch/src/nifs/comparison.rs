@@ -166,3 +166,10 @@ nif_impl!(
     sorted: bool,
     out: SortResult
 );
+
+nif_impl!(
+    msort,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    out: TensorOut
+);

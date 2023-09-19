@@ -1125,4 +1125,43 @@ defmodule ExTorchTest.Tensor.ComparisonTest do
     assert ExTorch.equal(values, expected_values)
     assert ExTorch.equal(indices, expected_indices)
   end
+
+  test "msort/1" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_out =
+      ExTorch.tensor([
+        [-1, -5, 2, -2, 0, 4, 1],
+        [0, 1, 2, 3, 4, 5, 5],
+        [5, 3, 10, 3, 7, 20, 6]
+      ])
+
+    out = ExTorch.msort(input)
+    assert ExTorch.equal(out, expected_out)
+  end
+
+  test "msort/2" do
+    input =
+      ExTorch.tensor([
+        [-1, 3, 10, -2, 0, 4, 5],
+        [5, -5, 2, 3, 7, 20, 1],
+        [0, 1, 2, 3, 4, 5, 6]
+      ])
+
+    expected_out =
+      ExTorch.tensor([
+        [-1, -5, 2, -2, 0, 4, 1],
+        [0, 1, 2, 3, 4, 5, 5],
+        [5, 3, 10, 3, 7, 20, 6]
+      ])
+
+    out = ExTorch.empty_like(input)
+    ExTorch.msort(input, out)
+    assert ExTorch.equal(out, expected_out)
+  end
 end
