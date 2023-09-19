@@ -139,5 +139,131 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
     @spec any(ExTorch.Tensor.t(), nil | integer(), boolean(), nil | ExTorch.Tensor.t()) ::
             ExTorch.Tensor.t()
     defbinding(any(input, dim \\ nil, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the indices of the maximum value of all elements (or elements in a dimension)
+    in the input tensor.
+
+    * If `dim` is `nil`, it will return the index of the maximum element on the overall input
+    tensor, else it will return the maximum values alongside the specified dimension.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`nil | integer()`) - the dimension to reduce. Default: `nil`
+    - `keepdim` (`boolean()`) - whether the output tensor has dim retained or not. Default: `false`
+
+    ## Notes
+    If there are multiple maximal values then the indices of the first maximal value are returned.
+
+    ## Examples
+        iex> a = ExTorch.randn({4, 4})
+        #Tensor<
+        [[ 1.2023, -0.1142,  0.5077,  1.2127],
+         [ 0.5873, -0.7416, -0.0758,  0.0578],
+         [-0.8066,  1.7030,  0.2894,  0.0539],
+         [ 0.2353,  0.4396, -0.1846, -0.7395]]
+        [
+          size: {4, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Get the overall maximum index.
+        iex> ExTorch.argmax(a)
+        #Tensor<
+        9
+        [size: {}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Get the maximum index on the last dimension.
+        iex> ExTorch.argmax(a, -1)
+        #Tensor<
+        [3, 0, 1, 1]
+        [
+          size: {4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Keep the reduced dimension on the output
+        iex> ExTorch.argmax(a, 0, keepdim: true)
+        #Tensor<
+        [[0, 2, 0, 0]]
+        [
+          size: {1, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec argmax(ExTorch.Tensor.t(), integer() | nil, boolean()) :: ExTorch.Tensor.t()
+    defbinding(argmax(input, dim \\ nil, keepdim \\ false))
+
+    @doc """
+    Returns the indices of the minimum value of all elements (or elements in a dimension)
+    in the input tensor.
+
+    * If `dim` is `nil`, it will return the index of the minimum element on the overall input
+    tensor, else it will return the minimum values alongside the specified dimension.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`nil | integer()`) - the dimension to reduce. Default: `nil`
+    - `keepdim` (`boolean()`) - whether the output tensor has dim retained or not. Default: `false`
+
+    ## Notes
+    If there are multiple minimal values then the indices of the first minimal value are returned.
+
+    ## Examples
+        iex> a = ExTorch.randn({4, 4})
+        #Tensor<
+        [[-0.6192, -0.4204,  0.1524, -0.1544],
+         [ 1.4040,  1.0165,  1.6355,  0.6480],
+         [-0.6566,  1.0730, -0.1548, -0.2488],
+         [-1.0406,  0.0883,  1.0485, -0.3025]]
+        [
+          size: {4, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Get the overall minimum index.
+        iex> ExTorch.argmin(a)
+        #Tensor<
+        12
+        [size: {}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Get the minimum index on the last dimension.
+        iex> ExTorch.argmin(a, -1)
+        #Tensor<
+        [0, 3, 0, 0]
+        [
+          size: {4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Keep the reduced dimension on the output
+        iex> ExTorch.argmin(a, 0, keepdim: true)
+        #Tensor<
+        [[3, 0, 2, 3]]
+        [
+          size: {1, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec argmin(ExTorch.Tensor.t(), integer() | nil, boolean()) :: ExTorch.Tensor.t()
+    defbinding(argmin(input, dim \\ nil, keepdim \\ false))
   end
 end

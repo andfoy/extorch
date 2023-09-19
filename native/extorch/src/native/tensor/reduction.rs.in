@@ -13,3 +13,17 @@ fn any(
     keepdim: bool,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the index of the maximum value of a tensor (or dimension).
+fn argmax(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the index of the minimum value of a tensor (or dimension).
+fn argmin(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+) -> Result<SharedPtr<CrossTensor>>;

@@ -120,6 +120,8 @@ rustler::init!(
         msort,
 
         // Tensor reduction operations
+        argmax,
+        argmin,
         all,
         any,
 

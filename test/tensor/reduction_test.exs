@@ -88,4 +88,123 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     ExTorch.any(a, -1, true, out)
     assert ExTorch.Tensor.to_list(out) == expected
   end
+
+  test "argmax/1" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    out = ExTorch.argmax(input) |> ExTorch.Tensor.item()
+    assert out == 3
+  end
+
+  test "argmax/2" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([0, 0, 0])
+    out = ExTorch.argmax(input, -1)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmax/2 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([1, 1, 0])
+    out = ExTorch.argmax(input, dim: 0)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmax/3" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[0], [0], [0]])
+    out = ExTorch.argmax(input, -1, true)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmax/3 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[1, 1, 0]])
+    out = ExTorch.argmax(input, 0, keepdim: true)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmin/1" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    out = ExTorch.argmin(input) |> ExTorch.Tensor.item()
+    assert out == 8
+  end
+
+  test "argmin/2" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([1, 2, 2])
+    out = ExTorch.argmin(input, -1)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmin/2 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([0, 0, 2])
+    out = ExTorch.argmin(input, dim: 0)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmin/3" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[1], [2], [2]])
+    out = ExTorch.argmin(input, -1, true)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "argmin/3 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[0, 0, 2]])
+    out = ExTorch.argmin(input, 0, keepdim: true)
+    assert ExTorch.equal(out, expected)
+  end
+
 end
