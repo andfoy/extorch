@@ -140,3 +140,13 @@ fn fmin(
     other: &SharedPtr<CrossTensor>,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the top-k largest values of a tensor alongside a dimension.
+fn topk(
+    input: &SharedPtr<CrossTensor>,
+    k: i64,
+    dim: i64,
+    largest: bool,
+    sorted: bool,
+    out: SortResult,
+) -> Result<SortResult>;

@@ -42,6 +42,7 @@ rustler::init!(
     "Elixir.ExTorch.Native",
     [
         add,
+
         // Tensor information
         repr,
         size,
@@ -59,6 +60,7 @@ rustler::init!(
         is_floating_point,
         is_conj,
         is_nonzero,
+
         // Tensor creation
         empty,
         zeros,
@@ -82,12 +84,14 @@ rustler::init!(
         rand_like,
         randn_like,
         randint_like,
+
         // Tensor manipulation
         unsqueeze,
         reshape,
         index,
         index_put,
         conj,
+
         // Tensor comparing operations
         allclose,
         argsort,
@@ -112,9 +116,12 @@ rustler::init!(
         minimum,
         fmax,
         fmin,
+        topk,
+
         // Tensor reduction operations
         all,
         any,
+
         // Other operations
         resolve_conj,
     ],
