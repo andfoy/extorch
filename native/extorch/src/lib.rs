@@ -129,6 +129,7 @@ rustler::init!(
         amax,
         amin,
         aminmax,
+        dist,
 
         // Other operations
         resolve_conj,

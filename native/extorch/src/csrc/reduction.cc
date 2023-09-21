@@ -226,3 +226,17 @@ TensorTuple aminmax(
     out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_max)));
     return pack_tensor_tuple(out_vec);
 }
+
+std::shared_ptr<CrossTensor> dist(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        Scalar p) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor other_tensor = *other.get();
+    auto torch_p = get_scalar_type(p);
+
+    out_tensor = torch::dist(in_tensor, other_tensor, torch_p);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

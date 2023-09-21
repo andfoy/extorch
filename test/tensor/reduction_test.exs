@@ -607,4 +607,28 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.allclose(max, expected_max)
   end
 
+  test "dist/2" do
+    a = ExTorch.tensor([1.0, 2, -3])
+    b = ExTorch.tensor([0.0, -1, 4])
+    expected = :math.sqrt(1 + 9 + 49)
+    out = ExTorch.dist(a, b) |> ExTorch.Tensor.item()
+    assert expected == out
+  end
+
+  test "dist/3" do
+    a = ExTorch.tensor([1.0, 2, -3])
+    b = ExTorch.tensor([0.0, -1, 4])
+    expected = 1 + 3 + 7.0
+    out = ExTorch.dist(a, b, 1) |> ExTorch.Tensor.item()
+    assert expected == out
+  end
+
+  test "dist/3 with kwargs" do
+    a = ExTorch.tensor([1.0, 2, -3])
+    b = ExTorch.tensor([0.0, -1, 4])
+    expected = 7.0
+    out = ExTorch.dist(a, b, p: :inf) |> ExTorch.Tensor.item()
+    assert expected == out
+  end
+
 end

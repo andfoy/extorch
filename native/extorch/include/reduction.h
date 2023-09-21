@@ -40,3 +40,9 @@ TensorTuple aminmax(
         const std::shared_ptr<CrossTensor> &input,
         OptionalInt opt_dim, bool keepdim, TensorTuple opt_out
 );
+
+std::shared_ptr<CrossTensor> dist(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &other,
+        Scalar p
+);

@@ -659,5 +659,52 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(aminmax(input, dim \\ nil, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the p-norm of (`input` - `other`)
+
+    The shapes of input and other must be broadcastable.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `other` (`ExTorch.Tensor`) - the right-hand side input tensor.
+
+    ## Optional arguments
+    - `p` (`number`) - the norm to be computed. Default: 2.0
+
+    ## Examples
+        iex> a = ExTorch.randn(3)
+        #Tensor<
+        [ 0.3934,  0.6799, -0.1292]
+        [
+          size: {3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> b = ExTorch.randn(3)
+        #Tensor<
+        [-0.3785, -1.5249,  0.2093]
+        [
+          size: {3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute the Euclidean norm
+        iex> ExTorch.dist(a, b)
+        #Tensor<
+        2.3605
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute the L1 distance
+        iex> ExTorch.dist(a, b, 1)
+        #Tensor<
+        3.3152
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec dist(ExTorch.Tensor.t(), ExTorch.Tensor.t(), number()) :: ExTorch.Tensor.t()
+    defbinding(dist(input, other, p \\ 2.0))
   end
 end
