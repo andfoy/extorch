@@ -124,6 +124,8 @@ rustler::init!(
         argmin,
         all,
         any,
+        max,
+        min,
 
         // Other operations
         resolve_conj,

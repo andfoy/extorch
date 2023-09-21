@@ -50,6 +50,11 @@ struct SortResult {
     used: bool
 }
 
+struct TensorTuple {
+    values: Vec<TensorOut>,
+    used: bool
+}
+
 struct OptionalInt {
     value: i64,
     used: bool

@@ -19,3 +19,6 @@ torch::detail::TensorDataContainer get_complex_tensor_parts(
         c10::ScalarType scalar_type,
         torch::TensorOptions opts,
         const int64_t *ptr);
+
+std::vector<CrossTensor> unpack_tensor_tuple(TensorTuple tuple, int64_t sz_constraint);
+TensorTuple pack_tensor_tuple(std::vector<std::shared_ptr<CrossTensor>> vec);

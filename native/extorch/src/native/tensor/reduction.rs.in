@@ -27,3 +27,19 @@ fn argmin(
     dim: OptionalInt,
     keepdim: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the maximum value of a tensor (or in dimension).
+fn max(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;
+
+/// Find the maximum value of a tensor (or in dimension).
+fn min(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;

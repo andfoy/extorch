@@ -313,3 +313,33 @@ torch::detail::TensorDataContainer get_complex_tensor_parts(
         return typed_list;
     }
 }
+
+std::vector<CrossTensor> unpack_tensor_tuple(TensorTuple tuple, int64_t sz_constraint) {
+    std::vector<CrossTensor> out_vec;
+    if(tuple.used) {
+        auto tensor_vec = tuple.values;
+
+        for(int i = 0; i < tensor_vec.size(); i++) {
+            auto val = tensor_vec[i];
+            if(val.used) {
+                out_vec.push_back(*val.tensor.get());
+            }
+        }
+
+        if(sz_constraint != -1 && out_vec.size() < sz_constraint) {
+            std::stringstream ss;
+            ss << "input tuple has a wrong number of arguments, got: " << out_vec.size() << ", expected: " << sz_constraint;
+            throw std::invalid_argument(ss.str());
+        }
+    }
+
+    return out_vec;
+}
+
+TensorTuple pack_tensor_tuple(std::vector<std::shared_ptr<CrossTensor>> vec) {
+    rust::Vec<TensorOut> out_vec;
+    for(int i = 0; i < vec.size(); i++) {
+        out_vec.push_back(TensorOut { vec[i], true });
+    }
+    return TensorTuple{out_vec, true};
+}
