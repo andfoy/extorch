@@ -25,3 +25,18 @@ TensorTuple max(
 TensorTuple min(
         const std::shared_ptr<CrossTensor> &input,
         OptionalInt opt_dim, bool keepdim, TensorTuple opt_out);
+
+std::shared_ptr<CrossTensor> amax(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim, TensorOut opt_out
+);
+
+std::shared_ptr<CrossTensor> amin(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim, TensorOut opt_out
+);
+
+TensorTuple aminmax(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out
+);
