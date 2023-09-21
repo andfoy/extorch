@@ -1,9 +1,8 @@
 use crate::native::torch;
 use crate::native::torch::{OptionalInt, TensorOut, TensorTuple};
-use crate::shared_types::TensorStruct;
+use crate::shared_types::{TensorStruct, Size};
 
 use rustler::{Error, NifResult};
-
 
 nif_impl!(
     all,
@@ -50,6 +49,33 @@ nif_impl!(
 
 nif_impl!(
     min,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple
+);
+
+nif_impl!(
+    amax,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool,
+    out: TensorOut
+);
+
+nif_impl!(
+    amin,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool,
+    out: TensorOut
+);
+
+nif_impl!(
+    aminmax,
     TensorTuple,
     input: TensorStruct<'a>,
     dim: OptionalInt,

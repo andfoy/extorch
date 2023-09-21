@@ -43,3 +43,27 @@ fn min(
     keepdim: bool,
     out: TensorTuple,
 ) -> Result<TensorTuple>;
+
+/// Find the maximum values of each slice in the given dimensions.
+fn amax(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the maximum values of each slice in the given dimensions.
+fn amin(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the minimum and maximum values in the given dimension.
+fn aminmax(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;

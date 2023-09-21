@@ -395,4 +395,216 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.equal(argmin, expected_argmin)
   end
 
+  test "amax/2 with integer dim" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([3.3, :inf, 10], dtype: :float64)
+    out = ExTorch.amax(input, -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amax/2 with tuple dims" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    out = ExTorch.amax(input, {0, 1}) |> ExTorch.Tensor.item()
+    assert out == :inf
+  end
+
+  test "amax/3" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[3.3], [:inf], [10]], dtype: :float64)
+    out = ExTorch.amax(input, -1, true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amax/3 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[3.3], [:inf], [10]], dtype: :float64)
+    out = ExTorch.amax(input, -1, keepdim: true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amax/4" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[3.3], [:inf], [10]], dtype: :float64)
+    out = ExTorch.empty_like(expected)
+
+    ExTorch.amax(input, -1, true, out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amin/2 with integer dim" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([-2.1, 0.005, -10], dtype: :float64)
+    out = ExTorch.amin(input, -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amin/2 with tuple dims" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    out = ExTorch.amin(input, {0, 1}) |> ExTorch.Tensor.item()
+    assert out == -10
+  end
+
+  test "amin/3" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[-2.1], [0.005], [-10]], dtype: :float64)
+    out = ExTorch.amin(input, -1, true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amin/3 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[-2.1], [0.005], [-10]], dtype: :float64)
+    out = ExTorch.amin(input, -1, keepdim: true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "amin/4" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected = ExTorch.tensor([[-2.1], [0.005], [-10]], dtype: :float64)
+    out = ExTorch.empty_like(expected)
+
+    ExTorch.amin(input, -1, true, out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "aminmax/1" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    {min, max} = ExTorch.aminmax(input)
+    assert ExTorch.Tensor.item(min) == -10
+    assert ExTorch.Tensor.item(max) == :inf
+  end
+
+  test "aminmax/2" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected_max = ExTorch.tensor([3.3, :inf, 10], dtype: :float64)
+    expected_min = ExTorch.tensor([-2.1, 0.005, -10], dtype: :float64)
+    {min, max} = ExTorch.aminmax(input, -1)
+
+    assert ExTorch.allclose(min, expected_min)
+    assert ExTorch.allclose(max, expected_max)
+  end
+
+  test "aminmax/2 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected_max = ExTorch.tensor([3.3, :inf, 10], dtype: :float64)
+    expected_min = ExTorch.tensor([-2.1, 0.005, -10], dtype: :float64)
+    {min, max} = ExTorch.aminmax(input, dim: -1)
+
+    assert ExTorch.allclose(min, expected_min)
+    assert ExTorch.allclose(max, expected_max)
+  end
+
+  test "aminmax/3" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected_max = ExTorch.tensor([[3.3], [:inf], [10]], dtype: :float64)
+    expected_min = ExTorch.tensor([[-2.1], [0.005], [-10]], dtype: :float64)
+    {min, max} = ExTorch.aminmax(input, -1, true)
+
+    assert ExTorch.allclose(min, expected_min)
+    assert ExTorch.allclose(max, expected_max)
+  end
+
+  test "aminmax/3 with kwargs" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected_max = ExTorch.tensor([[3.3], [:inf], [10]], dtype: :float64)
+    expected_min = ExTorch.tensor([[-2.1], [0.005], [-10]], dtype: :float64)
+    {min, max} = ExTorch.aminmax(input, -1, keepdim: true)
+
+    assert ExTorch.allclose(min, expected_min)
+    assert ExTorch.allclose(max, expected_max)
+  end
+
+  test "aminmax/4" do
+    input = ExTorch.tensor([
+      [3.3, -2.1, 0.1],
+      [:inf, 1, 0.005],
+      [10, 0.5, -10]
+    ])
+
+    expected_max = ExTorch.tensor([[3.3], [:inf], [10]], dtype: :float64)
+    expected_min = ExTorch.tensor([[-2.1], [0.005], [-10]], dtype: :float64)
+
+    max = ExTorch.empty_like(expected_max)
+    min = ExTorch.empty_like(expected_min)
+    ExTorch.aminmax(input, -1, true, {min, max})
+
+    assert ExTorch.allclose(min, expected_min)
+    assert ExTorch.allclose(max, expected_max)
+  end
+
 end
