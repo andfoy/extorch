@@ -39,7 +39,7 @@ impl<'a> Decoder<'a> for torch::Device {
                     match device_parts[1].parse() {
                         Ok(idx) => {
                             device_index = idx;
-                        },
+                        }
                         Err(_) => {
                             return Err(Error::RaiseAtom("Bad device index"));
                         }
@@ -100,10 +100,9 @@ impl<'a> Decoder<'a> for Size {
                     sizes.push(term.decode()?);
                 }
                 Ok(Size { size: sizes })
-            },
-            Err(err) => Err(err)
+            }
+            Err(err) => Err(err),
         }
-
     }
 }
 
@@ -151,7 +150,7 @@ fn match_special_atoms<'a>(term: Term<'a>) -> Result<f64, Error> {
         "nan" => Ok(f64::NAN),
         "inf" => Ok(f64::INFINITY),
         "ninf" => Ok(f64::NEG_INFINITY),
-        _ => Err(Error::RaiseAtom("invalid_atom_value"))
+        _ => Err(Error::RaiseAtom("invalid_atom_value")),
     }
 }
 
@@ -162,12 +161,12 @@ impl<'a> EncodeTorchScalar<'a> for Complex<'a> {
             Ok(value) => {
                 let real_value = match value.real.is_atom() {
                     true => match_special_atoms(value.real)?,
-                    false => value.real.decode::<f64>()?
+                    false => value.real.decode::<f64>()?,
                 };
 
                 let im_value = match value.imaginary.is_atom() {
                     true => match_special_atoms(value.imaginary)?,
-                    false => value.imaginary.decode::<f64>()?
+                    false => value.imaginary.decode::<f64>()?,
                 };
 
                 let re_bytes = real_value.to_ne_bytes();
@@ -193,7 +192,7 @@ impl<'a> EncodeTorchScalar<'a> for AtomString {
                     "nan" => Some(f32::NAN),
                     "inf" => Some(f32::INFINITY),
                     "ninf" => Some(f32::NEG_INFINITY),
-                    _ => None
+                    _ => None,
                 };
 
                 match value {
@@ -202,17 +201,16 @@ impl<'a> EncodeTorchScalar<'a> for AtomString {
                         let repr: Vec<u8> = bytes.to_vec();
                         Ok(torch::Scalar {
                             _repr: repr,
-                            entry_used: "float32".to_owned()
+                            entry_used: "float32".to_owned(),
                         })
-                    },
-                    None => Err(Error::RaiseAtom("invalid numeric atom"))
+                    }
+                    None => Err(Error::RaiseAtom("invalid numeric atom")),
                 }
-            },
-            Err(err) => Err(err)
+            }
+            Err(err) => Err(err),
         }
     }
 }
-
 
 impl DecodeTorchScalar for bool {
     fn decode_scalar<'a>(scalar: &torch::Scalar, env: Env<'a>) -> Term<'a> {
@@ -225,22 +223,22 @@ impl DecodeTorchScalar for bool {
 fn pack_possible_special_atom<'a>(value: f64, env: Env<'a>) -> Term<'a> {
     let inf_value = match value.is_infinite() && value.is_sign_positive() {
         true => Some(Atom::from_str(env, "inf").unwrap().to_term(env)),
-        false => None
+        false => None,
     };
 
-    let ninf_value= match value.is_infinite() && value.is_sign_negative() {
+    let ninf_value = match value.is_infinite() && value.is_sign_negative() {
         true => Some(Atom::from_str(env, "ninf").unwrap().to_term(env)),
-        false => inf_value
+        false => inf_value,
     };
 
     let nan_value = match value.is_nan() {
         true => Some(Atom::from_str(env, "nan").unwrap().to_term(env)),
-        false => ninf_value
+        false => ninf_value,
     };
 
     match nan_value {
         Some(value) => value,
-        None => value.encode(env)
+        None => value.encode(env),
     }
 }
 
@@ -395,10 +393,7 @@ impl_full_scalar_for_types!(
     (u64, "uint64")
 );
 
-impl_float_scalar_for_types!(
-    (f32, "float32"),
-    (f64, "float64")
-);
+impl_float_scalar_for_types!((f32, "float32"), (f64, "float64"));
 
 impl<'a> Decoder<'a> for torch::Scalar {
     fn decode(term: Term<'a>) -> NifResult<Self> {
@@ -666,15 +661,13 @@ impl<'a> Decoder<'a> for torch::PrintOptions {
 impl<'a> Decoder<'a> for torch::SortResult {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         match term.atom_to_string() {
-            Ok(str) => {
-                match str.as_str() {
-                    "nil" => Ok(Self {
-                        values: SharedPtr::<torch::CrossTensor>::null(),
-                        indices: SharedPtr::<torch::CrossTensor>::null(),
-                        used: false
-                    }),
-                    _ => Err(Error::RaiseAtom("invalid_value"))
-                }
+            Ok(str) => match str.as_str() {
+                "nil" => Ok(Self {
+                    values: SharedPtr::<torch::CrossTensor>::null(),
+                    indices: SharedPtr::<torch::CrossTensor>::null(),
+                    used: false,
+                }),
+                _ => Err(Error::RaiseAtom("invalid_value")),
             },
             Err(_) => {
                 let tensor_vec: Vec<Term<'a>> = get_tuple(term)?;
@@ -685,10 +678,10 @@ impl<'a> Decoder<'a> for torch::SortResult {
                         Ok(Self {
                             values: values.resource.tensor.clone(),
                             indices: indices.resource.tensor.clone(),
-                            used: true
+                            used: true,
                         })
-                    },
-                    _ => Err(Error::RaiseAtom("must be a tuple of two elements"))
+                    }
+                    _ => Err(Error::RaiseAtom("must be a tuple of two elements")),
                 }
             }
         }
@@ -700,7 +693,10 @@ impl Encoder for torch::SortResult {
         let values_struct: TensorStruct<'a> = self.values.clone().into();
         let indices_struct: TensorStruct<'a> = self.indices.clone().into();
 
-        make_tuple(env, &[values_struct.encode(env), indices_struct.encode(env)])
+        make_tuple(
+            env,
+            &[values_struct.encode(env), indices_struct.encode(env)],
+        )
     }
 }
 
@@ -708,14 +704,78 @@ impl<'a> Decoder<'a> for torch::OptionalInt {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         let value: Option<i64> = term.decode()?;
         match value {
-            Some(value) => Ok(Self {
-                value,
-                used: true
-            }),
+            Some(value) => Ok(Self { value, used: true }),
             None => Ok(Self {
                 value: -1,
-                used: false
+                used: false,
+            }),
+        }
+    }
+}
+
+fn decode_tensor_out<'a>(term: Term<'a>) -> NifResult<torch::TensorTuple> {
+    let term_vec: NifResult<Vec<Term<'a>>> = get_tuple(term);
+    match term_vec {
+        Ok(vec) => {
+            let tensor_vec: Vec<torch::TensorOut> = vec
+                .iter()
+                .map(|x| {
+                    x.decode::<torch::TensorOut>().unwrap_or(torch::TensorOut {
+                        tensor: SharedPtr::<torch::CrossTensor>::null(),
+                        used: false,
+                    })
+                })
+                .collect();
+            Ok(torch::TensorTuple {
+                values: tensor_vec,
+                used: true,
             })
+        }
+        Err(_) => {
+            let single_vec: TensorStruct<'a> = term.decode()?;
+            let mut tensor_vec: Vec<torch::TensorOut> = Vec::new();
+            tensor_vec.push(torch::TensorOut {
+                tensor: single_vec.resource.tensor.clone(),
+                used: true,
+            });
+
+            Ok(torch::TensorTuple {
+                values: tensor_vec,
+                used: true,
+            })
+        }
+    }
+}
+
+impl<'a> Decoder<'a> for torch::TensorTuple {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        match term.is_atom() {
+            false => decode_tensor_out(term),
+            true => Ok(Self {
+                values: Vec::<torch::TensorOut>::new(),
+                used: false,
+            }),
+        }
+    }
+}
+
+impl Encoder for torch::TensorTuple {
+    fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
+        let out_vec: Vec<Term<'a>> = self
+            .values
+            .iter()
+            .filter_map(|x| match x.used {
+                true => {
+                    let tensor_struct: TensorStruct<'a> = x.tensor.clone().into();
+                    Some(tensor_struct.encode(env))
+                }
+                false => None,
+            })
+            .collect();
+
+        match out_vec.len() {
+            1 => out_vec[0],
+            _ => make_tuple(env, &out_vec[..]),
         }
     }
 }

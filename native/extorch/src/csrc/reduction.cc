@@ -79,3 +79,82 @@ std::shared_ptr<CrossTensor> argmin(
     out_tensor = torch::argmin(in_tensor, dim, keepdim);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+TensorTuple max(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+    CrossTensor in_tensor = *input.get();
+
+    if(opt_dim.used) {
+        CrossTensor max;
+        CrossTensor max_values;
+        int64_t dim = opt_dim.value;
+
+        if(opt_out.used) {
+            std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 2);
+            max = tensor_out_list[0];
+            max_values = tensor_out_list[1];
+            std::tie<CrossTensor, CrossTensor>(max, max_values) = torch::max_out(
+                max, max_values, in_tensor, dim, keepdim);
+        } else {
+            std::tie<CrossTensor, CrossTensor>(max, max_values) = torch::max(
+                in_tensor, dim, keepdim);
+        }
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(max)));
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(max_values)));
+
+    } else {
+        CrossTensor max;
+
+        // Path disabled for consistency between max and min
+        //
+        // if(opt_out.used) {
+        //     std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 1);
+        //     max = tensor_out_list[0];
+        //     max = torch::max_out(max, in_tensor);
+        // } else {
+        //     max = torch::max(in_tensor);
+        // }
+
+        max = torch::max(in_tensor);
+        out_vec.push_back(std::make_shared<CrossTensor>(max));
+
+    }
+    return pack_tensor_tuple(out_vec);
+}
+
+TensorTuple min(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+    CrossTensor in_tensor = *input.get();
+
+    if(opt_dim.used) {
+        CrossTensor min;
+        CrossTensor min_values;
+        int64_t dim = opt_dim.value;
+
+        if(opt_out.used) {
+            std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 2);
+            min = tensor_out_list[0];
+            min_values = tensor_out_list[1];
+            std::tie<CrossTensor, CrossTensor>(min, min_values) = torch::min_out(
+                min, min_values, in_tensor, dim, keepdim);
+        } else {
+            std::tie<CrossTensor, CrossTensor>(min, min_values) = torch::min(
+                in_tensor, dim, keepdim);
+        }
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(min)));
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(min_values)));
+
+    } else {
+        CrossTensor min;
+        min = torch::min(in_tensor);
+        out_vec.push_back(std::make_shared<CrossTensor>(min));
+
+    }
+    return pack_tensor_tuple(out_vec);
+}
