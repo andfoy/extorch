@@ -67,3 +67,10 @@ fn aminmax(
     keepdim: bool,
     out: TensorTuple,
 ) -> Result<TensorTuple>;
+
+/// Compute the p-norm between two tensors.
+fn dist(
+    input: &SharedPtr<CrossTensor>,
+    other: &SharedPtr<CrossTensor>,
+    p: Scalar
+) -> Result<SharedPtr<CrossTensor>>;
