@@ -712,7 +712,8 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
     The computation is numerically stabilized.
 
     For summation index $j$ given by dim and other indices $i$, the result is:
-    $$\text{logsumexp}(x)_i = \log{\sum_j \exp(x_{ij})}$$
+
+    $$\text{logsumexp}(x)\_i = \text{log}\sum\_j \text{exp}\left(x\_{ij}\right)$$
 
     If `keepdim` is `true`, the output tensor is of the same size as `input` except in the dimension(s) `dim`
     where it is of size 1. Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the
