@@ -255,8 +255,23 @@ defmodule ExTorch.Native.Macros do
 
   defp get_alias_docstring(original_alias, arity, func_docstring) do
     case original_alias do
-      nil -> func_docstring
-      _ -> "Alias to `#{original_alias}/#{arity}`"
+      nil ->
+        case is_binary(func_docstring) do
+          true ->
+            quote do
+              @doc unquote(func_docstring)
+            end
+
+          false ->
+            func_docstring
+        end
+
+      _ ->
+        str = "Alias to `#{original_alias}/#{arity}`"
+
+        quote do
+          @doc unquote(str)
+        end
     end
   end
 
@@ -298,8 +313,8 @@ defmodule ExTorch.Native.Macros do
             arity_doc = get_alias_docstring(original_alias, arity, Map.get(arity_docs, arity))
 
             quote do
-              @doc unquote(arity_doc)
               @doc kind: unquote(doc_section)
+              unquote(arity_doc)
             end
         end
 
