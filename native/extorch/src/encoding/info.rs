@@ -88,10 +88,14 @@ impl From<String> for AtomString {
 
 impl<'a> Decoder<'a> for Size {
     fn decode(term: Term<'a>) -> NifResult<Self> {
-        let single_value: NifResult<i64> = term.decode();
+        let single_value: NifResult<Option<i64>> = term.decode();
         let partial_ex_sizes = match single_value {
-            Ok(_) => {
+            Ok(Some(_)) => {
                 let single_vec: Vec<Term<'a>> = vec![term];
+                Ok(single_vec)
+            },
+            Ok(None) => {
+                let single_vec: Vec<Term<'a>> = Vec::new();
                 Ok(single_vec)
             }
             Err(_) => match get_tuple(term) {

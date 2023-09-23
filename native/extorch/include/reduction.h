@@ -46,3 +46,8 @@ std::shared_ptr<CrossTensor> dist(
         const std::shared_ptr<CrossTensor> &other,
         Scalar p
 );
+
+std::shared_ptr<CrossTensor> logsumexp(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim, TensorOut opt_out
+);

@@ -240,3 +240,23 @@ std::shared_ptr<CrossTensor> dist(
     out_tensor = torch::dist(in_tensor, other_tensor, torch_p);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> logsumexp(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim, TensorOut opt_out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    const int64_t *ptr = dims.data();
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::logsumexp_out(
+            out_tensor, in_tensor, torch::IntArrayRef{ptr, dims.size()}, keepdim);
+    } else {
+        out_tensor = torch::logsumexp(
+            in_tensor, torch::IntArrayRef{ptr, dims.size()}, keepdim);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

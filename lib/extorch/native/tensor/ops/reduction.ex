@@ -478,7 +478,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
 
     ## Arguments
     - `input` (`ExTorch.Tensor`) - the input tensor.
-    - `dim` (`nil | integer() | tuple()`) - the dimension(s) to reduce.
+    - `dim` (`nil | integer() | tuple()`) - the dimension(s) to reduce. If `nil`, then it reduces all the dimensions.
 
     ## Optional arguments
     - `keepdim` (`boolean()`) - whether the output tensor has dim retained or not, this . Default: `false`
@@ -523,7 +523,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
         [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
 
     """
-    @spec amax(ExTorch.Tensor.t(), integer() | tuple(), boolean(), ExTorch.Tensor.t() | nil) ::
+    @spec amax(ExTorch.Tensor.t(), nil | integer() | tuple(), boolean(), ExTorch.Tensor.t() | nil) ::
             ExTorch.Tensor.t()
     defbinding(amax(input, dim, keepdim \\ false, out \\ nil))
 
@@ -536,7 +536,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
 
     ## Arguments
     - `input` (`ExTorch.Tensor`) - the input tensor.
-    - `dim` (`nil | integer() | tuple()`) - the dimension(s) to reduce.
+    - `dim` (`nil | integer() | tuple()`) - the dimension(s) to reduce. If `nil`, then it reduces all the dimensions.
 
     ## Optional arguments
     - `keepdim` (`boolean()`) - whether the output tensor has dim retained or not, this . Default: `false`
@@ -581,7 +581,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
         [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
 
     """
-    @spec amin(ExTorch.Tensor.t(), integer() | tuple(), boolean(), ExTorch.Tensor.t() | nil) ::
+    @spec amin(ExTorch.Tensor.t(), nil | integer() | tuple(), boolean(), ExTorch.Tensor.t() | nil) ::
             ExTorch.Tensor.t()
     defbinding(amin(input, dim, keepdim \\ false, out \\ nil))
 
@@ -706,5 +706,75 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
     """
     @spec dist(ExTorch.Tensor.t(), ExTorch.Tensor.t(), number()) :: ExTorch.Tensor.t()
     defbinding(dist(input, other, p \\ 2.0))
+
+    @doc ~S"""
+    Returns the log of summed exponentials of each row of the `input` tensor in the given dimension `dim`.
+    The computation is numerically stabilized.
+
+    For summation index $j$ given by dim and other indices $i$, the result is:
+    $$\text{logsumexp}(x)_i = \log{\sum_j \exp(x_{ij})}$$
+
+    If `keepdim` is `true`, the output tensor is of the same size as `input` except in the dimension(s) `dim`
+    where it is of size 1. Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the
+    output tensor having 1 (or `length(dim)`) fewer dimension(s).
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dim` (`nil | integer() | tuple()`) - the dimension or dimensions to reduce. If `nil`, all dimensions are reduced.
+
+    ## Optional arguments
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not.
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.randn({3, 3})
+        #Tensor<
+        [[ 0.2292, -1.0899,  0.0889],
+         [-2.0117,  0.4716, -0.3893],
+         [-0.9382,  1.0590, -0.0838]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute logsumexp in all dimensions
+        iex> ExTorch.logsumexp(a)
+        #Tensor<
+        2.2295
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute logsumexp in the last dimension, preserve dimensions
+        iex> ExTorch.logsumexp(a, -1, keepdim: true)
+        #Tensor<
+        [[0.9883],
+         [0.8812],
+         [1.4338]]
+        [
+          size: {3, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec logsumexp(
+            ExTorch.Tensor.t(),
+            integer() | tuple() | nil,
+            boolean(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(logsumexp(input, dim \\ nil, keepdim \\ false, out \\ nil),
+      dim:
+        case dim do
+          nil ->
+            max_dim = ExTorch.Tensor.dim(input) - 1
+            Enum.map(0..max_dim, fn x -> x end) |> List.to_tuple()
+
+          _ ->
+            dim
+        end
+    )
   end
 end

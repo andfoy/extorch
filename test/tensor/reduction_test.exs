@@ -631,4 +631,97 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert expected == out
   end
 
+  test "logsumexp/1" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor(2.2295)
+    out = ExTorch.logsumexp(a)
+
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "logsumexp/2" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor([0.9883, 0.8812, 1.4338])
+    out = ExTorch.logsumexp(a, -1)
+
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "logsumexp/2 with kwargs" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor([0.9883, 0.8812, 1.4338])
+    out = ExTorch.logsumexp(a, dim: -1)
+
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "logsumexp/3" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor([[0.9883], [0.8812], [1.4338]])
+    out = ExTorch.logsumexp(a, -1, true)
+
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "logsumexp/3 with kwargs" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor([[0.9883], [0.8812], [1.4338]])
+    out = ExTorch.logsumexp(a, -1, keepdim: true)
+
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "logsumexp/4" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor([[0.9883], [0.8812], [1.4338]])
+    out = ExTorch.empty_like(expected)
+    out = ExTorch.logsumexp(a, -1, true, out)
+
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "logsumexp/4 with kwargs" do
+    a = ExTorch.tensor([
+      [ 0.2292, -1.0899,  0.0889],
+      [-2.0117,  0.4716, -0.3893],
+      [-0.9382,  1.0590, -0.0838]
+    ])
+
+    expected = ExTorch.tensor([[0.9883], [0.8812], [1.4338]])
+    out = ExTorch.empty_like(expected)
+    out = ExTorch.logsumexp(a, -1, true, out: out)
+
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
 end

@@ -6,6 +6,11 @@ defmodule ExTorchTest.Tensor.InfoTest do
     assert ExTorch.Tensor.size(tensor) == {3, 3}
   end
 
+  test "dim/1" do
+    tensor = ExTorch.randn({2, 1, 3, 2})
+    assert ExTorch.Tensor.dim(tensor) == 4
+  end
+
   test "dtype/1" do
     tensor = ExTorch.tensor([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
     assert ExTorch.Tensor.dtype(tensor) == :byte

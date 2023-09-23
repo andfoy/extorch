@@ -46,6 +46,7 @@ rustler::init!(
         // Tensor information
         repr,
         size,
+        dim,
         device,
         dtype,
         requires_grad,
@@ -130,6 +131,7 @@ rustler::init!(
         amin,
         aminmax,
         dist,
+        logsumexp,
 
         // Other operations
         resolve_conj,

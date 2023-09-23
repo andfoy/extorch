@@ -3,6 +3,7 @@
 #include "utils.h"
 
 rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor);
+int64_t dim(const std::shared_ptr<CrossTensor> &tensor);
 rust::String dtype(const std::shared_ptr<CrossTensor> &tensor);
 rust::String memory_format(const std::shared_ptr<CrossTensor> &tensor);
 rust::String layout(const std::shared_ptr<CrossTensor> &tensor);

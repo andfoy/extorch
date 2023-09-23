@@ -14,6 +14,15 @@ defmodule ExTorch.Native.Tensor.Info do
     defbinding(size(tensor))
 
     @doc """
+    Get the total dimensions of a tensor.
+
+    ## Arguments
+      - `tensor`: Input tensor
+    """
+    @spec dim(ExTorch.Tensor.t()) :: integer()
+    defbinding(dim(tensor), fn_aliases: [:ndim, :dimension])
+
+    @doc """
     Get the dtype of a tensor.
 
     ## Arguments
