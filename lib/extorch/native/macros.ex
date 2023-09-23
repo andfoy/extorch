@@ -161,7 +161,7 @@ defmodule ExTorch.Native.Macros do
 
     {arg_names, arg_info} = collect_arg_info(args)
     {ret_type, arg_types} = collect_arg_types(func_name, spec, arg_names)
-    {transforms, aliases} = assemble_transforms(transforms)
+    {transforms, aliases, debug} = assemble_transforms(transforms)
 
     {args, kwargs, derived_kwargs, defaults, first_optional_signatures} =
       compose_potential_middle_signatures(
@@ -226,7 +226,7 @@ defmodule ExTorch.Native.Macros do
 
     signature_bodies =
       compose_binding_call(
-        {func_name, nil},
+        {func_name, nil, debug},
         doc_section,
         func_docstring,
         ret_type,
@@ -239,7 +239,7 @@ defmodule ExTorch.Native.Macros do
     Enum.reduce(aliases, signature_bodies, fn alias_, sigs ->
       alias_bodies =
         compose_binding_call(
-          {alias_, func_name},
+          {alias_, func_name, debug},
           doc_section,
           func_docstring,
           ret_type,
@@ -255,13 +255,28 @@ defmodule ExTorch.Native.Macros do
 
   defp get_alias_docstring(original_alias, arity, func_docstring) do
     case original_alias do
-      nil -> func_docstring
-      _ -> "Alias to `#{original_alias}/#{arity}`"
+      nil ->
+        case is_binary(func_docstring) do
+          true ->
+            quote do
+              @doc unquote(func_docstring)
+            end
+
+          false ->
+            func_docstring
+        end
+
+      _ ->
+        str = "Alias to `#{original_alias}/#{arity}`"
+
+        quote do
+          @doc unquote(str)
+        end
     end
   end
 
   defp compose_binding_call(
-         {func_name, original_alias},
+         {func_name, original_alias, debug},
          doc_section,
          func_docstring,
          ret_type,
@@ -298,8 +313,8 @@ defmodule ExTorch.Native.Macros do
             arity_doc = get_alias_docstring(original_alias, arity, Map.get(arity_docs, arity))
 
             quote do
-              @doc unquote(arity_doc)
               @doc kind: unquote(doc_section)
+              unquote(arity_doc)
             end
         end
 
@@ -328,8 +343,11 @@ defmodule ExTorch.Native.Macros do
             end
         end
 
-      # Uncomment this in order to debug function generation
-      # :logger.debug("#{Macro.to_string(body)}")
+      case debug do
+        true -> :logger.debug("#{Macro.to_string(body)}")
+        false -> nil
+      end
+
       body
     end)
   end
@@ -804,9 +822,22 @@ defmodule ExTorch.Native.Macros do
     {ret_type, arg_types}
   end
 
+  defp flatten_type_union([], acc) do
+    Enum.reverse(acc)
+  end
+
+  defp flatten_type_union([{:|, _, more_union} | rest], acc) do
+    flatten_type_union(more_union ++ rest, acc)
+  end
+
+  defp flatten_type_union([any | rest], acc) do
+    flatten_type_union(rest, [any | acc])
+  end
+
   defp extract_arg_type({arg_name, arg_spec}) do
     case arg_spec do
       {:|, _, type_union} ->
+        type_union = flatten_type_union(type_union, [])
         type_union = parse_type_union(type_union)
         {arg_name, {type_union, arg_spec}}
 
@@ -835,29 +866,32 @@ defmodule ExTorch.Native.Macros do
   end
 
   defp assemble_transforms(transforms) do
-    {transforms, aliases, output_transform} =
-      Enum.reduce(transforms, {[], [], nil}, fn
-        {:output, {transform, [no_parens: true, line: _], _}}, {transforms, aliases, _} ->
-          {transforms, aliases, transform}
+    {transforms, aliases, output_transform, debug} =
+      Enum.reduce(transforms, {[], [], nil, false}, fn
+        {:output, {transform, [no_parens: true, line: _], _}}, {transforms, aliases, _, debug} ->
+          {transforms, aliases, transform, debug}
 
-        {:output, transform}, {transforms, aliases, _} ->
-          {transforms, aliases, transform}
+        {:output, transform}, {transforms, aliases, _, debug} ->
+          {transforms, aliases, transform, debug}
 
-        {:extra, transform}, {transforms, aliases, output_transform} ->
-          {[transform | transforms], aliases, output_transform}
+        {:extra, transform}, {transforms, aliases, output_transform, debug} ->
+          {[transform | transforms], aliases, output_transform, debug}
 
-        {:fn_aliases, aliases}, {transforms, _, output_transform} ->
-          {transforms, aliases, output_transform}
+        {:fn_aliases, aliases}, {transforms, _, output_transform, debug} ->
+          {transforms, aliases, output_transform, debug}
 
-        {variable, transform}, {transforms, aliases, output_transform} ->
+        {:debug_gen_macro, debug}, {transforms, aliases, output_transform, _} ->
+          {transforms, aliases, output_transform, debug}
+
+        {variable, transform}, {transforms, aliases, output_transform, debug} ->
           transform =
             quote do
               unquote(Macro.var(variable, nil)) = unquote(transform)
             end
 
-          {[transform | transforms], aliases, output_transform}
+          {[transform | transforms], aliases, output_transform, debug}
       end)
 
-    {{{:__block__, [], Enum.reverse(transforms)}, output_transform}, aliases}
+    {{{:__block__, [], Enum.reverse(transforms)}, output_transform}, aliases, debug}
   end
 end

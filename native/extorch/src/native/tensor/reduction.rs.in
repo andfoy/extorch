@@ -74,3 +74,11 @@ fn dist(
     other: &SharedPtr<CrossTensor>,
     p: Scalar
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the log-sum-exp reduction across dimensions.
+fn logsumexp(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;

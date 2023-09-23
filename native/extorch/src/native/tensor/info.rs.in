@@ -2,6 +2,9 @@
 /// Get the size of a tensor
 fn size(tensor: &SharedPtr<CrossTensor>) -> Result<&'static [i64]>;
 
+/// Return the total number of dimensions of a tensor.
+fn dim(tensor: &SharedPtr<CrossTensor>) -> Result<i64>;
+
 /// Get the type of a tensor
 fn dtype(tensor: &SharedPtr<CrossTensor>) -> Result<String>;
 

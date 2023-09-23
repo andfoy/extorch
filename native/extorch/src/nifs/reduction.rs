@@ -90,3 +90,12 @@ nif_impl!(
     other: TensorStruct<'a>,
     p: Scalar
 );
+
+nif_impl!(
+    logsumexp,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool,
+    out: TensorOut
+);

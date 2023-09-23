@@ -11,6 +11,11 @@ rust::Slice<const int64_t> size(const std::shared_ptr<CrossTensor> &tensor)
     return slice;
 }
 
+int64_t dim(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.dim();
+}
+
 rust::String dtype(const std::shared_ptr<CrossTensor> &tensor)
 {
     CrossTensor cross_tensor = *tensor.get();
