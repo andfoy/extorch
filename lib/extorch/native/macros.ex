@@ -328,10 +328,11 @@ defmodule ExTorch.Native.Macros do
             end
         end
 
-        case debug do
-          true -> :logger.debug("#{Macro.to_string(body)}")
-          false -> nil
-        end
+      case debug do
+        true -> :logger.debug("#{Macro.to_string(body)}")
+        false -> nil
+      end
+
       body
     end)
   end

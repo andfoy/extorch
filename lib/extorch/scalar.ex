@@ -23,5 +23,4 @@ defmodule ExTorch.Scalar do
   Scalar or scalar list type specifier.
   """
   @type scalar_or_list :: t() | scalar_list() | tuple()
-
 end
