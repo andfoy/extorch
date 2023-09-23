@@ -20,7 +20,7 @@ defmodule ExTorch.Native.Tensor.Info do
       - `tensor`: Input tensor
     """
     @spec dim(ExTorch.Tensor.t()) :: integer()
-    defbinding(dim(tensor), fn_aliases: [:ndim, :dimension])
+    defbinding(dim(tensor), fn_aliases: [:ndim, :ndimension])
 
     @doc """
     Get the dtype of a tensor.
