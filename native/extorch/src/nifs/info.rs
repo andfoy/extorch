@@ -1,5 +1,5 @@
 use crate::native::torch;
-use crate::native::torch::PrintOptions;
+use crate::native::torch::{Device, PrintOptions};
 use crate::shared_types::{AtomString, Size, TensorStruct};
 
 use rustler::{Error, NifResult};
@@ -21,3 +21,13 @@ nif_impl!(is_floating_point, bool, tensor: TensorStruct<'a>);
 nif_impl!(is_conj, bool, tensor: TensorStruct<'a>);
 nif_impl!(is_nonzero, bool, tensor: TensorStruct<'a>);
 // nif_impl!(repr, String, tensor => Tensor);
+nif_impl!(
+    to,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    i_dtype: AtomString,
+    i_device: Device,
+    non_blocking: bool,
+    copy: bool,
+    i_memory_format: AtomString
+);

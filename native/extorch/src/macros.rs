@@ -16,6 +16,9 @@ macro_rules! make_call {
     ($f: path, ($({$args:expr})*), ($x:ident : Size $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
         make_call!($f, ($({$args})* {$x.size}), ($($argsf : $argst$(<$ext>)?),*))
     };
+    ($f: path, ($({$args:expr})*), ($x:ident : AtomString $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
+        make_call!($f, ($({$args})* {$x.name}), ($($argsf : $argst$(<$ext>)?),*))
+    };
     ($f: path, ($({$args:expr})*), ($x:ident : TensorIndex $(, $argsf:ident : $argst:tt$(<$ext:lifetime>)?)*)) => {
         make_call!($f, ($({$args})* {$x.indices}), ($($argsf : $argst$(<$ext>)?),*))
     };
