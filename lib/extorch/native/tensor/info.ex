@@ -277,7 +277,7 @@ defmodule ExTorch.Native.Tensor.Info do
           requires_grad: false
         ]>
 
-        # Change tensor dtype, preserving
+        # Change tensor dtype, preserving device
         iex> ExTorch.Tensor.to(a, dtype: :complex64)
         #Tensor<
         [[ 0.5770+0.j, -0.8079+0.j, -0.4308+0.j],
