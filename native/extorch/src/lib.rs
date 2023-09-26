@@ -61,6 +61,7 @@ rustler::init!(
         is_floating_point,
         is_conj,
         is_nonzero,
+        to,
 
         // Tensor creation
         empty,

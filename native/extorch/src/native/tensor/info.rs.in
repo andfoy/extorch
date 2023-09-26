@@ -1,4 +1,3 @@
-
 /// Get the size of a tensor
 fn size(tensor: &SharedPtr<CrossTensor>) -> Result<&'static [i64]>;
 
@@ -43,3 +42,13 @@ fn is_conj(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
 
 /// Determine if a tensor contains a single non-zero element.
 fn is_nonzero(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
+
+/// Convert a tensor into a given dtype and/or device.
+fn to(
+    input: &SharedPtr<CrossTensor>,
+    dtype: String,
+    device: Device,
+    non_blocking: bool,
+    copy: bool,
+    memory_format: String,
+) -> Result<SharedPtr<CrossTensor>>;

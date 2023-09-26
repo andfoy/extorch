@@ -63,13 +63,13 @@ std::unordered_map<torch::Layout, std::string> inv_layout_mapping = {
 
 std::unordered_map<std::string, torch::MemoryFormat> memory_fmt_mapping = {
     {"contiguous", torch::MemoryFormat::Contiguous},
-    {"preserve", torch::MemoryFormat::Preserve},
+    {"preserve_format", torch::MemoryFormat::Preserve},
     {"channels_last", torch::MemoryFormat::ChannelsLast},
     {"channels_last_3d", torch::MemoryFormat::ChannelsLast3d}};
 
 std::unordered_map<torch::MemoryFormat, std::string> inv_memory_fmt_mapping = {
     {torch::MemoryFormat::Contiguous, "contiguous"},
-    {torch::MemoryFormat::Preserve, "preserve"},
+    {torch::MemoryFormat::Preserve, "preserve_format"},
     {torch::MemoryFormat::ChannelsLast, "channels_last"},
     {torch::MemoryFormat::ChannelsLast3d, "channels_last_3d"}
 };

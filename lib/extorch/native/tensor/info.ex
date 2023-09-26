@@ -237,5 +237,99 @@ defmodule ExTorch.Native.Tensor.Info do
     """
     @spec item(ExTorch.Tensor.t()) :: ExTorch.Scalar.t()
     defbinding(item(tensor))
+
+    @doc """
+    Performs `ExTorch.Tensor` dtype and/or device conversion.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor to convert.
+
+    ## Optional arguments
+    - `dtype` (`ExTorch.DType` or `nil`) - the dtype to convert the `input`
+    tensor into. If `nil`, then it will be preserved from `input`. Default: `nil`.
+     - `device` (`ExTorch.Device` or `nil`) - the device to move the `input`
+    tensor into. If `nil`, then it will be preserved from `input`. Default: `nil`.
+    - `non_blocking` (`boolean`) - when `true`, it tries to convert asynchronously
+    with respect to the host if possible, e.g., converting a CPU Tensor with
+    pinned memory to a CUDA Tensor. Default: `false`.
+    - `copy` (`boolean`) - If `true`, a new `ExTorch.Tensor` is created even when
+    `input` already matches the desired conversion. Default: `false`.
+    - `memory_format` (`ExTorch.MemoryFormat`) - the desired memory format of
+    the returned tensor. Default: `:preserve_format`.
+
+    ## Notes
+    * If the `input` already has the correct `ExTorch.dtype` and `ExTorch.device`,
+    then `input` is returned. Otherwise, the returned tensor is a copy of `input` with
+    the desired `dtype` and `device`.
+    * Unlike PyTorch, `to` does not accept another tensor as parameter, please use
+    an explicit call to `to(input, dtype: other.dtype, device: other.device)` instead.
+
+    ## Examples
+        iex> a = ExTorch.randn({3, 3})
+        #Tensor<
+        [[ 0.5770, -0.8079, -0.4308],
+         [-0.2186,  0.4031, -1.4976],
+         [ 1.2380, -0.4259,  2.0745]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Change tensor dtype, preserving device
+        iex> ExTorch.Tensor.to(a, dtype: :complex64)
+        #Tensor<
+        [[ 0.5770+0.j, -0.8079+0.j, -0.4308+0.j],
+         [-0.2186+0.j,  0.4031+0.j, -1.4976+0.j],
+         [ 1.2380+0.j, -0.4259+0.j,  2.0745+0.j]]
+        [
+          size: {3, 3},
+          dtype: :complex_float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Change tensor device
+        iex> ExTorch.Tensor.to(a, device: :cuda)
+        #Tensor<
+        [[ 0.5770, -0.8079, -0.4308],
+         [-0.2186,  0.4031, -1.4976],
+         [ 1.2380, -0.4259,  2.0745]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: {:cuda, 0},
+          requires_grad: false
+        ]>
+    """
+    @spec to(
+            ExTorch.Tensor.t(),
+            ExTorch.DType.dtype() | nil,
+            ExTorch.Device.device() | nil,
+            boolean(),
+            boolean(),
+            ExTorch.MemoryFormat.memory_format()
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      to(
+        input,
+        dtype \\ nil,
+        device \\ nil,
+        non_blocking \\ false,
+        copy \\ false,
+        memory_format \\ :preserve_format
+      ),
+      dtype:
+        case dtype do
+          nil -> ExTorch.Tensor.dtype(input)
+          _ -> dtype
+        end,
+      device:
+        case device do
+          nil -> ExTorch.Tensor.device(input)
+          _ -> device
+        end
+    )
   end
 end

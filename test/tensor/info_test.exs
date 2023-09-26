@@ -159,4 +159,37 @@ defmodule ExTorchTest.Tensor.InfoTest do
     a = ExTorch.tensor(ExTorch.Complex.complex(-3, 2))
     assert ExTorch.Tensor.item(a) == ExTorch.Complex.complex(-3, 2)
   end
+
+  test "to/1" do
+    a = ExTorch.rand({3, 3})
+    b = ExTorch.Tensor.to(a)
+    a = ExTorch.index_put(a, [0, 0], 1)
+    assert ExTorch.equal(a, b)
+  end
+
+  test "to/2 with copy" do
+    a = ExTorch.rand({3, 3})
+    b = ExTorch.Tensor.to(a, copy: true)
+    a = ExTorch.index_put(a, [0, 0], 1)
+    assert !ExTorch.equal(a, b)
+  end
+
+  test "to/2 with dtype" do
+    a = ExTorch.rand({3, 3})
+    b = ExTorch.Tensor.to(a, dtype: :complex64)
+    assert ExTorch.equal(a, ExTorch.real(b))
+  end
+
+  test "to/2 with device" do
+    nvcc = System.find_executable("nvcc")
+
+    case nvcc do
+      nil -> nil
+      _ ->
+        a = ExTorch.rand({3, 3})
+        b = ExTorch.Tensor.to(a, device: :cuda)
+        assert b.device == {:cuda, 0}
+    end
+  end
+
 end

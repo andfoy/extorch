@@ -17,3 +17,9 @@ bool is_complex(const std::shared_ptr<CrossTensor> &tensor);
 bool is_floating_point(const std::shared_ptr<CrossTensor> &tensor);
 bool is_conj(const std::shared_ptr<CrossTensor> &tensor);
 bool is_nonzero(const std::shared_ptr<CrossTensor> &tensor);
+
+std::shared_ptr<CrossTensor> to(
+    const std::shared_ptr<CrossTensor> &tensor,
+    rust::String dtype, Device device,
+    bool non_blocking, bool copy,
+    rust::String memory_format);

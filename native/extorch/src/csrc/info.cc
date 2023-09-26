@@ -234,3 +234,21 @@ bool is_nonzero(const std::shared_ptr<CrossTensor> &tensor) {
     CrossTensor cross_tensor = *tensor.get();
     return cross_tensor.is_nonzero();
 }
+
+std::shared_ptr<CrossTensor> to(
+        const std::shared_ptr<CrossTensor> &tensor,
+        rust::String dtype, Device device,
+        bool non_blocking, bool copy,
+        rust::String memory_format) {
+
+    CrossTensor out_tensor;
+    CrossTensor cross_tensor = *tensor.get();
+    torch::TensorOptions opts = get_tensor_options(
+        dtype, "", device, false, false, memory_format);
+
+    out_tensor = cross_tensor.to(
+        opts.device(), opts.dtype().toScalarType(), non_blocking, copy,
+        opts.memory_format_opt());
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
