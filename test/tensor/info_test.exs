@@ -184,12 +184,13 @@ defmodule ExTorchTest.Tensor.InfoTest do
     nvcc = System.find_executable("nvcc")
 
     case nvcc do
-      nil -> nil
+      nil ->
+        nil
+
       _ ->
         a = ExTorch.rand({3, 3})
         b = ExTorch.Tensor.to(a, device: :cuda)
         assert b.device == {:cuda, 0}
     end
   end
-
 end
