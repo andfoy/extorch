@@ -260,3 +260,15 @@ std::shared_ptr<CrossTensor> logsumexp(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> sum(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    const int64_t *ptr = dims.data();
+
+    out_tensor = torch::sum(in_tensor, torch::IntArrayRef{ptr, dims.size()}, keepdim);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

@@ -99,3 +99,11 @@ nif_impl!(
     keepdim: bool,
     out: TensorOut
 );
+
+nif_impl!(
+    sum,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool
+);

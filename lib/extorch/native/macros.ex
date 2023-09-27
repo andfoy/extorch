@@ -563,7 +563,7 @@ defmodule ExTorch.Native.Macros do
          args,
          [],
          _,
-         {transforms, output_transform},
+         {transforms, output_transform, omitted_args},
          _,
          signatures
        ) do
@@ -572,9 +572,11 @@ defmodule ExTorch.Native.Macros do
     native_module = {:__aliases__, [alias: false], [:ExTorch, :Native]}
     call_unquote = {:., [], [native_module, func_name]}
 
+    call_args = Enum.filter(args, fn x -> not MapSet.member?(omitted_args, x) end)
+
     call_parameters =
       Enum.map(
-        args,
+        call_args,
         fn
           x when is_atom(x) -> Macro.var(x, nil)
           x -> x
@@ -620,10 +622,11 @@ defmodule ExTorch.Native.Macros do
          args,
          [kwarg | rest] = kwargs,
          defaults,
-         {transforms, output_transform},
+         {transforms, output_transform, omitted_args},
          derived_kwargs,
          signatures
        ) do
+    call_args = Enum.filter(args, fn x -> not MapSet.member?(omitted_args, x) end)
     valid_args = Enum.filter(args, fn x -> is_atom(x) and Map.has_key?(arg_types, x) end)
     defaults_macro = asm_defaults_macro(defaults, derived_kwargs)
 
@@ -676,7 +679,8 @@ defmodule ExTorch.Native.Macros do
     kwargs_spec = asm_kwargs_spec_macro(kwargs, arg_types, derived_kwargs)
     fn_spec = args_spec ++ [kwargs_spec]
 
-    call = asm_call_macro(func_name, args, kwargs, output_transform)
+    call_kwargs = Enum.filter(kwargs, fn x -> not MapSet.member?(omitted_args, x) end)
+    call = asm_call_macro(func_name, call_args, call_kwargs, output_transform)
 
     kwarg_body =
       quote do
@@ -738,7 +742,7 @@ defmodule ExTorch.Native.Macros do
       args,
       rest,
       defaults,
-      {transforms, output_transform},
+      {transforms, output_transform, omitted_args},
       derived_kwargs,
       signatures
     )
@@ -866,32 +870,36 @@ defmodule ExTorch.Native.Macros do
   end
 
   defp assemble_transforms(transforms) do
-    {transforms, aliases, output_transform, debug} =
-      Enum.reduce(transforms, {[], [], nil, false}, fn
-        {:output, {transform, [no_parens: true, line: _], _}}, {transforms, aliases, _, debug} ->
-          {transforms, aliases, transform, debug}
+    {transforms, aliases, output_transform, omitted_args, debug} =
+      Enum.reduce(transforms, {[], [], nil, MapSet.new(), false}, fn
+        {:output, {transform, [no_parens: true, line: _], _}},
+        {transforms, aliases, _, omit, debug} ->
+          {transforms, aliases, transform, omit, debug}
 
-        {:output, transform}, {transforms, aliases, _, debug} ->
-          {transforms, aliases, transform, debug}
+        {:output, transform}, {transforms, aliases, _, omit, debug} ->
+          {transforms, aliases, transform, omit, debug}
 
-        {:extra, transform}, {transforms, aliases, output_transform, debug} ->
-          {[transform | transforms], aliases, output_transform, debug}
+        {:extra, transform}, {transforms, aliases, output_transform, omit, debug} ->
+          {[transform | transforms], aliases, output_transform, omit, debug}
 
-        {:fn_aliases, aliases}, {transforms, _, output_transform, debug} ->
-          {transforms, aliases, output_transform, debug}
+        {:fn_aliases, aliases}, {transforms, _, output_transform, omit, debug} ->
+          {transforms, aliases, output_transform, omit, debug}
 
-        {:debug_gen_macro, debug}, {transforms, aliases, output_transform, _} ->
-          {transforms, aliases, output_transform, debug}
+        {:debug_gen_macro, debug}, {transforms, aliases, output_transform, omit, _} ->
+          {transforms, aliases, output_transform, omit, debug}
 
-        {variable, transform}, {transforms, aliases, output_transform, debug} ->
+        {:omitted_args, omit}, {transforms, aliases, output_transform, _, debug} ->
+          {transforms, aliases, output_transform, MapSet.new(omit), debug}
+
+        {variable, transform}, {transforms, aliases, output_transform, omit, debug} ->
           transform =
             quote do
               unquote(Macro.var(variable, nil)) = unquote(transform)
             end
 
-          {[transform | transforms], aliases, output_transform, debug}
+          {[transform | transforms], aliases, output_transform, omit, debug}
       end)
 
-    {{{:__block__, [], Enum.reverse(transforms)}, output_transform}, aliases, debug}
+    {{{:__block__, [], Enum.reverse(transforms)}, output_transform, omitted_args}, aliases, debug}
   end
 end

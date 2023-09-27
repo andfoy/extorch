@@ -777,5 +777,70 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
             dim
         end
     )
+
+    @doc """
+    Returns the sum of all elements (or alongside an axis) in the input tensor.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `dtype` (`ExTorch.DType` or `nil`) - the desired data type of returned tensor.
+    If specified, the `input` tensor is casted to `dtype` before the operation
+    is performed. This is useful for preventing data type overflows. Default: `nil`.
+
+    ## Examples
+        iex> a = ExTorch.rand({3, 3})
+        #Tensor<
+        [[0.7281, 0.9280, 0.5829],
+        [0.4569, 0.4785, 0.1352],
+        [0.9905, 0.0698, 0.1905]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Sum all elements in a tensor.
+        iex> ExTorch.sum(a)
+        #Tensor<
+        4.5604
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Sum all elements in the last dimension, keeping dims and casting to double
+        iex> ExTorch.sum(a, 1, keepdim: true, dtype: :double)
+        #Tensor<
+        [[2.2390],
+         [1.0707],
+         [1.2507]]
+        [
+          size: {3, 1},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec sum(ExTorch.Tensor.t(), integer() | tuple() | nil, boolean(), ExTorch.DType.dtype()) ::
+            ExTorch.Tensor.t()
+    defbinding(sum(input, dim \\ nil, keepdim \\ false, dtype \\ nil),
+      input:
+        case dtype do
+          nil -> input
+          _ -> ExTorch.Tensor.to(input, dtype: dtype)
+        end,
+      dim:
+        case dim do
+          nil ->
+            {}
+
+          _ ->
+            dim
+        end,
+      omitted_args: [:dtype]
+    )
   end
 end

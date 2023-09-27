@@ -51,3 +51,8 @@ std::shared_ptr<CrossTensor> logsumexp(
         const std::shared_ptr<CrossTensor> &input,
         rust::Vec<int64_t> dims, bool keepdim, TensorOut opt_out
 );
+
+std::shared_ptr<CrossTensor> sum(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim
+);
