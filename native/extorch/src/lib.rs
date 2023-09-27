@@ -133,6 +133,7 @@ rustler::init!(
         aminmax,
         dist,
         logsumexp,
+        sum,
 
         // Other operations
         resolve_conj,

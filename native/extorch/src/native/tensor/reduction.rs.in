@@ -82,3 +82,10 @@ fn logsumexp(
     keepdim: bool,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Sum a tensor elements across dimensions.
+fn sum(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    keepdim: bool
+) -> Result<SharedPtr<CrossTensor>>;

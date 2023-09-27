@@ -768,4 +768,79 @@ defmodule ExTorchTest.Tensor.ReductionTest do
 
     assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
   end
+
+  test "sum/1" do
+    a = ExTorch.tensor([
+      [0.7281, 0.9280, 0.5829],
+      [0.4569, 0.4785, 0.1352],
+      [0.9905, 0.0698, 0.1905]
+    ])
+
+    expected = ExTorch.tensor(4.5604)
+    out = ExTorch.sum(a)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "sum/2" do
+    a = ExTorch.tensor([
+      [0.7281, 0.9280, 0.5829],
+      [0.4569, 0.4785, 0.1352],
+      [0.9905, 0.0698, 0.1905]
+    ])
+
+    expected = ExTorch.tensor([2.1755, 1.4764, 0.9086])
+    out = ExTorch.sum(a, 0)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "sum/2 with kwargs" do
+    a = ExTorch.tensor([
+      [0.7281, 0.9280, 0.5829],
+      [0.4569, 0.4785, 0.1352],
+      [0.9905, 0.0698, 0.1905]
+    ])
+
+    expected = ExTorch.tensor(4.5604, dtype: :double)
+    out = ExTorch.sum(a, dtype: :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "sum/3" do
+    a = ExTorch.tensor([
+      [0.7281, 0.9280, 0.5829],
+      [0.4569, 0.4785, 0.1352],
+      [0.9905, 0.0698, 0.1905]
+    ])
+
+    expected = ExTorch.tensor([[2.1755, 1.4764, 0.9086]])
+    out = ExTorch.sum(a, 0, true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "sum/3 with kwargs" do
+    a = ExTorch.tensor([
+      [0.7281, 0.9280, 0.5829],
+      [0.4569, 0.4785, 0.1352],
+      [0.9905, 0.0698, 0.1905]
+    ])
+
+    expected = ExTorch.tensor([[2.1755, 1.4764, 0.9086]])
+    out = ExTorch.sum(a, 0, keepdim: true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "sum/4" do
+    a = ExTorch.tensor([
+      [0.7281, 0.9280, 0.5829],
+      [0.4569, 0.4785, 0.1352],
+      [0.9905, 0.0698, 0.1905]
+    ])
+
+    expected = ExTorch.tensor([[2.1755, 1.4764, 0.9086]], dtype: :double)
+    out = ExTorch.sum(a, 0, true, :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
 end
