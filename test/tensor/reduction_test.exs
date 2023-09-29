@@ -1051,11 +1051,14 @@ defmodule ExTorchTest.Tensor.ReductionTest do
       ])
 
     expected =
-      ExTorch.tensor([
-        [1.5000],
-        [0.5000],
-        [0.0000]
-      ], dtype: :double)
+      ExTorch.tensor(
+        [
+          [1.5000],
+          [0.5000],
+          [0.0000]
+        ],
+        dtype: :double
+      )
 
     out = ExTorch.nanmean(input, -1, true, :double)
     assert out.dtype == :double
@@ -1101,4 +1104,143 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
   end
 
+  test "median/1" do
+    input =
+      ExTorch.tensor([
+        [-0.7721, -2.0910, -0.4622],
+        [0.1119, 2.4266, 1.3471],
+        [-0.1450, -0.2876, -2.3025]
+      ])
+
+    expected = ExTorch.tensor(-0.2876)
+    out = ExTorch.median(input)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "median/2" do
+    input =
+      ExTorch.tensor([
+        [-0.7721, -2.0910, -0.4622],
+        [0.1119, 2.4266, 1.3471],
+        [-0.1450, -0.2876, -2.3025]
+      ])
+
+    expected_values = ExTorch.tensor([-0.7721, 1.3471, -0.2876])
+    expected_indices = ExTorch.tensor([0, 2, 1], dtype: :long)
+    {values, indices} = ExTorch.median(input, -1)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "median/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [-0.7721, -2.0910, -0.4622],
+        [0.1119, 2.4266, 1.3471],
+        [-0.1450, -0.2876, -2.3025]
+      ])
+
+    expected_values = ExTorch.tensor([-0.7721, 1.3471, -0.2876])
+    expected_indices = ExTorch.tensor([0, 2, 1], dtype: :long)
+    {values, indices} = ExTorch.median(input, dim: -1)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "median/3" do
+    input =
+      ExTorch.tensor([
+        [-0.7721, -2.0910, -0.4622],
+        [0.1119, 2.4266, 1.3471],
+        [-0.1450, -0.2876, -2.3025]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-0.7721],
+        [1.3471],
+        [-0.2876]
+      ])
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [0],
+          [2],
+          [1]
+        ],
+        dtype: :long
+      )
+
+    {values, indices} = ExTorch.median(input, -1, true)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "median/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [-0.7721, -2.0910, -0.4622],
+        [0.1119, 2.4266, 1.3471],
+        [-0.1450, -0.2876, -2.3025]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-0.7721],
+        [1.3471],
+        [-0.2876]
+      ])
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [0],
+          [2],
+          [1]
+        ],
+        dtype: :long
+      )
+
+    {values, indices} = ExTorch.median(input, -1, keepdim: true)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "median/4" do
+    input =
+      ExTorch.tensor([
+        [-0.7721, -2.0910, -0.4622],
+        [0.1119, 2.4266, 1.3471],
+        [-0.1450, -0.2876, -2.3025]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [-0.7721],
+        [1.3471],
+        [-0.2876]
+      ])
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [0],
+          [2],
+          [1]
+        ],
+        dtype: :long
+      )
+
+    values = ExTorch.empty_like(expected_values)
+    indices = ExTorch.empty_like(expected_indices)
+    ExTorch.median(input, -1, true, {values, indices})
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
 end

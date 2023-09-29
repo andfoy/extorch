@@ -105,3 +105,19 @@ fn nanmean(
     keepdim: bool,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Find the median value of a tensor in the given dimension.
+fn median(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;
+
+/// Find the median value of a tensor (ignoring NaNs) in the given dimension.
+fn nanmedian(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;
