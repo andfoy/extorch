@@ -90,6 +90,13 @@ fn sum(
     keepdim: bool
 ) -> Result<SharedPtr<CrossTensor>>;
 
+/// Sum a tensor elements across dimensions, treating zeros as NaNs.
+fn nansum(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    keepdim: bool
+) -> Result<SharedPtr<CrossTensor>>;
+
 /// Compute the mean of tensor elements across dimensions.
 fn mean(
     input: &SharedPtr<CrossTensor>,

@@ -109,6 +109,14 @@ nif_impl!(
 );
 
 nif_impl!(
+    nansum,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool
+);
+
+nif_impl!(
     mean,
     TensorStruct<'a>,
     input: TensorStruct<'a>,

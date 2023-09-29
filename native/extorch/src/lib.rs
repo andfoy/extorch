@@ -134,6 +134,7 @@ rustler::init!(
         dist,
         logsumexp,
         sum,
+        nansum,
         mean,
         nanmean,
         median,
