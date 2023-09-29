@@ -1134,5 +1134,82 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) ::
             ExTorch.Tensor.t() | {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(nanmedian(input, dim \\ nil, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the mode of the values in `input` across dimension `dim`.
+
+    It returns a tuple {`values`, `indices`} where `values` contains the median
+    of each row of `input` in the dimension `dim`, and `indices`
+    contains the index of the median values found in the dimension `dim`.
+
+    If `keepdim` is `true`, the output tensors are of the same size as `input`
+    except in the dimension `dim` where they are of size 1.
+    Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the outputs
+    tensor having 1 fewer dimension than `input`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | nil`) - the dimension or dimensions to reduce. Default: -1
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - the optional output pre-allocated tuple tensor. Default: `nil`
+
+    ## Notes
+    This function is not defined for CUDA tensors yet.
+
+    ## Examples
+        iex> a = ExTorch.randint(5, {3, 4}, dtype: :int32)
+        #Tensor<
+        [[4, 4, 4, 4],
+         [3, 4, 1, 1],
+         [3, 2, 2, 0]]
+        [
+          size: {3, 4},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute the mode in the last dimension.
+        iex> {values, indices} = ExTorch.mode(a)
+        iex> values
+        #Tensor<
+        [4, 1, 2]
+        [size: {3}, dtype: :int, device: :cpu, requires_grad: false]>
+        iex> indices
+        #Tensor<
+        [3, 3, 2]
+        [size: {3}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Compute the mode in the first dimension, keeping output dimensions.
+        iex> {values, indices} = ExTorch.mode(a, 0, keepdim: true)
+        iex> values
+        #Tensor<
+        [[3, 4, 1, 0]]
+        [
+          size: {1, 4},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[2, 1, 1, 2]]
+        [
+          size: {1, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec mode(
+            ExTorch.Tensor.t(),
+            integer() | nil,
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) ::
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(mode(input, dim \\ -1, keepdim \\ false, out \\ nil))
   end
 end

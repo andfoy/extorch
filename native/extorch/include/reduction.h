@@ -78,3 +78,8 @@ TensorTuple nanmedian(
         const std::shared_ptr<CrossTensor> &input,
         OptionalInt opt_dim, bool keepdim, TensorTuple opt_out
 );
+
+TensorTuple mode(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim, bool keepdim, TensorTuple opt_out
+);

@@ -138,6 +138,7 @@ rustler::init!(
         nanmean,
         median,
         nanmedian,
+        mode,
 
         // Other operations
         resolve_conj,

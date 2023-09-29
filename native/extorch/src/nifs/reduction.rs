@@ -143,3 +143,12 @@ nif_impl!(
     keepdim: bool,
     out: TensorTuple
 );
+
+nif_impl!(
+    mode,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    dim: i64,
+    keepdim: bool,
+    out: TensorTuple
+);

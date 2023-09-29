@@ -379,3 +379,30 @@ TensorTuple nanmedian(
 
     return pack_tensor_tuple(out_vec);
 }
+
+TensorTuple mode(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim, bool keepdim, TensorTuple opt_out) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor out_values;
+    CrossTensor out_indices;
+
+    if(opt_out.used) {
+        std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 2);
+        out_values = tensor_out_list[0];
+        out_indices = tensor_out_list[1];
+
+        std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::mode_out(
+            out_values, out_indices, in_tensor, dim, keepdim);
+    } else {
+        std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::mode(
+            in_tensor, dim, keepdim);
+    }
+
+    out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_values)));
+    out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_indices)));
+
+    return pack_tensor_tuple(out_vec);
+}
