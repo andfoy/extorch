@@ -1556,4 +1556,104 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.equal(expected_values, values)
     assert ExTorch.equal(expected_indices, indices)
   end
+
+  test "nansum/1" do
+    input =
+      ExTorch.tensor([
+        [4, 4, 4, :nan],
+        [3, :nan, 1, 1],
+        [3, 2, :nan, 0]
+      ])
+
+    expected = ExTorch.tensor(22.0)
+    out = ExTorch.nansum(input)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "nansum/2" do
+    input =
+      ExTorch.tensor([
+        [4, 4, 4, :nan],
+        [3, :nan, 1, 1],
+        [3, 2, :nan, 0]
+      ])
+
+    expected = ExTorch.tensor([12.0, 5.0, 5.0])
+    out = ExTorch.nansum(input, -1)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "nansum/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [4, 4, 4, :nan],
+        [3, :nan, 1, 1],
+        [3, 2, :nan, 0]
+      ])
+
+    expected = ExTorch.tensor([12.0, 5.0, 5.0])
+    out = ExTorch.nansum(input, dim: -1)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "nansum/3" do
+    input =
+      ExTorch.tensor([
+        [4, 4, 4, :nan],
+        [3, :nan, 1, 1],
+        [3, 2, :nan, 0]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [12.0],
+        [5.0],
+        [5.0]
+      ])
+
+    out = ExTorch.nansum(input, -1, true)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "nansum/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [4, 4, 4, :nan],
+        [3, :nan, 1, 1],
+        [3, 2, :nan, 0]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [12.0],
+        [5.0],
+        [5.0]
+      ])
+
+    out = ExTorch.nansum(input, -1, keepdim: true)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "nansum/4" do
+    input =
+      ExTorch.tensor([
+        [4, 4, 4, :nan],
+        [3, :nan, 1, 1],
+        [3, 2, :nan, 0]
+      ])
+
+    expected =
+      ExTorch.tensor(
+        [
+          [12.0],
+          [5.0],
+          [5.0]
+        ],
+        dtype: :double
+      )
+
+    out = ExTorch.nansum(input, -1, true, :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out)
+  end
 end
