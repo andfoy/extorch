@@ -62,3 +62,9 @@ std::shared_ptr<CrossTensor> mean(
         rust::Vec<int64_t> dims, bool keepdim,
         TensorOut opt_out
 );
+
+std::shared_ptr<CrossTensor> nanmean(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim,
+        TensorOut opt_out
+);

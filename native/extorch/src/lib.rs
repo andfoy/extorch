@@ -135,6 +135,7 @@ rustler::init!(
         logsumexp,
         sum,
         mean,
+        nanmean,
 
         // Other operations
         resolve_conj,
