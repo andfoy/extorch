@@ -1134,5 +1134,37 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) ::
             ExTorch.Tensor.t() | {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(nanmedian(input, dim \\ nil, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the mode of the values in `input` across dimension `dim`.
+
+    It returns a tuple {`values`, `indices`} where `values` contains the median
+    of each row of `input` in the dimension `dim`, and `indices`
+    contains the index of the median values found in the dimension `dim`.
+
+    If `keepdim` is `true`, the output tensors are of the same size as `input`
+    except in the dimension `dim` where they are of size 1.
+    Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the outputs
+    tensor having 1 fewer dimension than `input`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | nil`) - the dimension or dimensions to reduce. Default: -1
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - the optional output pre-allocated tuple tensor. Default: `nil`
+
+    ## Notes
+    This function is not defined for CUDA tensors yet.
+    """
+    @spec mode(
+            ExTorch.Tensor.t(),
+            integer() | nil,
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) ::
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(mode(input, dim \\ -1, keepdim \\ false, out \\ nil))
   end
 end
