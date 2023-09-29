@@ -1243,4 +1243,144 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.allclose(expected_values, values)
     assert ExTorch.equal(expected_indices, indices)
   end
+
+  test "nanmedian/1" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected = ExTorch.tensor(1.0)
+    out = ExTorch.nanmedian(input)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "nanmedian/2" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected_values = ExTorch.tensor([1.0, -1.0, -1.0])
+    expected_indices = ExTorch.tensor([1, 0, 1], dtype: :long)
+    {values, indices} = ExTorch.nanmedian(input, -1)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "nanmedian/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected_values = ExTorch.tensor([1.0, -1.0, -1.0])
+    expected_indices = ExTorch.tensor([1, 0, 1], dtype: :long)
+    {values, indices} = ExTorch.nanmedian(input, dim: -1)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "nanmedian/3" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [1.0],
+        [-1.0],
+        [-1.0]
+      ])
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [1],
+          [0],
+          [1]
+        ],
+        dtype: :long
+      )
+
+    {values, indices} = ExTorch.nanmedian(input, -1, true)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "nanmedian/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [1.0],
+        [-1.0],
+        [-1.0]
+      ])
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [1],
+          [0],
+          [1]
+        ],
+        dtype: :long
+      )
+
+    {values, indices} = ExTorch.nanmedian(input, -1, keepdim: true)
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "nanmedian/4" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected_values =
+      ExTorch.tensor([
+        [1.0],
+        [-1.0],
+        [-1.0]
+      ])
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [1],
+          [0],
+          [1]
+        ],
+        dtype: :long
+      )
+
+    values = ExTorch.empty_like(expected_values)
+    indices = ExTorch.empty_like(expected_indices)
+    ExTorch.nanmedian(input, -1, true, {values, indices})
+
+    assert ExTorch.allclose(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
 end
