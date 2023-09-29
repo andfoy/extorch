@@ -848,4 +848,112 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert out.dtype == :double
     assert ExTorch.allclose(expected, out, rtol: 1.0e-3, atol: 1.0e-3)
   end
+
+  test "mean/1" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor(0.2880)
+    out = ExTorch.mean(input)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "mean/2" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor([0.0838, 0.2528, 0.5274])
+    out = ExTorch.mean(input, 0)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "mean/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor(0.2880, dtype: :double)
+    out = ExTorch.mean(input, dtype: :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "mean/3" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor([[0.3342], [0.2060], [0.3237]])
+    out = ExTorch.mean(input, -1, true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "mean/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor([[0.3342], [0.2060], [0.3237]])
+    out = ExTorch.mean(input, -1, keepdim: true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "mean/4" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor([[0.3342], [0.2060], [0.3237]], dtype: :float64)
+    out = ExTorch.mean(input, -1, true, :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "mean/4 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor([[0.3342], [0.2060], [0.3237]], dtype: :float64)
+    out = ExTorch.mean(input, -1, true, dtype: :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "mean/5" do
+    input =
+      ExTorch.tensor([
+        [0.0945, 0.3992, 0.5090],
+        [0.0142, 0.1471, 0.4568],
+        [0.1428, 0.2121, 0.6163]
+      ])
+
+    expected = ExTorch.tensor([[0.3342], [0.2060], [0.3237]])
+    out = ExTorch.empty_like(expected)
+    ExTorch.mean(input, -1, true, nil, out)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
 end

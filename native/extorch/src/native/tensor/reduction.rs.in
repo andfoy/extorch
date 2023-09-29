@@ -89,3 +89,11 @@ fn sum(
     dim: Vec<i64>,
     keepdim: bool
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the mean of tensor elements across dimensions.
+fn mean(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
