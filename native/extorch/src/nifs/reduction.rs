@@ -125,3 +125,21 @@ nif_impl!(
     keepdim: bool,
     out: TensorOut
 );
+
+nif_impl!(
+    median,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple
+);
+
+nif_impl!(
+    nanmedian,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool,
+    out: TensorTuple
+);

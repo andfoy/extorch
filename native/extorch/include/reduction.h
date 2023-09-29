@@ -68,3 +68,13 @@ std::shared_ptr<CrossTensor> nanmean(
         rust::Vec<int64_t> dims, bool keepdim,
         TensorOut opt_out
 );
+
+TensorTuple median(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out
+);
+
+TensorTuple nanmedian(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out
+);

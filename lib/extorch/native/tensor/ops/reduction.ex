@@ -976,5 +976,163 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
       dim: dim || {},
       omitted_args: [:dtype]
     )
+
+    @doc """
+    Returns the median of the values in `input`.
+
+    If `dim` is `nil`, it returns the median of all values in the tensor. Else, it
+    returns a tuple {`values`, `indices`} where `values` contains the median
+    of each row of `input` in the dimension `dim`, and `indices`
+    contains the index of the median values found in the dimension `dim`.
+
+    If `keepdim` is `true`, the output tensors are of the same size as `input`
+    except in the dimension `dim` where they are of size 1.
+    Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the outputs
+    tensor having 1 fewer dimension than `input`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - the optional output pre-allocated tuple tensor. Default: `nil`
+
+    ## Notes
+    * The median is not unique for `input` tensors with an even number of elements.
+    In this case the lower of the two medians is returned. To compute the mean of both medians,
+    use `ExTorch.quantile` with q=0.5 instead.
+
+    * `indices` does not necessarily contain the first occurrence of each median value found,
+    unless it is unique. The exact implementation details are device-specific. Do not expect
+    the same result when run on CPU and GPU in general. For the same reason do not expect
+    the gradients to be deterministic.
+
+    * `keepdim` and `out` will not take effect when `dim = nil`.
+
+    ## Examples
+        iex> a = ExTorch.randn({3, 3})
+        #Tensor<
+        [[-0.7721, -2.0910, -0.4622],
+         [ 0.1119,  2.4266,  1.3471],
+         [-0.1450, -0.2876, -2.3025]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute overall median of the input tensor.
+        iex> ExTorch.median(a)
+        #Tensor<
+        -0.2876
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute the median of the last dimension, keeping dimensions.
+        iex> {values, indices} = ExTorch.median(a, -1, keepdim: true)
+        iex> values
+        #Tensor<
+        [[-0.7721],
+         [ 1.3471],
+         [-0.2876]]
+        [
+          size: {3, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[0],
+         [2],
+         [1]]
+        [
+          size: {3, 1},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec median(
+            ExTorch.Tensor.t(),
+            integer() | nil,
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) ::
+            ExTorch.Tensor.t() | {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(median(input, dim \\ nil, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the median of the values in input, ignoring NaN values.
+
+    This function is identical to `ExTorch.median/4` when there are no `:nan` values in input.
+    When input has one or more `:nan` values, `ExTorch.median` will always return `:nan`,
+    while this function will return the median of the non-NaN elements in input.
+    If all the elements in input are NaN it will also return `:nan`.
+
+    If `dim` is `nil`, it returns the median of all values in the tensor. Else, it
+    returns a tuple {`values`, `indices`} where `values` contains the median
+    of each row of `input` in the dimension `dim`, and `indices`
+    contains the index of the median values found in the dimension `dim`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - the optional output pre-allocated tuple tensor. Default: `nil`
+
+    ## Examples
+        iex> input =
+        ...>   ExTorch.tensor([
+        ...>     [:nan, 1.0, 2.0],
+        ...>     [-1.0, :nan, 2.0],
+        ...>     [1.0, -1.0, :nan]
+        ...>   ])
+
+        # Compute median of the tensor without :nan
+        iex> ExTorch.nanmedian(input)
+        #Tensor<
+        1.
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute median of the tensor in the last dimension, keeping all dimensions
+        iex> {values, indices} = ExTorch.nanmedian(input, -1, keepdim: true)
+        iex> values
+        #Tensor<
+        [[ 1.],
+         [-1.],
+         [-1.]]
+        [
+          size: {3, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[1],
+         [0],
+         [1]]
+        [
+          size: {3, 1},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec nanmedian(
+            ExTorch.Tensor.t(),
+            integer() | nil,
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) ::
+            ExTorch.Tensor.t() | {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(nanmedian(input, dim \\ nil, keepdim \\ false, out \\ nil))
   end
 end

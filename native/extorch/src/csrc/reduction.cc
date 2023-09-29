@@ -310,3 +310,72 @@ std::shared_ptr<CrossTensor> nanmean(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+TensorTuple median(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+    CrossTensor in_tensor = *input.get();
+    int64_t dim = -1;
+
+    CrossTensor out_values;
+    CrossTensor out_indices;
+
+    if(!opt_dim.used) {
+        out_values = torch::median(in_tensor);
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_values)));
+    } else {
+        if(opt_out.used) {
+            dim = opt_dim.value;
+            std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 2);
+            out_values = tensor_out_list[0];
+            out_indices = tensor_out_list[1];
+
+            std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::median_out(
+                out_values, out_indices, in_tensor, dim, keepdim);
+        } else {
+            std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::median(
+                in_tensor, dim, keepdim);
+        }
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_values)));
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_indices)));
+    }
+
+    return pack_tensor_tuple(out_vec);
+}
+
+
+TensorTuple nanmedian(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim, TensorTuple opt_out) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+    CrossTensor in_tensor = *input.get();
+    int64_t dim = -1;
+
+    CrossTensor out_values;
+    CrossTensor out_indices;
+
+    if(!opt_dim.used) {
+        out_values = torch::nanmedian(in_tensor);
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_values)));
+    } else {
+        if(opt_out.used) {
+            dim = opt_dim.value;
+            std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 2);
+            out_values = tensor_out_list[0];
+            out_indices = tensor_out_list[1];
+
+            std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::nanmedian_out(
+                out_values, out_indices, in_tensor, dim, keepdim);
+        } else {
+            std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::nanmedian(
+                in_tensor, dim, keepdim);
+        }
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_values)));
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_indices)));
+    }
+
+    return pack_tensor_tuple(out_vec);
+}
