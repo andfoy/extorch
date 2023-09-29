@@ -273,6 +273,19 @@ std::shared_ptr<CrossTensor> sum(
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
 
+std::shared_ptr<CrossTensor> nansum(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    const int64_t *ptr = dims.data();
+
+    out_tensor = torch::nansum(
+        in_tensor, torch::IntArrayRef{ptr, dims.size()}, keepdim);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
+
 std::shared_ptr<CrossTensor> mean(
         const std::shared_ptr<CrossTensor> &input,
         rust::Vec<int64_t> dims, bool keepdim, TensorOut opt_out) {

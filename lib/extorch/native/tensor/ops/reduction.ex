@@ -1211,5 +1211,62 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) ::
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(mode(input, dim \\ -1, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the sum of all elements (or alongside an axis) in the input tensor, treating NaNs as zeros.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `dtype` (`ExTorch.DType` or `nil`) - the desired data type of returned tensor.
+    If specified, the `input` tensor is casted to `dtype` before the operation
+    is performed. This is useful for preventing data type overflows. Default: `nil`.
+
+    ## Examples
+        iex> input =
+        ...>   ExTorch.tensor(
+        ...>     [
+        ...>       [4, 4, 4, :nan],
+        ...>       [3, :nan, 1, 1],
+        ...>       [3, 2, :nan, 0]
+        ...>     ]
+        ...>   )
+
+        # Sum all elements in the tensor, ignoring NaNs
+        iex> ExTorch.nansum(input)
+        #Tensor<
+        22.
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Sum all elements in the last dimension, keeping dims and casting to double.
+        iex> ExTorch.nansum(input, -1, keepdim: true, dtype: :double)
+        #Tensor<
+        [[12.],
+         [ 5.],
+         [ 5.]]
+        [
+          size: {3, 1},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec nansum(ExTorch.Tensor.t(), integer() | tuple() | nil, boolean(), ExTorch.DType.dtype()) ::
+            ExTorch.Tensor.t()
+    defbinding(nansum(input, dim \\ nil, keepdim \\ false, dtype \\ nil),
+      input:
+        if dtype do
+          ExTorch.Tensor.to(input, dtype: dtype)
+        else
+          input
+        end,
+      dim: dim || {},
+      omitted_args: [:dtype]
+    )
   end
 end

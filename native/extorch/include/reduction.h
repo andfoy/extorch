@@ -57,6 +57,11 @@ std::shared_ptr<CrossTensor> sum(
         rust::Vec<int64_t> dims, bool keepdim
 );
 
+std::shared_ptr<CrossTensor> nansum(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, bool keepdim
+);
+
 std::shared_ptr<CrossTensor> mean(
         const std::shared_ptr<CrossTensor> &input,
         rust::Vec<int64_t> dims, bool keepdim,
