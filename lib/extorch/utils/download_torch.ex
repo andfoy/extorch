@@ -315,12 +315,7 @@ defmodule ExTorch.Utils.DownloadTorch do
   end
 
   defmacro __using__(_opts) do
-    config =
-      case @libtorch_config do
-        nil -> default_libtorch_config()
-        _ -> @libtorch_config
-      end
-
+    config = @libtorch_config || default_libtorch_config()
     :ok = download_torch_binaries(config)
 
     quote do

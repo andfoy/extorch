@@ -768,13 +768,11 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) :: ExTorch.Tensor.t()
     defbinding(logsumexp(input, dim \\ nil, keepdim \\ false, out \\ nil),
       dim:
-        case dim do
-          nil ->
-            max_dim = ExTorch.Tensor.dim(input) - 1
-            Enum.map(0..max_dim, fn x -> x end) |> List.to_tuple()
-
-          _ ->
-            dim
+        if dim do
+          dim
+        else
+          max_dim = ExTorch.Tensor.dim(input) - 1
+          Enum.map(0..max_dim, fn x -> x end) |> List.to_tuple()
         end
     )
 
@@ -828,18 +826,78 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
             ExTorch.Tensor.t()
     defbinding(sum(input, dim \\ nil, keepdim \\ false, dtype \\ nil),
       input:
-        case dtype do
-          nil -> input
-          _ -> ExTorch.Tensor.to(input, dtype: dtype)
+        if dtype do
+          ExTorch.Tensor.to(input, dtype: dtype)
+        else
+          input
         end,
-      dim:
-        case dim do
-          nil ->
-            {}
+      dim: dim || {},
+      omitted_args: [:dtype]
+    )
 
-          _ ->
-            dim
+    @doc """
+    Returns the mean value of all elements (or alongside an axis) in the input tensor.
+
+    ## Arguments
+      - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `dtype` (`ExTorch.DType` or `nil`) - the desired data type of returned tensor.
+    If specified, the `input` tensor is casted to `dtype` before the operation
+    is performed. This is useful for preventing data type overflows. Default: `nil`.
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.rand({3, 3})
+        #Tensor<
+        [[0.0945, 0.3992, 0.5090],
+         [0.0142, 0.1471, 0.4568],
+         [0.1428, 0.2121, 0.6163]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Mean of all elements in a tensor.
+        iex> ExTorch.mean(a)
+        #Tensor<
+        0.2880
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Mean of elements in the last dimension, keeping dims and casting to double
+        iex> ExTorch.mean(a, -1, keepdim: true, dtype: :double)
+        #Tensor<
+        [[0.3343],
+         [0.2060],
+         [0.3237]]
+        [
+          size: {3, 1},
+          dtype: :double,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec mean(
+            ExTorch.Tensor.t(),
+            integer() | tuple() | nil,
+            boolean(),
+            ExTorch.DType.dtype(),
+            ExTorch.Tensor.t()
+          ) ::
+            ExTorch.Tensor.t()
+    defbinding(mean(input, dim \\ nil, keepdim \\ false, dtype \\ nil, out \\ nil),
+      input:
+        if dtype do
+          ExTorch.Tensor.to(input, dtype: dtype)
+        else
+          input
         end,
+      dim: dim || {},
       omitted_args: [:dtype]
     )
   end

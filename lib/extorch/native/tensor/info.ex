@@ -320,16 +320,8 @@ defmodule ExTorch.Native.Tensor.Info do
         copy \\ false,
         memory_format \\ :preserve_format
       ),
-      dtype:
-        case dtype do
-          nil -> ExTorch.Tensor.dtype(input)
-          _ -> dtype
-        end,
-      device:
-        case device do
-          nil -> ExTorch.Tensor.device(input)
-          _ -> device
-        end
+      dtype: dtype || ExTorch.Tensor.dtype(input),
+      device: device || ExTorch.Tensor.device(input)
     )
   end
 end

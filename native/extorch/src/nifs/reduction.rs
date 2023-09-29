@@ -107,3 +107,12 @@ nif_impl!(
     dim: Size,
     keepdim: bool
 );
+
+nif_impl!(
+    mean,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool,
+    out: TensorOut
+);
