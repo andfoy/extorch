@@ -695,7 +695,8 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
         # Compute the Euclidean norm
         iex> ExTorch.dist(a, b)
         #Tensor<
-        2.3605
+        2.3605\
+
         [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
 
         # Compute the L1 distance
@@ -891,6 +892,81 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) ::
             ExTorch.Tensor.t()
     defbinding(mean(input, dim \\ nil, keepdim \\ false, dtype \\ nil, out \\ nil),
+      input:
+        if dtype do
+          ExTorch.Tensor.to(input, dtype: dtype)
+        else
+          input
+        end,
+      dim: dim || {},
+      omitted_args: [:dtype]
+    )
+
+    @doc """
+    Computes the mean of all non-NaN elements along the specified dimensions.
+
+    This function is identical to `ExTorch.mean/5` when there are no `:nan` values in the `input` tensor.
+    In the presence of `:nan`, `ExTorch.mean` will propagate the `:nan` to the output whereas `ExTorch.nanmean`
+    will ignore the NaN values.
+
+    If `keepdim` is `true`, the output tensor is of the same size as `input` except in the dimension(s) `dim`
+    where it is of size 1. Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the output
+    tensor having 1 (or `length(dim)`) fewer dimension(s).
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `dtype` (`ExTorch.DType` or `nil`) - the desired data type of returned tensor.
+    If specified, the `input` tensor is casted to `dtype` before the operation
+    is performed. This is useful for preventing data type overflows. Default: `nil`.
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.tensor([[:nan, 1.0, 2.0], [-1.0, :nan, 2.0], [1.0, -1.0, :nan]])
+        #Tensor<
+        [[    nan,  1.0000,  2.0000],
+        [-1.0000,     nan,  2.0000],
+        [ 1.0000, -1.0000,     nan]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute mean of all array elements without :nan
+        iex> ExTorch.nanmean(a)
+        #Tensor<
+        0.6667
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute mean of all array elements on the last dimension, keep all dims
+        iex> ExTorch.nanmean(a, -1, keepdim: true)
+        #Tensor<
+        [[1.5000],
+         [0.5000],
+         [0.0000]]
+        [
+          size: {3, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec nanmean(
+            ExTorch.Tensor.t(),
+            integer() | tuple() | nil,
+            boolean(),
+            ExTorch.DType.dtype(),
+            ExTorch.Tensor.t()
+          ) ::
+            ExTorch.Tensor.t()
+    defbinding(nanmean(input, dim \\ nil, keepdim \\ false, dtype \\ nil, out \\ nil),
       input:
         if dtype do
           ExTorch.Tensor.to(input, dtype: dtype)

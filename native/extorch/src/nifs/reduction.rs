@@ -116,3 +116,12 @@ nif_impl!(
     keepdim: bool,
     out: TensorOut
 );
+
+nif_impl!(
+    nanmean,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    keepdim: bool,
+    out: TensorOut
+);

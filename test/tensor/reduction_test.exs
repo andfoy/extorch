@@ -956,4 +956,149 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     ExTorch.mean(input, -1, true, nil, out)
     assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
   end
+
+  test "nanmean/1" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected = ExTorch.tensor(0.6667)
+    out = ExTorch.nanmean(input)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/2" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([1.5000, 0.5000, 0.0000])
+
+    out = ExTorch.nanmean(input, -1)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [1.5000],
+        [0.5000],
+        [0.0000]
+      ])
+
+    out = ExTorch.nanmean(input, dim: -1, keepdim: true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/3" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [1.5000],
+        [0.5000],
+        [0.0000]
+      ])
+
+    out = ExTorch.nanmean(input, -1, true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [1.5000],
+        [0.5000],
+        [0.0000]
+      ])
+
+    out = ExTorch.nanmean(input, -1, keepdim: true)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/4" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [1.5000],
+        [0.5000],
+        [0.0000]
+      ], dtype: :double)
+
+    out = ExTorch.nanmean(input, -1, true, :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/4 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [1.5000],
+        [0.5000],
+        [0.0000]
+      ])
+
+    out = ExTorch.nanmean(input, -1, true, dtype: nil)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
+  test "nanmean/5" do
+    input =
+      ExTorch.tensor([
+        [:nan, 1.0, 2.0],
+        [-1.0, :nan, 2.0],
+        [1.0, -1.0, :nan]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [1.5000],
+        [0.5000],
+        [0.0000]
+      ])
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.nanmean(input, -1, true, nil, out)
+    assert ExTorch.allclose(expected, out, rtol: 1.0e-4, atol: 1.0e-4)
+  end
+
 end
