@@ -1383,4 +1383,177 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.allclose(expected_values, values)
     assert ExTorch.equal(expected_indices, indices)
   end
+
+  test "mode/1" do
+    input =
+      ExTorch.tensor(
+        [
+          [4, 4, 4, 4],
+          [3, 4, 1, 1],
+          [3, 2, 2, 0]
+        ],
+        dtype: :int32
+      )
+
+    expected_values = ExTorch.tensor([4, 1, 2], dtype: :int32)
+    expected_indices = ExTorch.tensor([3, 3, 2], dtype: :int64)
+
+    {values, indices} = ExTorch.mode(input)
+
+    assert ExTorch.equal(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "mode/2" do
+    input =
+      ExTorch.tensor(
+        [
+          [4, 4, 4, 4],
+          [3, 4, 1, 1],
+          [3, 2, 2, 0]
+        ],
+        dtype: :int32
+      )
+
+    expected_values = ExTorch.tensor([3, 4, 1, 0], dtype: :int32)
+    expected_indices = ExTorch.tensor([2, 1, 1, 2], dtype: :int64)
+
+    {values, indices} = ExTorch.mode(input, 0)
+
+    assert ExTorch.equal(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "mode/2 with kwargs" do
+    input =
+      ExTorch.tensor(
+        [
+          [4, 4, 4, 4],
+          [3, 4, 1, 1],
+          [3, 2, 2, 0]
+        ],
+        dtype: :int32
+      )
+
+    expected_values = ExTorch.tensor([3, 4, 1, 0], dtype: :int32)
+    expected_indices = ExTorch.tensor([2, 1, 1, 2], dtype: :int64)
+
+    {values, indices} = ExTorch.mode(input, dim: 0)
+
+    assert ExTorch.equal(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "mode/3" do
+    input =
+      ExTorch.tensor(
+        [
+          [4, 4, 4, 4],
+          [3, 4, 1, 1],
+          [3, 2, 2, 0]
+        ],
+        dtype: :int32
+      )
+
+    expected_values =
+      ExTorch.tensor(
+        [
+          [4],
+          [1],
+          [2]
+        ],
+        dtype: :int32
+      )
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [3],
+          [3],
+          [2]
+        ],
+        dtype: :int64
+      )
+
+    {values, indices} = ExTorch.mode(input, -1, true)
+
+    assert ExTorch.equal(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "mode/3 with kwargs" do
+    input =
+      ExTorch.tensor(
+        [
+          [4, 4, 4, 4],
+          [3, 4, 1, 1],
+          [3, 2, 2, 0]
+        ],
+        dtype: :int32
+      )
+
+    expected_values =
+      ExTorch.tensor(
+        [
+          [4],
+          [1],
+          [2]
+        ],
+        dtype: :int32
+      )
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [3],
+          [3],
+          [2]
+        ],
+        dtype: :int64
+      )
+
+    {values, indices} = ExTorch.mode(input, -1, keepdim: true)
+
+    assert ExTorch.equal(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
+
+  test "mode/4" do
+    input =
+      ExTorch.tensor(
+        [
+          [4, 4, 4, 4],
+          [3, 4, 1, 1],
+          [3, 2, 2, 0]
+        ],
+        dtype: :int32
+      )
+
+    expected_values =
+      ExTorch.tensor(
+        [
+          [4],
+          [1],
+          [2]
+        ],
+        dtype: :int32
+      )
+
+    expected_indices =
+      ExTorch.tensor(
+        [
+          [3],
+          [3],
+          [2]
+        ],
+        dtype: :int64
+      )
+
+    values = ExTorch.empty_like(expected_values)
+    indices = ExTorch.empty_like(expected_indices)
+    ExTorch.mode(input, -1, true, {values, indices})
+
+    assert ExTorch.equal(expected_values, values)
+    assert ExTorch.equal(expected_indices, indices)
+  end
 end

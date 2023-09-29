@@ -1157,6 +1157,51 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
 
     ## Notes
     This function is not defined for CUDA tensors yet.
+
+    ## Examples
+        iex> a = ExTorch.randint(5, {3, 4}, dtype: :int32)
+        #Tensor<
+        [[4, 4, 4, 4],
+         [3, 4, 1, 1],
+         [3, 2, 2, 0]]
+        [
+          size: {3, 4},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute the mode in the last dimension.
+        iex> {values, indices} = ExTorch.mode(a)
+        iex> values
+        #Tensor<
+        [4, 1, 2]
+        [size: {3}, dtype: :int, device: :cpu, requires_grad: false]>
+        iex> indices
+        #Tensor<
+        [3, 3, 2]
+        [size: {3}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Compute the mode in the first dimension, keeping output dimensions.
+        iex> {values, indices} = ExTorch.mode(a, 0, keepdim: true)
+        iex> values
+        #Tensor<
+        [[3, 4, 1, 0]]
+        [
+          size: {1, 4},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> indices
+        #Tensor<
+        [[2, 1, 1, 2]]
+        [
+          size: {1, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
     """
     @spec mode(
             ExTorch.Tensor.t(),

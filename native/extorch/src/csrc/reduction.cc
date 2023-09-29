@@ -400,6 +400,9 @@ TensorTuple mode(
         std::tie<CrossTensor, CrossTensor>(out_values, out_indices) = torch::mode(
             in_tensor, dim, keepdim);
     }
+
     out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_values)));
     out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_indices)));
+
+    return pack_tensor_tuple(out_vec);
 }
