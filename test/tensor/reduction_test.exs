@@ -1656,4 +1656,104 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert out.dtype == :double
     assert ExTorch.allclose(expected, out)
   end
+
+  test "prod/1" do
+    input =
+      ExTorch.tensor([
+        [2.0, 1.0, 1.0, 1.0],
+        [1.0, 2.0, 2.0, 1.0],
+        [2.0, 2.0, 2.0, 1.0]
+      ])
+
+    expected = ExTorch.tensor(64.0)
+    out = ExTorch.prod(input)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "prod/2" do
+    input =
+      ExTorch.tensor([
+        [2.0, 1.0, 1.0, 1.0],
+        [1.0, 2.0, 2.0, 1.0],
+        [2.0, 2.0, 2.0, 1.0]
+      ])
+
+    expected = ExTorch.tensor([2.0, 4.0, 8.0])
+    out = ExTorch.prod(input, -1)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "prod/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [2.0, 1.0, 1.0, 1.0],
+        [1.0, 2.0, 2.0, 1.0],
+        [2.0, 2.0, 2.0, 1.0]
+      ])
+
+    expected = ExTorch.tensor([2.0, 4.0, 8.0])
+    out = ExTorch.prod(input, dim: -1)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "prod/3" do
+    input =
+      ExTorch.tensor([
+        [2.0, 1.0, 1.0, 1.0],
+        [1.0, 2.0, 2.0, 1.0],
+        [2.0, 2.0, 2.0, 1.0]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [2.0],
+        [4.0],
+        [8.0]
+      ])
+
+    out = ExTorch.prod(input, -1, true)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "prod/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [2.0, 1.0, 1.0, 1.0],
+        [1.0, 2.0, 2.0, 1.0],
+        [2.0, 2.0, 2.0, 1.0]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [2.0],
+        [4.0],
+        [8.0]
+      ])
+
+    out = ExTorch.prod(input, -1, keepdim: true)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "prod/4" do
+    input =
+      ExTorch.tensor([
+        [2.0, 1.0, 1.0, 1.0],
+        [1.0, 2.0, 2.0, 1.0],
+        [2.0, 2.0, 2.0, 1.0]
+      ])
+
+    expected =
+      ExTorch.tensor(
+        [
+          [2.0],
+          [4.0],
+          [8.0]
+        ],
+        dtype: :double
+      )
+
+    out = ExTorch.prod(input, -1, true, :double)
+    assert out.dtype == :double
+    assert ExTorch.allclose(expected, out)
+  end
 end
