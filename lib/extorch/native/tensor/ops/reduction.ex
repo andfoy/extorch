@@ -1268,5 +1268,66 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
       dim: dim || {},
       omitted_args: [:dtype]
     )
+
+    @doc """
+    Returns the product of all elements (or alongside an axis) in the input tensor.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `dtype` (`ExTorch.DType` or `nil`) - the desired data type of returned tensor.
+    If specified, the `input` tensor is casted to `dtype` before the operation
+    is performed. This is useful for preventing data type overflows. Default: `nil`.
+
+    ## Notes
+    * `keepdim` does not apply when `dim = nil`.
+
+    ## Examples
+        iex> a = ExTorch.randint(1, 3, {3, 4})
+        #Tensor<
+        [[1., 1., 1., 2.],
+         [1., 2., 1., 1.],
+         [1., 2., 1., 2.]]
+        [
+          size: {3, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Multiply all elements in the tensor
+        iex> ExTorch.prod(a)
+        #Tensor<
+        16.
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Multiply all elements in the last dimension, keep all dimensions
+        iex> ExTorch.prod(a, -1, keepdim: true)
+        #Tensor<
+        [[2.],
+         [2.],
+         [4.]]
+        [
+          size: {3, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec prod(ExTorch.Tensor.t(), integer() | tuple() | nil, boolean(), ExTorch.DType.dtype()) ::
+            ExTorch.Tensor.t()
+    defbinding(prod(input, dim \\ nil, keepdim \\ false, dtype \\ nil),
+      input:
+        if dtype do
+          ExTorch.Tensor.to(input, dtype: dtype)
+        else
+          input
+        end,
+      omitted_args: [:dtype]
+    )
   end
 end

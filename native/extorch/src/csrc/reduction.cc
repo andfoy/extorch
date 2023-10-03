@@ -419,3 +419,17 @@ TensorTuple mode(
 
     return pack_tensor_tuple(out_vec);
 }
+
+std::shared_ptr<CrossTensor> prod(
+        const std::shared_ptr<CrossTensor> &input,
+        OptionalInt opt_dim, bool keepdim) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    if(opt_dim.used) {
+        out_tensor = torch::prod(in_tensor, opt_dim.value, keepdim);
+    } else {
+        out_tensor = torch::prod(in_tensor);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

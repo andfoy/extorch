@@ -136,3 +136,10 @@ fn mode(
     keepdim: bool,
     out: TensorTuple,
 ) -> Result<TensorTuple>;
+
+/// Multiply a tensor elements across dimensions.
+fn prod(
+    input: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool
+) -> Result<SharedPtr<CrossTensor>>;

@@ -160,3 +160,11 @@ nif_impl!(
     keepdim: bool,
     out: TensorTuple
 );
+
+nif_impl!(
+    prod,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool
+);
