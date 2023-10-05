@@ -397,6 +397,7 @@ defmodule ExTorch.Native.Macros do
           quote do
             is_struct(unquote(Macro.var(variable, nil)), unquote(struct_alias))
           end
+
         {variable, {:atom_list, atom_list}} ->
           quote do
             unquote(Macro.var(variable, nil)) in unquote(atom_list)
