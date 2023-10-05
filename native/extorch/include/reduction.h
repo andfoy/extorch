@@ -93,3 +93,10 @@ std::shared_ptr<CrossTensor> prod(
         const std::shared_ptr<CrossTensor> &input,
         OptionalInt opt_dim, bool keepdim
 );
+
+std::shared_ptr<CrossTensor> quantile(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &q,
+        OptionalInt opt_dim, bool keepdim,
+        rust::String interpolation,
+        TensorOut out);
