@@ -141,6 +141,7 @@ rustler::init!(
         nanmedian,
         mode,
         prod,
+        quantile,
 
         // Other operations
         resolve_conj,

@@ -397,6 +397,11 @@ defmodule ExTorch.Native.Macros do
           quote do
             is_struct(unquote(Macro.var(variable, nil)), unquote(struct_alias))
           end
+
+        {variable, {:atom_list, atom_list}} ->
+          quote do
+            unquote(Macro.var(variable, nil)) in unquote(atom_list)
+          end
       end)
       |> Enum.chunk_while([], chunk_fun, after_fun)
 
@@ -842,7 +847,14 @@ defmodule ExTorch.Native.Macros do
     case arg_spec do
       {:|, _, type_union} ->
         type_union = flatten_type_union(type_union, [])
-        type_union = parse_type_union(type_union)
+        all_atom = Enum.reduce(type_union, true, fn x, acc -> acc and is_atom(x) end)
+
+        type_union =
+          case all_atom do
+            true -> {:atom_list, type_union}
+            false -> parse_type_union(type_union)
+          end
+
         {arg_name, {type_union, arg_spec}}
 
       _ ->

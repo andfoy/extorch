@@ -1329,5 +1329,115 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
         end,
       omitted_args: [:dtype]
     )
+
+    @doc """
+    Computes the q-th quantiles of each row of the `input` tensor along the dimension `dim`.
+
+    To compute the quantile, we map q in [0, 1] to the range of indices [0, n] to find the
+    location of the quantile in the sorted input. If the quantile lies between two data points
+    `a < b` with indices `i` and `j` in the sorted order, result is computed according to the
+    given `interpolation` method as follows:
+
+    * `:linear`: `a + (b - a) * fraction`, where `fraction` is the fractional part of the computed quantile index.
+    * `lower`: `a`.
+    * `higher`: `b`.
+    * `nearest`: `a` or `b`, whichever’s index is closer to the computed quantile index (rounding down for .5 fractions).
+    * `midpoint`: `(a + b) / 2`.
+
+    If `q` is a 1D tensor, the first dimension of the output represents the quantiles and has size equal
+    to the size of `q`, the remaining dimensions are what remains from the reduction.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `q` (`ExTorch.Tensor` | `floating`) - a scalar or 1D tensor of values in the range [0, 1].
+
+    ## Optional arguments
+    - `dim` (`integer` | `nil`) - the dimension to reduce. If `nil`, `input` will be flattened before
+    computation. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output has `dim` retained or not. Default: `false`
+    - `interpolation` (`atom`) interpolation method to use when the desired quantile lies between two data points.
+    Can be `:linear`, `:lower`, `:higher`, `:midpoint` and `:nearest`. Default: `:linear`.
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.randn({2, 3})
+        #Tensor<
+        [[ 2.1818, -1.5810,  0.6152],
+         [ 0.2525, -0.7425,  0.3769]]
+        [
+          size: {2, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> q = torch.tensor([0.25, 0.5, 0.75])
+
+        # Quantiles in the last dimension, keep output dimensions
+        iex> ExTorch.quantile(a, q, dim: 1, keepdim: true)
+        #Tensor<
+        [[[-0.4829],
+          [-0.2450]],
+
+         [[ 0.6152],
+          [ 0.2525]],
+
+         [[ 1.3985],
+          [ 0.3147]]]
+        [
+          size: {3, 2, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> a = ExTorch.arange(4)
+        #Tensor<
+        [0.0000, 1.0000, 2.0000, 3.0000]
+        [
+          size: {4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Interpolation modes
+        iex> ExTorch.quantile(a, 0.6, interpolation: :linear)
+        #Tensor<
+        [1.8000]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.quantile(a, 0.6, interpolation: :lower)
+        #Tensor<
+        [1.]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.quantile(a, 0.6, interpolation: :higher)
+        #Tensor<
+        [2.]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.quantile(a, 0.6, interpolation: :midpoint)
+        #Tensor<
+        [1.5000]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.quantile(a, 0.6, interpolation: :nearest)
+        #Tensor<
+        [2.]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+
+    """
+    @spec quantile(
+            ExTorch.Tensor.t(),
+            float() | ExTorch.Tensor.t(),
+            integer() | nil,
+            boolean(),
+            :linear | :lower | :higher | :midpoint | :nearest,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      quantile(input, q, dim \\ nil, keepdim \\ false, interpolation \\ :linear, out \\ nil),
+      q:
+        case q do
+          %ExTorch.Tensor{} -> q
+          _ -> ExTorch.tensor(q, dtype: :float)
+        end
+    )
   end
 end

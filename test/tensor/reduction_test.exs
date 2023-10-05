@@ -1756,4 +1756,139 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert out.dtype == :double
     assert ExTorch.allclose(expected, out)
   end
+
+  test "quantile/2" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+    expected = ExTorch.tensor([1.2500, 2.5000, 3.7500])
+
+    out = ExTorch.quantile(input, q)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/3" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [0.5000, 3.5000],
+        [1.0000, 4.0000],
+        [1.5000, 4.5000]
+      ])
+
+    out = ExTorch.quantile(input, q, -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/3 with kwargs" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [0.5000, 3.5000],
+        [1.0000, 4.0000],
+        [1.5000, 4.5000]
+      ])
+
+    out = ExTorch.quantile(input, q, dim: -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/4" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [[0.5000], [3.5000]],
+        [[1.0000], [4.0000]],
+        [[1.5000], [4.5000]]
+      ])
+
+    out = ExTorch.quantile(input, q, -1, true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/4 with kwargs" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [[0.5000], [3.5000]],
+        [[1.0000], [4.0000]],
+        [[1.5000], [4.5000]]
+      ])
+
+    out = ExTorch.quantile(input, q, -1, keepdim: true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/5 (linear interpolate)" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([1.2500, 2.5000, 3.7500])
+
+    out = ExTorch.quantile(input, q, nil, false, :linear)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/5 (lower interpolate)" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([1.0, 2.0, 3.0])
+
+    out = ExTorch.quantile(input, q, nil, false, :lower)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/5 (higher interpolate)" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.quantile(input, q, nil, false, :higher)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/5 (midpoint interpolate)" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([1.5000, 2.5000, 3.5000])
+
+    out = ExTorch.quantile(input, q, nil, false, :midpoint)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/5 (nearest interpolate)" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([1.0, 2.0, 4.0])
+
+    out = ExTorch.quantile(input, q, nil, false, :nearest)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "quantile/6" do
+    input = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [[0.5000], [3.5000]],
+        [[1.0000], [4.0000]],
+        [[1.5000], [4.5000]]
+      ])
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.quantile(input, q, -1, true, :linear, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

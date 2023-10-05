@@ -143,3 +143,13 @@ fn prod(
     dim: OptionalInt,
     keepdim: bool
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the quantiles of each row of a tensor in a given dimension.
+fn quantile(
+    input: &SharedPtr<CrossTensor>,
+    q: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    interpolation: String,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;
