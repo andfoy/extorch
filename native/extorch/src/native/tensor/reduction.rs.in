@@ -153,3 +153,13 @@ fn quantile(
     interpolation: String,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the quantiles of each row of a tensor in a given dimension, ignoring NaNs.
+fn nanquantile(
+    input: &SharedPtr<CrossTensor>,
+    q: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    keepdim: bool,
+    interpolation: String,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

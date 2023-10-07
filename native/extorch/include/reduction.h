@@ -100,3 +100,10 @@ std::shared_ptr<CrossTensor> quantile(
         OptionalInt opt_dim, bool keepdim,
         rust::String interpolation,
         TensorOut out);
+
+std::shared_ptr<CrossTensor> nanquantile(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &q,
+        OptionalInt opt_dim, bool keepdim,
+        rust::String interpolation,
+        TensorOut out);

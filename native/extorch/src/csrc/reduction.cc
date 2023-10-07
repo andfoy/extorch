@@ -462,3 +462,32 @@ std::shared_ptr<CrossTensor> quantile(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> nanquantile(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &q,
+        OptionalInt opt_dim, bool keepdim,
+        rust::String interpolation,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor q_tensor = *q.get();
+
+    torch::optional<int64_t> dim = torch::nullopt;
+
+    if(opt_dim.used) {
+        dim = opt_dim.value;
+    }
+
+    std::string interp(interpolation.data(), interpolation.size());
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::nanquantile_out(
+            out_tensor, in_tensor, q_tensor, dim, keepdim, interp);
+    } else {
+        out_tensor = torch::nanquantile(in_tensor, q_tensor, dim, keepdim, interp);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

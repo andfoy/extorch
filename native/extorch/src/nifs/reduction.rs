@@ -179,3 +179,14 @@ nif_impl!(
     interpolation: AtomString,
     out: TensorOut
 );
+
+nif_impl!(
+    nanquantile,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    q: TensorStruct<'a>,
+    dim: OptionalInt,
+    keepdim: bool,
+    interpolation: AtomString,
+    out: TensorOut
+);
