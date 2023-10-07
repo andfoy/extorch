@@ -1439,5 +1439,69 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           _ -> ExTorch.tensor(q, dtype: :float)
         end
     )
+
+    @doc """
+    This is a variant of `ExTorch.quantile/6` that “ignores” NaN values, computing the quantiles `q` as
+    if NaN values in `input` did not exist. If all values in a reduced row are NaN then the quantiles
+    for that reduction will be NaN. See the documentation for `ExTorch.quantile/6`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `q` (`ExTorch.Tensor` | `floating`) - a scalar or 1D tensor of values in the range [0, 1].
+
+    ## Optional arguments
+    - `dim` (`integer` | `nil`) - the dimension to reduce. If `nil`, `input` will be flattened before
+    computation. Default: `nil`
+    - `keepdim` (`boolean`) - whether the output has `dim` retained or not. Default: `false`
+    - `interpolation` (`atom`) interpolation method to use when the desired quantile lies between two data points.
+    Can be `:linear`, `:lower`, `:higher`, `:midpoint` and `:nearest`. Default: `:linear`.
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        # Compute quantiles throughout all tensor elements, ignoring :nan values
+        iex> a = ExTorch.tensor([:nan, 1, 2])
+        iex> ExTorch.nanquantile(a, 0.5)
+        #Tensor<
+        [1.5000]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute quantiles across specific dimensions, ignoring :nan values
+        iex> a = ExTorch.tensor([[:nan, :nan], [1, 2]])
+        iex> ExTorch.nanquantile(a, 0.5, dim: 0)
+        #Tensor<
+        [[1., 2.]]
+        [
+          size: {1, 2},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> ExTorch.nanquantile(a, 0.5, dim: 1)
+        #Tensor<
+        [[   nan, 1.5000]]
+        [
+          size: {1, 2},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec nanquantile(
+            ExTorch.Tensor.t(),
+            float() | ExTorch.Tensor.t(),
+            integer() | nil,
+            boolean(),
+            :linear | :lower | :higher | :midpoint | :nearest,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      nanquantile(input, q, dim \\ nil, keepdim \\ false, interpolation \\ :linear, out \\ nil),
+      q:
+        case q do
+          %ExTorch.Tensor{} -> q
+          _ -> ExTorch.tensor(q, dtype: :float)
+        end
+    )
   end
 end

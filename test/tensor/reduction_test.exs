@@ -1891,4 +1891,182 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     ExTorch.quantile(input, q, -1, true, :linear, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "nanquantile/2" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.nanquantile(input, q)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/3" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [0.5000, 3.5000],
+        [1.0000, 4.0000],
+        [1.5000, 4.5000]
+      ])
+
+    out = ExTorch.nanquantile(input, q, -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/3 with kwargs" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [0.5000, 3.5000],
+        [1.0000, 4.0000],
+        [1.5000, 4.5000]
+      ])
+
+    out = ExTorch.nanquantile(input, q, dim: -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/4" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [[0.5000], [3.5000]],
+        [[1.0000], [4.0000]],
+        [[1.5000], [4.5000]]
+      ])
+
+    out = ExTorch.nanquantile(input, q, -1, true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/4 with kwargs" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [[0.5000], [3.5000]],
+        [[1.0000], [4.0000]],
+        [[1.5000], [4.5000]]
+      ])
+
+    out = ExTorch.nanquantile(input, q, -1, keepdim: true)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/5 (linear interpolate)" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.nanquantile(input, q, nil, false, :linear)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/5 (lower interpolate)" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.nanquantile(input, q, nil, false, :lower)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/5 (higher interpolate)" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.nanquantile(input, q, nil, false, :higher)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/5 (midpoint interpolate)" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.nanquantile(input, q, nil, false, :midpoint)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/5 (nearest interpolate)" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected = ExTorch.tensor([2.0, 3.0, 4.0])
+
+    out = ExTorch.nanquantile(input, q, nil, false, :nearest)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "nanquantile/6" do
+    input =
+      ExTorch.arange(6)
+      |> ExTorch.reshape({2, 3})
+      |> ExTorch.index_put({0, 1}, :nan)
+
+    q = ExTorch.tensor([0.25, 0.5, 0.75])
+
+    expected =
+      ExTorch.tensor([
+        [[0.5000], [3.5000]],
+        [[1.0000], [4.0000]],
+        [[1.5000], [4.5000]]
+      ])
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.nanquantile(input, q, -1, true, :linear, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end
