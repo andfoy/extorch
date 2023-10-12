@@ -512,3 +512,35 @@ std::shared_ptr<CrossTensor> std_dev(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+TensorTuple std_mean(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, int64_t correction,
+        bool keepdim, TensorTuple opt_out) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+
+    CrossTensor in_tensor = *input.get();
+    const int64_t *ptr = dims.data();
+    torch::optional<torch::Scalar> corr_factor = correction;
+
+    CrossTensor out_std;
+    CrossTensor out_mean;
+
+    if(opt_out.used) {
+        std::vector<CrossTensor> tensor_out_list = unpack_tensor_tuple(opt_out, 2);
+        out_std = tensor_out_list[0];
+        out_mean = tensor_out_list[1];
+
+        std::tie<CrossTensor, CrossTensor>(out_std, out_mean) = torch::std_mean_out(
+            out_std, out_mean, in_tensor, torch::IntArrayRef{ptr, dims.size()}, corr_factor, keepdim);
+    } else {
+        std::tie<CrossTensor, CrossTensor>(out_std, out_mean) = torch::std_mean(
+            in_tensor, torch::IntArrayRef{ptr, dims.size()}, corr_factor, keepdim);
+    }
+
+    out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_std)));
+    out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_mean)));
+
+    return pack_tensor_tuple(out_vec);
+}

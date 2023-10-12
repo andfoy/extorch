@@ -200,3 +200,13 @@ nif_impl!(
     keepdim: bool,
     out: TensorOut
 );
+
+nif_impl!(
+    std_mean,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    dim: Size,
+    correction: i64,
+    keepdim: bool,
+    out: TensorTuple
+);
