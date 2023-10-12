@@ -20,7 +20,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                PYTORCH_VERSION: ['2.0.1', 'latest']
+                PYTORCH_VERSION: ['2.1.0', 'latest']
                 OTP_VERSION: ['26', '25']
                 ELIXIR_VERSION: ['1.15', '1.14.5']
                 DEVICE: ['cpu']
