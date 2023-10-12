@@ -491,3 +491,24 @@ std::shared_ptr<CrossTensor> nanquantile(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> std_dev(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, int64_t correction, bool keepdim,
+        TensorOut opt_out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    const int64_t *ptr = dims.data();
+    torch::optional<torch::Scalar> corr_factor = correction;
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::std_out(
+            out_tensor, in_tensor, torch::IntArrayRef{ptr, dims.size()}, corr_factor, keepdim);
+    } else {
+        out_tensor = torch::std(in_tensor, torch::IntArrayRef{ptr, dims.size()}, corr_factor, keepdim);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

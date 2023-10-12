@@ -143,6 +143,7 @@ rustler::init!(
         prod,
         quantile,
         nanquantile,
+        std_dev,
 
         // Other operations
         resolve_conj,

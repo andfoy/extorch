@@ -107,3 +107,9 @@ std::shared_ptr<CrossTensor> nanquantile(
         OptionalInt opt_dim, bool keepdim,
         rust::String interpolation,
         TensorOut out);
+
+std::shared_ptr<CrossTensor> std_dev(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, int64_t correction, bool keepdim,
+        TensorOut opt_out
+);
