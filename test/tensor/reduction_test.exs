@@ -2210,4 +2210,78 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     ExTorch.std(input, -1, 1, true, out)
     assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
   end
+
+  test "std_mean/1" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input)
+    expected_mean = ExTorch.mean(input)
+    {std, mean} = ExTorch.std_mean(input)
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "std_mean/2" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input, -1)
+    expected_mean = ExTorch.mean(input, -1)
+    {std, mean} = ExTorch.std_mean(input, -1)
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "std_mean/2 with kwargs" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input, keepdim: true)
+    expected_mean = ExTorch.mean(input, keepdim: true)
+    {std, mean} = ExTorch.std_mean(input, keepdim: true)
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "std_mean/3" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input, -1, 2)
+    expected_mean = ExTorch.mean(input, -1)
+    {std, mean} = ExTorch.std_mean(input, -1, 2)
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "std_mean/3 with kwargs" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input, -1, keepdim: true)
+    expected_mean = ExTorch.mean(input, -1, keepdim: true)
+    {std, mean} = ExTorch.std_mean(input, -1, keepdim: true)
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "std_mean/4" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input, -1, 1, true)
+    expected_mean = ExTorch.mean(input, -1, true)
+    {std, mean} = ExTorch.std_mean(input, -1, 1, true)
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "std_mean/5" do
+    input = ExTorch.randn({4, 4})
+    expected_std = ExTorch.std(input, -1, 1, true)
+    expected_mean = ExTorch.mean(input, -1, true)
+
+    std = ExTorch.empty_like(expected_std)
+    mean = ExTorch.empty_like(expected_mean)
+
+    ExTorch.std_mean(input, -1, 1, true, {std, mean})
+
+    assert ExTorch.allclose(std, expected_std)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
 end

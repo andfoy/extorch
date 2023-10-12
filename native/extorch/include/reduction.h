@@ -113,3 +113,9 @@ std::shared_ptr<CrossTensor> std_dev(
         rust::Vec<int64_t> dims, int64_t correction, bool keepdim,
         TensorOut opt_out
 );
+
+TensorTuple std_mean(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims, int64_t correction,
+        bool keepdim, TensorTuple opt_out
+);

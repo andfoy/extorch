@@ -172,3 +172,12 @@ fn std_dev(
     keepdim: bool,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the standard deviation and mean of a tensor elements across dimensions.
+fn std_mean(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    correction: i64,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;
