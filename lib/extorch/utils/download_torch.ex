@@ -286,16 +286,16 @@ defmodule ExTorch.Utils.DownloadTorch do
   end
 
   defp default_libtorch_config() do
-    # 2.0.1 stable release options
+    # 2.1.0 stable release options
     [
-      version: "2.0.1",
-      cuda_versions: [{11, 7}, {11, 8}],
+      version: "2.1.0",
+      cuda_versions: [{11, 8}, {12, 1}],
       variant: :auto,
       nightly: false,
       folder: nil
     ]
 
-    # 2.1.0 Nightly version options
+    # 2.2.0 Nightly version options
     # [
     #   version: "latest",
     #   cuda_versions: [{11, 8}, {12, 1}],
