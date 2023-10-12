@@ -163,3 +163,12 @@ fn nanquantile(
     interpolation: String,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the standard deviation of a tensor elements across dimensions.
+fn std_dev(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    correction: i64,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;

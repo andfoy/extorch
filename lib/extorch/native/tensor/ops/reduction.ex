@@ -1503,5 +1503,78 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           _ -> ExTorch.tensor(q, dtype: :float)
         end
     )
+
+    @doc ~S"""
+    Calculates the standard deviation over the dimensions specified by `dim`.
+
+    `dim` can be a single dimension, list of dimensions, or `nil` to reduce over all dimensions.
+
+    The standard deviation ($\sigma$) is calculated as
+
+    $$\sigma = \sqrt{\frac{1}{N - \delta N} \sum\_{i=0}^{N - 1} (x\_i - \bar{x})^2}$$
+
+    where $x$ is the sample set of elements, $\bar{x}$ is the sample mean, $N$ is the number of samples
+    and $\delta N$ is the `correction`.
+
+    If `keepdim` is `true`, the output tensors are of the same size as `input`
+    except in the dimension `dim` where they are of size 1.
+    Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the outputs
+    tensor having 1 fewer dimension than `input`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `correction` (`integer`) - difference between the sample size and sample degrees of freedom.
+    Defaults to [Bessel's correction](https://en.wikipedia.org/wiki/Bessel%27s_correction). Default: 1
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.randn({4, 4})
+        #Tensor<
+        [[ 0.0686,  0.7169,  0.2143,  1.5755],
+         [-1.6080,  0.9169, -0.0937,  1.2906],
+         [ 0.5432,  2.4151, -0.3814,  0.2830],
+         [-0.0724,  0.7037, -0.1951, -0.1191]]
+        [
+          size: {4, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute the standard deviation of all tensor elements
+        iex> ExTorch.std(a)
+        #Tensor<
+        0.9167
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute the standard deviation of elements in the last dimension, keeping total dimensions
+        iex> ExTorch.std(a, -1, keepdim: true)
+        #Tensor<
+        [[0.6804],
+         [1.2957],
+         [1.1984],
+         [0.4194]]
+        [
+          size: {4, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec std_dev(
+            ExTorch.Tensor.t(),
+            integer() | tuple() | nil,
+            integer(),
+            boolean(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(std_dev(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil),
+      fn_aliases: [:std]
+    )
   end
 end

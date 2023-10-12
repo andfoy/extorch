@@ -2069,4 +2069,145 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     ExTorch.nanquantile(input, q, -1, true, :linear, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "std/1" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor(0.9167)
+    out = ExTorch.std(input)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/2" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor([0.6804, 1.2957, 1.1984, 0.4193])
+    out = ExTorch.std(input, -1)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor([0.6804, 1.2957, 1.1984, 0.4193])
+    out = ExTorch.std(input, dim: 1)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/3" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor([0.8333, 1.5870, 1.4677, 0.5136])
+    out = ExTorch.std(input, -1, 2)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.6804],
+        [1.2957],
+        [1.1984],
+        [0.4193]
+      ])
+
+    out = ExTorch.std(input, -1, keepdim: true)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/4" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.6804],
+        [1.2957],
+        [1.1984],
+        [0.4193]
+      ])
+
+    out = ExTorch.std(input, -1, 1, true)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/4 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.6804],
+        [1.2957],
+        [1.1984],
+        [0.4193]
+      ])
+
+    out = ExTorch.std(input, -1, 1, keepdim: true)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "std/5" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.6804],
+        [1.2957],
+        [1.1984],
+        [0.4193]
+      ])
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.std(input, -1, 1, true, out)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
 end

@@ -190,3 +190,13 @@ nif_impl!(
     interpolation: AtomString,
     out: TensorOut
 );
+
+nif_impl!(
+    std_dev,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    correction: i64,
+    keepdim: bool,
+    out: TensorOut
+);
