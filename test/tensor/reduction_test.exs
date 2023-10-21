@@ -2559,4 +2559,219 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     unique = ExTorch.unique_consecutive(input, false, false, 0)
     assert ExTorch.equal(unique, expected_unique)
   end
+
+  test "var/1" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor(0.8404)
+    out = ExTorch.var(input)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/2" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor([0.4629, 1.6789, 1.4362, 0.1758])
+    out = ExTorch.var(input, -1)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/2 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor([0.4629, 1.6789, 1.4362, 0.1758])
+    out = ExTorch.var(input, dim: 1)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/3" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected = ExTorch.tensor([0.6944, 2.5184, 2.1543, 0.2638])
+    out = ExTorch.var(input, -1, 2)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/3 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.4629],
+        [1.6789],
+        [1.4362],
+        [0.1758]
+      ])
+
+    out = ExTorch.var(input, -1, keepdim: true)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/4" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.4629],
+        [1.6789],
+        [1.4362],
+        [0.1758]
+      ])
+
+    out = ExTorch.var(input, -1, 1, true)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/4 with kwargs" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.4629],
+        [1.6789],
+        [1.4362],
+        [0.1758]
+      ])
+
+    out = ExTorch.var(input, -1, 1, keepdim: true)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var/5" do
+    input =
+      ExTorch.tensor([
+        [0.0686, 0.7169, 0.2143, 1.5755],
+        [-1.6080, 0.9169, -0.0937, 1.2906],
+        [0.5432, 2.4151, -0.3814, 0.2830],
+        [-0.0724, 0.7037, -0.1951, -0.1191]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [0.4629],
+        [1.6789],
+        [1.4362],
+        [0.1758]
+      ])
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.var(input, -1, 1, true, out)
+    assert ExTorch.allclose(out, expected, rtol: 1.0e-3, atol: 1.0e-3)
+  end
+
+  test "var_mean/1" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input)
+    expected_mean = ExTorch.mean(input)
+    {var, mean} = ExTorch.var_mean(input)
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "var_mean/2" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input, -1)
+    expected_mean = ExTorch.mean(input, -1)
+    {var, mean} = ExTorch.var_mean(input, -1)
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "var_mean/2 with kwargs" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input, keepdim: true)
+    expected_mean = ExTorch.mean(input, keepdim: true)
+    {var, mean} = ExTorch.var_mean(input, keepdim: true)
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "var_mean/3" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input, -1, 2)
+    expected_mean = ExTorch.mean(input, -1)
+    {var, mean} = ExTorch.var_mean(input, -1, 2)
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "var_mean/3 with kwargs" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input, -1, keepdim: true)
+    expected_mean = ExTorch.mean(input, -1, keepdim: true)
+    {var, mean} = ExTorch.var_mean(input, -1, keepdim: true)
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "var_mean/4" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input, -1, 1, true)
+    expected_mean = ExTorch.mean(input, -1, true)
+    {var, mean} = ExTorch.var_mean(input, -1, 1, true)
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
+
+  test "var_mean/5" do
+    input = ExTorch.randn({4, 4})
+    expected_var = ExTorch.var(input, -1, 1, true)
+    expected_mean = ExTorch.mean(input, -1, true)
+
+    var = ExTorch.empty_like(expected_var)
+    mean = ExTorch.empty_like(expected_mean)
+
+    ExTorch.var_mean(input, -1, 1, true, {var, mean})
+
+    assert ExTorch.allclose(var, expected_var)
+    assert ExTorch.allclose(mean, expected_mean)
+  end
 end

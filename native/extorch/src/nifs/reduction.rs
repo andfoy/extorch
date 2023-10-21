@@ -229,3 +229,23 @@ nif_impl!(
     return_counts: bool,
     dim: OptionalInt
 );
+
+nif_impl!(
+    var,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size,
+    correction: i64,
+    keepdim: bool,
+    out: TensorOut
+);
+
+nif_impl!(
+    var_mean,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    dim: Size,
+    correction: i64,
+    keepdim: bool,
+    out: TensorTuple
+);
