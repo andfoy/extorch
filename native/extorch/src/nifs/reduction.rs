@@ -249,3 +249,10 @@ nif_impl!(
     keepdim: bool,
     out: TensorTuple
 );
+
+nif_impl!(
+    count_nonzero,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: Size
+);

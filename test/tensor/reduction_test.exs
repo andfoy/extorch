@@ -2774,4 +2774,18 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.allclose(var, expected_var)
     assert ExTorch.allclose(mean, expected_mean)
   end
+
+  test "count_nonzero/1" do
+    input = ExTorch.eye(3)
+    expected = ExTorch.tensor([3], dtype: :int64)
+    out = ExTorch.count_nonzero(input)
+    assert ExTorch.allclose(expected, out)
+  end
+
+  test "count_nonzero/2" do
+    input = ExTorch.eye(3)
+    expected = ExTorch.tensor([1, 1, 1], dtype: :int64)
+    out = ExTorch.count_nonzero(input, -1)
+    assert ExTorch.equal(expected, out)
+  end
 end

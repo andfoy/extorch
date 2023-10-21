@@ -663,3 +663,15 @@ TensorTuple var_mean(
 
     return pack_tensor_tuple(out_vec);
 }
+
+std::shared_ptr<CrossTensor> count_nonzero(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    const int64_t *ptr = dims.data();
+
+    out_tensor = torch::count_nonzero(in_tensor, torch::IntArrayRef{ptr, dims.size()});
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
