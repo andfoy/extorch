@@ -220,3 +220,12 @@ nif_impl!(
     return_counts: bool,
     dim: OptionalInt
 );
+
+nif_impl!(
+    unique_consecutive,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    return_inverse: bool,
+    return_counts: bool,
+    dim: OptionalInt
+);

@@ -124,3 +124,8 @@ TensorTuple unique(
         const std::shared_ptr<CrossTensor> &input,
         bool sorted, bool return_inverse, bool return_counts,
         OptionalInt dim);
+
+TensorTuple unique_consecutive(
+        const std::shared_ptr<CrossTensor> &input,
+        bool return_inverse, bool return_counts,
+        OptionalInt dim);

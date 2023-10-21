@@ -577,3 +577,36 @@ TensorTuple unique(
 
     return pack_tensor_tuple(out_vec);
 }
+
+TensorTuple unique_consecutive(
+        const std::shared_ptr<CrossTensor> &input,
+        bool return_inverse, bool return_counts,
+        OptionalInt dim) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+
+    CrossTensor in_tensor = *input.get();
+    CrossTensor out_tensor;
+    CrossTensor inverse_tensor;
+    CrossTensor count_tensor;
+    torch::optional<int64_t> act_dim = torch::nullopt;
+
+    if(dim.used) {
+        act_dim = dim.value;
+    }
+
+    std::tie<CrossTensor, CrossTensor, CrossTensor>(
+            out_tensor, inverse_tensor, count_tensor) = torch::unique_consecutive(
+                in_tensor, return_inverse, return_counts, dim.value);
+
+    out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_tensor)));
+    if(return_inverse) {
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(inverse_tensor)));
+    }
+
+    if(return_counts) {
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(count_tensor)));
+    }
+
+    return pack_tensor_tuple(out_vec);
+}

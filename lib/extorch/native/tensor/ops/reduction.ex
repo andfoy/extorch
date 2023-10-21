@@ -1762,5 +1762,94 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
     defbinding(
       unique(input, sorted \\ true, return_inverse \\ false, return_counts \\ false, dim \\ nil)
     )
+
+    @doc """
+    Eliminates all but the first element from every consecutive group of equivalent elements.
+
+    Depending on the value of `return_inverse` and `return_counts`, this function
+    can return either a single tensor, a tuple of two tensors, or a tuple of three tensors.
+
+    This function is different from `ExTorch.unique/5` in the sense that this function only
+    eliminates consecutive duplicate values. This semantics is similar to `std::unique` in C++.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `return_inverse` (`boolean`) - whether to also return the indices for where elements in the original input
+    ended up in the returned unique list. Default: `false`
+    - `return_counts` (`boolean`) - whether to also return the counts for each unique element. Default: `false`
+    - `dim` (`integer | nil`) - the dimension to operate upon. If `nil`, the unique of the flattened input
+    is returned. Otherwise, each of the tensors indexed by the given dimension is treated as one of the
+    elements to apply the unique operation upon. See examples for more details. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.tensor([1, 1, 2, 2, 3, 1, 1, 2], dtype: :int32)
+
+        # Find unique consecutive elements in a tensor
+        iex> ExTorch.unique_consecutive(a)
+        #Tensor<
+        [1, 2, 3, 1, 2]
+        [
+          size: {5},
+          dtype: :int,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute unique values and inverse tensor
+        iex> {unique, inverse} = ExTorch.unique_consecutive(a, return_inverse: true)
+        iex> inverse
+        #Tensor<
+        [0, 0, 1, 1, 2, 3, 3, 4]
+        [
+          size: {8},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute unique values and count tensor
+        iex> {unique, count} = ExTorch.unique_consecutive(a, return_counts: true)
+        iex> count
+        #Tensor<
+        [2, 2, 1, 2, 1]
+        [
+          size: {5},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+
+        # Compute unique values, inverse and count tensors
+        iex> {unique, inverse, count} = ExTorch.unique(a, return_inverse: true, return_counts: true)
+
+        # Compute unique consecutive values across a dimension
+        iex> a = ExTorch.tensor([[-1, -1, -1], [0, 1, 1], [0, 1, 1], [-1, -1, -1]], dtype: :int64)
+        iex> ExTorch.unique(a, dim: 0)
+        #Tensor<
+        [[-1, -1, -1],
+         [ 0,  1,  1]]
+        [
+          size: {2, 3},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec unique_consecutive(ExTorch.Tensor.t(), boolean(), boolean(), integer() | nil) ::
+            ExTorch.Tensor.t()
+            | {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+            | {ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(
+      unique_consecutive(
+        input,
+        return_inverse \\ false,
+        return_counts \\ false,
+        dim \\ nil
+      )
+    )
   end
 end

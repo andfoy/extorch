@@ -146,6 +146,7 @@ rustler::init!(
         std_dev,
         std_mean,
         unique,
+        unique_consecutive,
 
         // Other operations
         resolve_conj,

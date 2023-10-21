@@ -73,7 +73,8 @@
         "concepts": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "stop_token": "cpp"
+        "stop_token": "cpp",
+        "future": "cpp"
     },
     "rust-analyzer.linkedProjects": [
         "native/extorch/Cargo.toml"
