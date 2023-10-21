@@ -2013,5 +2013,45 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(var_mean(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Counts the number of non-zero values in the tensor `input` along the given `dim`.
+    If no dim is specified then all non-zeros in the tensor are counted.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+
+    ## Examples
+        iex> x = ExTorch.zeros({3, 3})
+        iex> x = ExTorch.index_put(x, ExTorch.gt(ExTorch.randn({3, 3}), 0.5), 1)
+        #Tensor<
+        [[0.0000, 0.0000, 1.0000],
+         [0.0000, 0.0000, 0.0000],
+         [1.0000, 0.0000, 0.0000]]
+        [
+          size: {3, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Count overall nonzero elements
+        iex> ExTorch.count_nonzero(x)
+        #Tensor<
+        2
+        [size: {}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Count nonzero elements in the first dimension
+        iex> ExTorch.count_nonzero(x, 0)
+        #Tensor<
+        [1, 0, 1]
+        [size: {3}, dtype: :long, device: :cpu, requires_grad: false]>
+    """
+    @spec count_nonzero(ExTorch.Tensor.t(), integer() | tuple() | nil) :: ExTorch.Tensor.t()
+    defbinding(count_nonzero(input, dim \\ nil))
   end
 end

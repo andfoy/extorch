@@ -149,6 +149,7 @@ rustler::init!(
         unique_consecutive,
         var,
         var_mean,
+        count_nonzero,
 
         // Other operations
         resolve_conj,

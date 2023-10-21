@@ -216,3 +216,9 @@ fn var_mean(
     keepdim: bool,
     out: TensorTuple,
 ) -> Result<TensorTuple>;
+
+/// Count the total non-zero elements of a tensor across dimensions.
+fn count_nonzero(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>
+) -> Result<SharedPtr<CrossTensor>>;

@@ -141,3 +141,8 @@ TensorTuple var_mean(
         rust::Vec<int64_t> dims, int64_t correction,
         bool keepdim, TensorTuple opt_out
 );
+
+std::shared_ptr<CrossTensor> count_nonzero(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims
+);
