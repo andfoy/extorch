@@ -181,3 +181,12 @@ fn std_mean(
     keepdim: bool,
     out: TensorTuple,
 ) -> Result<TensorTuple>;
+
+/// Return the unique elements of a tensor across a dimension or all.
+fn unique(
+    input: &SharedPtr<CrossTensor>,
+    sorted: bool,
+    return_inverse: bool,
+    return_counts: bool,
+    dim: OptionalInt
+) -> Result<TensorTuple>;

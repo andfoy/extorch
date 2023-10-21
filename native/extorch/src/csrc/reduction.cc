@@ -544,3 +544,36 @@ TensorTuple std_mean(
 
     return pack_tensor_tuple(out_vec);
 }
+
+TensorTuple unique(
+        const std::shared_ptr<CrossTensor> &input,
+        bool sorted, bool return_inverse, bool return_counts,
+        OptionalInt dim) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_vec;
+
+    CrossTensor in_tensor = *input.get();
+    CrossTensor out_tensor;
+    CrossTensor inverse_tensor;
+    CrossTensor count_tensor;
+    if(dim.used) {
+        std::tie<CrossTensor, CrossTensor, CrossTensor>(
+            out_tensor, inverse_tensor, count_tensor) = torch::unique_dim(
+                in_tensor, dim.value, sorted, return_inverse, return_counts);
+    } else {
+        std::tie<CrossTensor, CrossTensor, CrossTensor>(
+            out_tensor, inverse_tensor, count_tensor) = torch::_unique2(
+                in_tensor, sorted, return_inverse, return_counts);
+    }
+
+    out_vec.push_back(std::make_shared<CrossTensor>(std::move(out_tensor)));
+    if(return_inverse) {
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(inverse_tensor)));
+    }
+
+    if(return_counts) {
+        out_vec.push_back(std::make_shared<CrossTensor>(std::move(count_tensor)));
+    }
+
+    return pack_tensor_tuple(out_vec);
+}

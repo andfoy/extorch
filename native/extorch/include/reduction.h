@@ -119,3 +119,8 @@ TensorTuple std_mean(
         rust::Vec<int64_t> dims, int64_t correction,
         bool keepdim, TensorTuple opt_out
 );
+
+TensorTuple unique(
+        const std::shared_ptr<CrossTensor> &input,
+        bool sorted, bool return_inverse, bool return_counts,
+        OptionalInt dim);
