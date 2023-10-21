@@ -1851,5 +1851,167 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
         dim \\ nil
       )
     )
+
+    @doc ~S"""
+    Calculates the variance over the dimensions specified by `dim`.
+
+    `dim` can be a single dimension, list of dimensions, or `nil` to reduce over all dimensions.
+
+    The variance ($\sigma^2$) is calculated as
+
+    $$\sigma^2 = \frac{1}{N - \delta N} \sum\_{i=0}^{N - 1} (x\_i - \bar{x})^2$$
+
+    where $x$ is the sample set of elements, $\bar{x}$ is the sample mean, $N$ is the number of samples
+    and $\delta N$ is the `correction`.
+
+    If `keepdim` is `true`, the output tensors are of the same size as `input`
+    except in the dimension `dim` where they are of size 1.
+    Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the outputs
+    tensor having 1 fewer dimension than `input`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `correction` (`integer`) - difference between the sample size and sample degrees of freedom.
+    Defaults to [Bessel's correction](https://en.wikipedia.org/wiki/Bessel%27s_correction). Default: 1
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`ExTorch.Tensor | nil`) - the optional output pre-allocated tensor. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.randn({4, 4})
+        #Tensor<
+        [[-0.9319,  0.1259,  0.0744,  0.3516],
+         [-0.1965,  0.8596, -1.2986, -0.6350],
+         [-0.0211,  0.2856, -1.3375, -1.4459],
+         [-0.0489,  0.4821, -0.5326, -2.3099]]
+        [
+          size: {4, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute the variance of all tensor elements
+        iex> ExTorch.var(a)
+        #Tensor<
+        0.7327
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Compute the variance of elements in the last dimension, keeping total dimensions
+        iex> ExTorch.var(a, -1, keepdim: true)
+        #Tensor<
+        [[0.3258],
+         [0.8211],
+         [0.7917],
+         [1.4677]]
+        [
+          size: {4, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec var(
+            ExTorch.Tensor.t(),
+            integer() | tuple() | nil,
+            integer(),
+            boolean(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(var(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Calculates the variance and mean over the dimensions specified by `dim`.
+
+    `dim` can be a single dimension, list of dimensions, or `nil` to reduce over all dimensions.
+    It returns a tuple `{var, mean}` containing the variance and mean, respectively.
+
+    The variance ($\sigma^2$) is calculated as
+
+    $$\sigma^2 = \frac{1}{N - \delta N} \sum\_{i=0}^{N - 1} (x\_i - \bar{x})^2$$
+
+    where $x$ is the sample set of elements, $\bar{x}$ is the sample mean, $N$ is the number of samples
+    and $\delta N$ is the `correction`.
+
+    If `keepdim` is `true`, the output tensors are of the same size as `input`
+    except in the dimension `dim` where they are of size 1.
+    Otherwise, `dim` is squeezed (see `ExTorch.squeeze`), resulting in the outputs
+    tensor having 1 fewer dimension than `input`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer | tuple | nil`) - the dimension or dimensions to reduce. If `nil`,
+    all dimensions are reduced. Default: `nil`
+    - `correction` (`integer`) - difference between the sample size and sample degrees of freedom.
+    Defaults to [Bessel's correction](https://en.wikipedia.org/wiki/Bessel%27s_correction). Default: 1
+    - `keepdim` (`boolean`) - whether the output tensor has `dim` retained or not. Default: `false`
+    - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - a tuple containing the optional output pre-allocated tensors. Default: `nil`
+
+    ## Examples
+      iex> a = ExTorch.randn({4, 4})
+      #Tensor<
+      [[-0.9319,  0.1259,  0.0744,  0.3516],
+       [-0.1965,  0.8596, -1.2986, -0.6350],
+       [-0.0211,  0.2856, -1.3375, -1.4459],
+       [-0.0489,  0.4821, -0.5326, -2.3099]]
+      [
+        size: {4, 4},
+        dtype: :float,
+        device: :cpu,
+        requires_grad: false
+      ]>
+
+      # Compute variance and mean of all tensor elements
+      iex> {var, mean} = ExTorch.var_mean(a)
+      iex> var
+      #Tensor<
+      0.7327
+      [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+      iex> mean
+      #Tensor<
+      -0.4112
+      [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+
+      # Compute variance and mean of all tensor elements in the last dimension
+      iex> {var, mean} = ExTorch.var_mean(a, -1, keepdim: true)
+      iex> var
+      #Tensor<
+      [[0.3258],
+       [0.8211],
+       [0.7917],
+       [1.4677]]
+      [
+        size: {4, 1},
+        dtype: :float,
+        device: :cpu,
+        requires_grad: false
+      ]>
+      iex> mean
+      #Tensor<
+      [[-0.0950],
+       [-0.3176],
+       [-0.6297],
+       [-0.6023]]
+      [
+        size: {4, 1},
+        dtype: :float,
+        device: :cpu,
+        requires_grad: false
+      ]>
+
+    """
+    @spec var_mean(
+            ExTorch.Tensor.t(),
+            integer() | tuple() | nil,
+            integer(),
+            boolean(),
+            {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
+          ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(var_mean(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
   end
 end

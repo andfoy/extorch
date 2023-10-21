@@ -198,3 +198,21 @@ fn unique_consecutive(
     return_counts: bool,
     dim: OptionalInt
 ) -> Result<TensorTuple>;
+
+/// Compute the variance of a tensor elements across dimensions.
+fn var(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    correction: i64,
+    keepdim: bool,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Compute the variance and mean of a tensor elements across dimensions.
+fn var_mean(
+    input: &SharedPtr<CrossTensor>,
+    dim: Vec<i64>,
+    correction: i64,
+    keepdim: bool,
+    out: TensorTuple,
+) -> Result<TensorTuple>;
