@@ -1668,7 +1668,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(std_mean(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
 
-    @doc """
+    @doc ~S"""
     Returns the unique elements of the `input` tensor.
 
     Depending on the value of `return_inverse` and `return_counts`, this function
@@ -1923,7 +1923,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) :: ExTorch.Tensor.t()
     defbinding(var(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
 
-    @doc """
+    @doc ~S"""
     Calculates the variance and mean over the dimensions specified by `dim`.
 
     `dim` can be a single dimension, list of dimensions, or `nil` to reduce over all dimensions.
@@ -1953,56 +1953,56 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
     - `out` (`{ExTorch.Tensor, ExTorch.Tensor} | nil`) - a tuple containing the optional output pre-allocated tensors. Default: `nil`
 
     ## Examples
-      iex> a = ExTorch.randn({4, 4})
-      #Tensor<
-      [[-0.9319,  0.1259,  0.0744,  0.3516],
-       [-0.1965,  0.8596, -1.2986, -0.6350],
-       [-0.0211,  0.2856, -1.3375, -1.4459],
-       [-0.0489,  0.4821, -0.5326, -2.3099]]
-      [
-        size: {4, 4},
-        dtype: :float,
-        device: :cpu,
-        requires_grad: false
-      ]>
+        iex> a = ExTorch.randn({4, 4})
+        #Tensor<
+        [[-0.9319,  0.1259,  0.0744,  0.3516],
+         [-0.1965,  0.8596, -1.2986, -0.6350],
+         [-0.0211,  0.2856, -1.3375, -1.4459],
+         [-0.0489,  0.4821, -0.5326, -2.3099]]
+        [
+          size: {4, 4},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
-      # Compute variance and mean of all tensor elements
-      iex> {var, mean} = ExTorch.var_mean(a)
-      iex> var
-      #Tensor<
-      0.7327
-      [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
-      iex> mean
-      #Tensor<
-      -0.4112
-      [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+        # Compute variance and mean of all tensor elements
+        iex> {var, mean} = ExTorch.var_mean(a)
+        iex> var
+        #Tensor<
+        0.7327
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> mean
+        #Tensor<
+        -0.4112
+        [size: {}, dtype: :float, device: :cpu, requires_grad: false]>
 
-      # Compute variance and mean of all tensor elements in the last dimension
-      iex> {var, mean} = ExTorch.var_mean(a, -1, keepdim: true)
-      iex> var
-      #Tensor<
-      [[0.3258],
-       [0.8211],
-       [0.7917],
-       [1.4677]]
-      [
-        size: {4, 1},
-        dtype: :float,
-        device: :cpu,
-        requires_grad: false
-      ]>
-      iex> mean
-      #Tensor<
-      [[-0.0950],
-       [-0.3176],
-       [-0.6297],
-       [-0.6023]]
-      [
-        size: {4, 1},
-        dtype: :float,
-        device: :cpu,
-        requires_grad: false
-      ]>
+        # Compute variance and mean of all tensor elements in the last dimension
+        iex> {var, mean} = ExTorch.var_mean(a, -1, keepdim: true)
+        iex> var
+        #Tensor<
+        [[0.3258],
+         [0.8211],
+         [0.7917],
+         [1.4677]]
+        [
+          size: {4, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+        iex> mean
+        #Tensor<
+        [[-0.0950],
+         [-0.3176],
+         [-0.6297],
+         [-0.6023]]
+        [
+          size: {4, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
 
     """
     @spec var_mean(
