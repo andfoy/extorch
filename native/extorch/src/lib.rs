@@ -145,6 +145,7 @@ rustler::init!(
         nanquantile,
         std_dev,
         std_mean,
+        unique,
 
         // Other operations
         resolve_conj,

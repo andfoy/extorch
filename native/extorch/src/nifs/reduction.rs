@@ -210,3 +210,13 @@ nif_impl!(
     keepdim: bool,
     out: TensorTuple
 );
+
+nif_impl!(
+    unique,
+    TensorTuple,
+    input: TensorStruct<'a>,
+    sorted: bool,
+    return_inverse: bool,
+    return_counts: bool,
+    dim: OptionalInt
+);

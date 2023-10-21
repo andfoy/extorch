@@ -2284,4 +2284,202 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.allclose(std, expected_std)
     assert ExTorch.allclose(mean, expected_mean)
   end
+
+  test "unique/1" do
+    input =
+      ExTorch.tensor(
+        [
+          [3, 3, -1, 2, 1],
+          [1, 3, -1, 0, 0],
+          [1, 1, 2, 2, 2],
+          [2, 1, 3, -1, 0],
+          [0, 1, 2, 3, 1]
+        ],
+        dtype: :int32
+      )
+
+    expected = ExTorch.tensor([-1, 0, 1, 2, 3], dtype: :int32)
+    out = ExTorch.unique(input)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "unique/2" do
+    input =
+      ExTorch.tensor(
+        [
+          [1, 0, 0, 0],
+          [1, 1, 1, 0],
+          [3, 3, 3, 1],
+          [-1, 0, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected = ExTorch.tensor([3, -1, 0, 1], dtype: :int64)
+    out = ExTorch.unique(input, false)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "unique/2 with kwargs" do
+    input =
+      ExTorch.tensor(
+        [
+          [3, 3, -1, 2, 1],
+          [1, 3, -1, 0, 0],
+          [1, 1, 2, 2, 2],
+          [2, 1, 3, -1, 0],
+          [0, 1, 2, 3, 1]
+        ],
+        dtype: :int32
+      )
+
+    expected_unique = ExTorch.tensor([-1, 0, 1, 2, 3], dtype: :int32)
+    expected_counts = ExTorch.tensor([3, 4, 7, 6, 5], dtype: :int64)
+    {unique, counts} = ExTorch.unique(input, return_counts: true)
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(counts, expected_counts)
+  end
+
+  test "unique/3" do
+    input =
+      ExTorch.tensor(
+        [
+          [1, 0, 0, 0],
+          [1, 1, 1, 0],
+          [3, 3, 3, 1],
+          [-1, 0, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected_unique = ExTorch.tensor([-1, 0, 1, 3], dtype: :int64)
+
+    expected_inverse =
+      ExTorch.tensor(
+        [
+          [2, 1, 1, 1],
+          [2, 2, 2, 1],
+          [3, 3, 3, 2],
+          [0, 1, 0, 0]
+        ],
+        dtype: :int64
+      )
+
+    {unique, inverse} = ExTorch.unique(input, true, true)
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+  end
+
+  test "unique/3 with kwargs" do
+    input =
+      ExTorch.tensor(
+        [
+          [1, 0, 0, 0],
+          [1, 1, 1, 0],
+          [3, 3, 3, 1],
+          [-1, 0, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected_unique = ExTorch.tensor([-1, 0, 1, 3], dtype: :int64)
+
+    expected_inverse =
+      ExTorch.tensor(
+        [
+          [2, 1, 1, 1],
+          [2, 2, 2, 1],
+          [3, 3, 3, 2],
+          [0, 1, 0, 0]
+        ],
+        dtype: :int64
+      )
+
+    {unique, inverse} = ExTorch.unique(input, true, return_inverse: true)
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+  end
+
+  test "unique/4" do
+    input =
+      ExTorch.tensor(
+        [
+          [1, 0, 0, 0],
+          [1, 1, 1, 0],
+          [3, 3, 3, 1],
+          [-1, 0, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected_unique = ExTorch.tensor([-1, 0, 1, 3], dtype: :int64)
+
+    expected_inverse =
+      ExTorch.tensor(
+        [
+          [2, 1, 1, 1],
+          [2, 2, 2, 1],
+          [3, 3, 3, 2],
+          [0, 1, 0, 0]
+        ],
+        dtype: :int64
+      )
+
+    expected_counts = ExTorch.tensor([3, 5, 5, 3], dtype: :int64)
+
+    {unique, inverse, counts} = ExTorch.unique(input, true, true, true)
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+    assert ExTorch.equal(counts, expected_counts)
+  end
+
+  test "unique/4 with kwargs" do
+    input =
+      ExTorch.tensor(
+        [
+          [1, 0, 0, 0],
+          [1, 1, 1, 0],
+          [3, 3, 3, 1],
+          [-1, 0, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected_unique = ExTorch.tensor([-1, 0, 1, 3], dtype: :int64)
+    expected_counts = ExTorch.tensor([3, 5, 5, 3], dtype: :int64)
+
+    {unique, counts} = ExTorch.unique(input, true, false, return_counts: true)
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(counts, expected_counts)
+  end
+
+  test "unique/5" do
+    input =
+      ExTorch.tensor(
+        [
+          [1, 0, 0, 0],
+          [-1, 0, -1, -1],
+          [1, 0, 0, 0],
+          [-1, 0, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected_unique =
+      ExTorch.tensor(
+        [
+          [-1, 0, -1, -1],
+          [1, 0, 0, 0]
+        ],
+        dtype: :int64
+      )
+
+    expected_inverse = ExTorch.tensor([1, 0, 1, 0], dtype: :int64)
+    expected_counts = ExTorch.tensor([2, 2], dtype: :int64)
+
+    {unique, inverse, counts} = ExTorch.unique(input, true, true, true, 0)
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+    assert ExTorch.equal(counts, expected_counts)
+  end
 end

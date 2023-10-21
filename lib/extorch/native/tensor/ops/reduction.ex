@@ -1667,5 +1667,100 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
             {ExTorch.Tensor.t(), ExTorch.Tensor.t()} | nil
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(std_mean(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
+
+    @doc """
+    Returns the unique elements of the `input` tensor.
+
+    Depending on the value of `return_inverse` and `return_counts`, this function
+    can return either a single tensor, a tuple of two tensors, or a tuple of three tensors.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `sorted` (`boolean`) -  whether to sort the unique elements in ascending order before returning. Default: `true`
+    - `return_inverse` (`boolean`) - whether to also return the indices for where elements in the original input
+    ended up in the returned unique list. Default: `false`
+    - `return_counts` (`boolean`) - whether to also return the counts for each unique element. Default: `false`
+    - `dim` (`integer | nil`) - the dimension to operate upon. If `nil`, the unique of the flattened input
+    is returned. Otherwise, each of the tensors indexed by the given dimension is treated as one of the
+    elements to apply the unique operation upon. See examples for more details. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.randint(-1, 4, {4, 4}, dtype: :int64)
+        #Tensor<
+        [[ 2,  2, -1,  0],
+         [ 1,  3,  1, -1],
+         [-1,  2,  0,  1],
+         [ 3,  2, -1,  3]]
+        [
+          size: {4, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute a tensor's unique values
+        iex> ExTorch.unique(a)
+        #Tensor<
+        [-1,  0,  1,  2,  3]
+        [
+          size: {5},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute unique values and inverse tensor
+        iex> {unique, inverse} = ExTorch.unique(a, return_inverse: true)
+        iex> inverse
+        #Tensor<
+        [[3, 3, 0, 1],
+         [2, 4, 2, 0],
+         [0, 3, 1, 2],
+         [4, 3, 0, 4]]
+        [
+          size: {4, 4},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute unique values and count tensor
+        iex> {unique, count} = ExTorch.unique(a, return_counts: true)
+        iex> count
+        #Tensor<
+        [4, 2, 3, 4, 3]
+        [
+          size: {5},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        # Compute unique values, inverse and count tensors
+        iex> {unique, inverse, count} = ExTorch.unique(a, return_inverse: true, return_counts: true)
+
+        # Compute unique values across a dimension
+        iex> a = ExTorch.tensor([[0, 1, 1], [-1, -1, -1], [0, 1, 1]], dtype: :int64)
+        iex> ExTorch.unique(a, dim: 0)
+        #Tensor<
+        [[-1, -1, -1],
+         [ 0,  1,  1]]
+        [
+          size: {2, 3},
+          dtype: :long,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+    """
+    @spec unique(ExTorch.Tensor.t(), boolean(), boolean(), boolean(), integer() | nil) ::
+            ExTorch.Tensor.t()
+            | {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+            | {ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t()}
+    defbinding(
+      unique(input, sorted \\ true, return_inverse \\ false, return_counts \\ false, dim \\ nil)
+    )
   end
 end
