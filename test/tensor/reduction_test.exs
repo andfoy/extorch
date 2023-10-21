@@ -2482,4 +2482,81 @@ defmodule ExTorchTest.Tensor.ReductionTest do
     assert ExTorch.equal(inverse, expected_inverse)
     assert ExTorch.equal(counts, expected_counts)
   end
+
+  test "unique_consecutive/1" do
+    input = ExTorch.tensor([1, 1, 2, 2, 3, 1, 1, 2], dtype: :int32)
+    expected_out = ExTorch.tensor([1, 2, 3, 1, 2], dtype: :int32)
+    out = ExTorch.unique_consecutive(input)
+    assert ExTorch.equal(out, expected_out)
+  end
+
+  test "unique_consecutive/2" do
+    input = ExTorch.tensor([1, 1, 2, 2, 3, 1, 1, 2], dtype: :int32)
+    expected_unique = ExTorch.tensor([1, 2, 3, 1, 2], dtype: :int32)
+    expected_inverse = ExTorch.tensor([0, 0, 1, 1, 2, 3, 3, 4], dtype: :int64)
+    {unique, inverse} = ExTorch.unique_consecutive(input, true)
+
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+  end
+
+  test "unique_consecutive/2 with kwargs" do
+    input = ExTorch.tensor([1, 1, 2, 2, 3, 1, 1, 2], dtype: :int32)
+    expected_unique = ExTorch.tensor([1, 2, 3, 1, 2], dtype: :int32)
+    expected_counts = ExTorch.tensor([2, 2, 1, 2, 1], dtype: :int64)
+    {unique, counts} = ExTorch.unique_consecutive(input, return_counts: true)
+
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(counts, expected_counts)
+  end
+
+  test "unique_consecutive/3" do
+    input = ExTorch.tensor([1, 1, 2, 2, 3, 1, 1, 2], dtype: :int32)
+    expected_unique = ExTorch.tensor([1, 2, 3, 1, 2], dtype: :int32)
+    expected_inverse = ExTorch.tensor([0, 0, 1, 1, 2, 3, 3, 4], dtype: :int64)
+    expected_counts = ExTorch.tensor([2, 2, 1, 2, 1], dtype: :int64)
+    {unique, inverse, counts} = ExTorch.unique_consecutive(input, true, true)
+
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+    assert ExTorch.equal(counts, expected_counts)
+  end
+
+  test "unique_consecutive/3 with kwargs" do
+    input = ExTorch.tensor([1, 1, 2, 2, 3, 1, 1, 2], dtype: :int32)
+    expected_unique = ExTorch.tensor([1, 2, 3, 1, 2], dtype: :int32)
+    expected_inverse = ExTorch.tensor([0, 0, 1, 1, 2, 3, 3, 4], dtype: :int64)
+    expected_counts = ExTorch.tensor([2, 2, 1, 2, 1], dtype: :int64)
+    {unique, inverse, counts} = ExTorch.unique_consecutive(input, true, return_counts: true)
+
+    assert ExTorch.equal(unique, expected_unique)
+    assert ExTorch.equal(inverse, expected_inverse)
+    assert ExTorch.equal(counts, expected_counts)
+  end
+
+  test "unique_consecutive/4" do
+    input =
+      ExTorch.tensor(
+        [
+          [-1, -1, -1],
+          [0, 1, 1],
+          [0, 1, 1],
+          [-1, -1, -1]
+        ],
+        dtype: :int64
+      )
+
+    expected_unique =
+      ExTorch.tensor(
+        [
+          [-1, -1, -1],
+          [0, 1, 1],
+          [-1, -1, -1]
+        ],
+        dtype: :int32
+      )
+
+    unique = ExTorch.unique_consecutive(input, false, false, 0)
+    assert ExTorch.equal(unique, expected_unique)
+  end
 end

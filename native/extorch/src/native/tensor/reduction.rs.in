@@ -190,3 +190,11 @@ fn unique(
     return_counts: bool,
     dim: OptionalInt
 ) -> Result<TensorTuple>;
+
+/// Find the unique elements from every consecutive group of a tensor across a dimension or all.
+fn unique_consecutive(
+    input: &SharedPtr<CrossTensor>,
+    return_inverse: bool,
+    return_counts: bool,
+    dim: OptionalInt
+) -> Result<TensorTuple>;
