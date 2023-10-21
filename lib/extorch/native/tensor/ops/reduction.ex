@@ -1668,7 +1668,7 @@ defmodule ExTorch.Native.Tensor.Ops.Reduction do
           ) :: {ExTorch.Tensor.t(), ExTorch.Tensor.t()}
     defbinding(std_mean(input, dim \\ nil, correction \\ 1, keepdim \\ false, out \\ nil))
 
-    @doc """
+    @doc ~S"""
     Returns the unique elements of the `input` tensor.
 
     Depending on the value of `return_inverse` and `return_counts`, this function
