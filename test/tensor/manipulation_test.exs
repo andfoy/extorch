@@ -99,6 +99,12 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     assert out.size == {5, 4}
   end
 
+  test "cat/2 with kwargs" do
+    input = ExTorch.rand({5, 2})
+    out = ExTorch.cat([input, input], dim: -1)
+    assert out.size == {5, 4}
+  end
+
   test "cat/3" do
     input = ExTorch.ones({3, 4})
     expected = ExTorch.ones({3, 8})
