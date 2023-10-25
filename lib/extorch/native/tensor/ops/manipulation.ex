@@ -276,6 +276,6 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
         ]>
     """
     @spec cat(ExTorch.Tensor.t(), integer(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
-    defbinding(cat(input, dim \\ 0, out \\ nil))
+    defbinding(cat(input, dim \\ 0, out \\ nil), fn_aliases: [:concatenate, :concat])
   end
 end
