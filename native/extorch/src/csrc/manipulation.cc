@@ -121,3 +121,16 @@ std::shared_ptr<CrossTensor> conj(const std::shared_ptr<CrossTensor> &input) {
     torch::Tensor tensor = torch::conj(in_tensor);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
+
+ std::shared_ptr<CrossTensor> adjoint(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::adjoint(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
+std::shared_ptr<CrossTensor> transpose(
+        const std::shared_ptr<CrossTensor> &input, int64_t dim0, int64_t dim1) {
+    CrossTensor in_tensor = *input.get();
+    torch::Tensor tensor = torch::transpose(in_tensor, dim0, dim1);
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}

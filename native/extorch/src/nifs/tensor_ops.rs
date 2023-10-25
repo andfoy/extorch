@@ -32,3 +32,5 @@ nif_impl!(
 );
 
 nif_impl!(conj, TensorStruct<'a>, input: TensorStruct<'a>);
+nif_impl!(adjoint, TensorStruct<'a>, input: TensorStruct<'a>);
+nif_impl!(transpose, TensorStruct<'a>, input: TensorStruct<'a>, dim0: i64, dim1: i64);

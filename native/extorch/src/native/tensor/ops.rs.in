@@ -19,3 +19,13 @@ fn reshape(tensor: &SharedPtr<CrossTensor>, shape: Vec<i64>) -> Result<SharedPtr
 
 /// Returns a view of input with a flipped conjugate bit.
 fn conj(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Returns a view of the tensor conjugated and with the last two dimensions transposed.
+fn adjoint(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Transpose dimensions dim0 and dim1 in the input tensor.
+fn transpose(
+    input: &SharedPtr<CrossTensor>,
+    dim0: i64,
+    dim1: i64,
+) -> Result<SharedPtr<CrossTensor>>;

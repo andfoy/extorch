@@ -153,5 +153,84 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec conj(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(conj(tensor))
+
+    @doc """
+    Returns a view of the tensor conjugated and with the last two dimensions transposed.
+
+    `ExTorch.adjoint(x)` is equivalent to `ExTorch.conj(ExTorch.transpose(x, -2, -1))` and to
+    `ExTorch.transpose(x, -2, -1)` for real tensors.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Examples
+        iex> x = ExTorch.arange(4)
+        iex> a = ExTorch.complex(x, x) |> ExTorch.reshape({2, 2})
+        #Tensor<
+        [[0.0000+0.0000j, 1.0000+1.0000j],
+         [2.0000+2.0000j, 3.0000+3.0000j]]
+        [
+          size: {2, 2},
+          dtype: :complex_float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.adjoint(a)
+        #Tensor<
+        [[0.0000-0.0000j, 2.0000-2.0000j],
+         [1.0000-1.0000j, 3.0000-3.0000j]]
+        [
+          size: {2, 2},
+          dtype: :complex_float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec adjoint(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(adjoint(input))
+
+    @doc """
+    Returns a tensor that is a transposed version of input. The given dimensions dim0 and dim1 are swapped.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dim0` (`integer()`) - the first dimension to transpose.
+    - `dim1` (`integer()`) - the second dimension to transpose.
+
+    ## Notes
+    * If `input` is a strided tensor then the resulting out tensor shares its underlying storage with the
+    `input` tensor, so changing the content of one would change the content of the other.
+    * If `input` is a sparse tensor then the resulting out tensor does not share the underlying storage with the input tensor.
+    * If input is a sparse tensor with compressed layout (SparseCSR, SparseBSR, SparseCSC or SparseBSC) the arguments
+    `dim0` and `dim1` must be both batch dimensions, or must both be sparse dimensions.
+    The batch dimensions of a sparse tensor are the dimensions preceding the sparse dimensions.
+
+    ## Examples
+        iex> a = ExTorch.arange(6) |> ExTorch.reshape({2, 3})
+        #Tensor<
+        [[0.0000, 1.0000, 2.0000],
+         [3.0000, 4.0000, 5.0000]]
+        [
+          size: {2, 3},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.transpose(a, 0, 1)
+        #Tensor<
+        [[0.0000, 3.0000],
+         [1.0000, 4.0000],
+         [2.0000, 5.0000]]
+        [
+          size: {3, 2},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec transpose(ExTorch.Tensor.t(), integer(), integer()) :: ExTorch.Tensor.t()
+    defbinding(transpose(input, dim0, dim1))
   end
 end
