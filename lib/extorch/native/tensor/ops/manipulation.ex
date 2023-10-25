@@ -232,5 +232,50 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec transpose(ExTorch.Tensor.t(), integer(), integer()) :: ExTorch.Tensor.t()
     defbinding(transpose(input, dim0, dim1))
+
+    @doc """
+    Concatenates the given sequence of `seq` tensors in the given dimension.
+    All tensors must either have the same shape (except in the concatenating dimension) or be empty.
+
+    ## Arguments
+    - `tensors` (`[ExTorch.Tensor] | tuple()`) - A sequence of tensors of the same type. Non-empty
+    tensors provided must have the same shape, except in the cat dimension.
+
+    ## Optional arguments
+    - `dim` (`integer()`) - the dimension over which the tensors are concatenated. Default: 0
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to store the
+    concatenation output. Default: nil
+
+    ## Examples
+        iex> x = ExTorch.arange(5) |> ExTorch.unsqueeze(-1)
+        #Tensor<
+        [[0.0000],
+         [1.0000],
+         [2.0000],
+         [3.0000],
+         [4.0000]]
+        [
+          size: {5, 1},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+
+        iex> ExTorch.cat([x, x], -1)
+        #Tensor<
+        [[0.0000, 0.0000],
+         [1.0000, 1.0000],
+         [2.0000, 2.0000],
+         [3.0000, 3.0000],
+         [4.0000, 4.0000]]
+        [
+          size: {5, 2},
+          dtype: :float,
+          device: :cpu,
+          requires_grad: false
+        ]>
+    """
+    @spec cat(ExTorch.Tensor.t(), integer(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    defbinding(cat(input, dim \\ 0, out \\ nil))
   end
 end

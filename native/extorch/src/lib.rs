@@ -95,6 +95,7 @@ rustler::init!(
         conj,
         adjoint,
         transpose,
+        cat,
 
         // Tensor comparing operations
         allclose,

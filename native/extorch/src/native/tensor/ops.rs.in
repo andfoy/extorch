@@ -29,3 +29,6 @@ fn transpose(
     dim0: i64,
     dim1: i64,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Concatenate a sequence of tensors across a dimension.
+fn cat(seq: TensorList, dim: i64, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;

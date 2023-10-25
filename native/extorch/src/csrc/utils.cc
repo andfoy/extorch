@@ -343,3 +343,27 @@ TensorTuple pack_tensor_tuple(std::vector<std::shared_ptr<CrossTensor>> vec) {
     }
     return TensorTuple{out_vec, true};
 }
+
+std::vector<CrossTensor> unpack_tensor_list(TensorList tuple) {
+    std::vector<CrossTensor> out_vec;
+    if(tuple.used) {
+        auto tensor_vec = tuple.values;
+
+        for(int i = 0; i < tensor_vec.size(); i++) {
+            auto val = tensor_vec[i];
+            if(val.used) {
+                out_vec.push_back(*val.tensor.get());
+            }
+        }
+    }
+
+    return out_vec;
+}
+
+TensorList pack_tensor_list(std::vector<std::shared_ptr<CrossTensor>> vec) {
+    rust::Vec<TensorOut> out_vec;
+    for(int i = 0; i < vec.size(); i++) {
+        out_vec.push_back(TensorOut { vec[i], true });
+    }
+    return TensorList{out_vec, true};
+}

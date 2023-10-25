@@ -93,7 +93,7 @@ impl<'a> Decoder<'a> for Size {
             Ok(Some(_)) => {
                 let single_vec: Vec<Term<'a>> = vec![term];
                 Ok(single_vec)
-            },
+            }
             Ok(None) => {
                 let single_vec: Vec<Term<'a>> = Vec::new();
                 Ok(single_vec)
@@ -724,7 +724,7 @@ impl<'a> Decoder<'a> for torch::OptionalInt {
     }
 }
 
-fn decode_tensor_out<'a>(term: Term<'a>) -> NifResult<torch::TensorTuple> {
+fn decode_tensor_tuple_out<'a>(term: Term<'a>) -> NifResult<torch::TensorTuple> {
     let term_vec: NifResult<Vec<Term<'a>>> = get_tuple(term);
     match term_vec {
         Ok(vec) => {
@@ -761,7 +761,7 @@ fn decode_tensor_out<'a>(term: Term<'a>) -> NifResult<torch::TensorTuple> {
 impl<'a> Decoder<'a> for torch::TensorTuple {
     fn decode(term: Term<'a>) -> NifResult<Self> {
         match term.is_atom() {
-            false => decode_tensor_out(term),
+            false => decode_tensor_tuple_out(term),
             true => Ok(Self {
                 values: Vec::<torch::TensorOut>::new(),
                 used: false,
@@ -788,5 +788,66 @@ impl Encoder for torch::TensorTuple {
             1 => out_vec[0],
             _ => make_tuple(env, &out_vec[..]),
         }
+    }
+}
+
+fn decode_tensor_list<'a>(term: Term<'a>) -> NifResult<torch::TensorList> {
+    let term_vec: NifResult<Vec<Term<'a>>> = get_tuple(term);
+    let vec_tensor_terms = match term_vec {
+        Ok(t) => t,
+        Err(_) => {
+            let term: Vec<Term<'a>> = term.decode()?;
+            term
+        }
+    };
+
+    let tensor_vec: Vec<torch::TensorOut> = vec_tensor_terms
+        .iter()
+        .map(|x| {
+            x.decode::<torch::TensorOut>().unwrap_or(torch::TensorOut {
+                tensor: SharedPtr::<torch::CrossTensor>::null(),
+                used: false,
+            })
+        })
+        .collect();
+
+    Ok(torch::TensorList{
+        values: tensor_vec,
+        used: true,
+    })
+}
+
+
+impl<'a> Decoder<'a> for torch::TensorList {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        match term.is_atom() {
+            false => decode_tensor_list(term),
+            true => Ok(Self {
+                values: Vec::<torch::TensorOut>::new(),
+                used: false,
+            }),
+        }
+    }
+}
+
+impl Encoder for torch::TensorList {
+    fn encode<'a>(&self, env: Env<'a>) -> Term<'a> {
+        let out_vec: Vec<Term<'a>> = self
+            .values
+            .iter()
+            .filter_map(|x| match x.used {
+                true => {
+                    let tensor_struct: TensorStruct<'a> = x.tensor.clone().into();
+                    Some(tensor_struct.encode(env))
+                }
+                false => None,
+            })
+            .collect();
+
+        // match out_vec.len() {
+        //     1 => out_vec[0],
+        //     _ => make_tuple(env, &out_vec[..]),
+        // }
+        out_vec.encode(env)
     }
 }

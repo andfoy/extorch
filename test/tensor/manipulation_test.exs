@@ -86,4 +86,25 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out = ExTorch.adjoint(input)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "cat/1" do
+    input = ExTorch.rand({5, 2})
+    out = ExTorch.cat([input, input])
+    assert out.size == {10, 2}
+  end
+
+  test "cat/2" do
+    input = ExTorch.rand({5, 2})
+    out = ExTorch.cat([input, input], -1)
+    assert out.size == {5, 4}
+  end
+
+  test "cat/3" do
+    input = ExTorch.ones({3, 4})
+    expected = ExTorch.ones({3, 8})
+    out = ExTorch.empty({3, 8})
+
+    ExTorch.cat([input, input], -1, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end
