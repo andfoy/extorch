@@ -24,4 +24,4 @@ std::vector<CrossTensor> unpack_tensor_tuple(TensorTuple tuple, int64_t sz_const
 TensorTuple pack_tensor_tuple(std::vector<std::shared_ptr<CrossTensor>> vec);
 
 std::vector<CrossTensor> unpack_tensor_list(TensorList tuple);
-TensorList pack_tensor_list(std::vector<std::shared_ptr<CrossTensor>> vec);
+TensorList pack_tensor_list(std::vector<CrossTensor> vec);

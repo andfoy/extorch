@@ -24,3 +24,5 @@ std::shared_ptr<CrossTensor> transpose(
         const std::shared_ptr<CrossTensor> &input, int64_t dim0, int64_t dim1);
 
 std::shared_ptr<CrossTensor> cat(TensorList seq, int64_t dim, TensorOut opt_out);
+TensorList chunk(
+        const std::shared_ptr<CrossTensor> &input, int64_t chunks, int64_t dim);

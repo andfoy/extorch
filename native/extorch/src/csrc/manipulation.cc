@@ -148,3 +148,10 @@ std::shared_ptr<CrossTensor> cat(TensorList seq, int64_t dim, TensorOut opt_out)
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+TensorList chunk(
+        const std::shared_ptr<CrossTensor> &input, int64_t chunks, int64_t dim) {
+    CrossTensor in_tensor = *input.get();
+    std::vector<CrossTensor> seq = torch::chunk(in_tensor, chunks, dim);
+    return pack_tensor_list(seq);
+}

@@ -277,5 +277,75 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec cat(ExTorch.Tensor.t(), integer(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
     defbinding(cat(input, dim \\ 0, out \\ nil), fn_aliases: [:concatenate, :concat])
+
+    @doc """
+    Attempts to split a tensor into the specified number of chunks. Each chunk is a view of the input tensor.
+
+    If the tensor size along the given dimension `dim` is divisible by `chunks`, all returned chunks
+    will be the same size. If the tensor size along the given dimension `dim` is not divisible by `chunks`,
+    all returned chunks will be the same size, except the last one. If such division is not possible,
+    this function may return fewer than the specified number of chunks.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the tensor to split
+    - `chunks` (`integer`) - number of chunks to return
+
+    ## Optional arguments
+    - `dim` (`integer`) - dimension along which to split the tensor. Default: 0
+
+    ## Notes
+    * This function may return fewer than the specified number of chunks!
+    * Use `ExTorch.tensor_split/3` to ensure that the result will have the exact number of chunks.
+
+    ## Examples
+        iex> ExTorch.arange(11) |> ExTorch.chunk(6)
+        [
+          #Tensor<
+        [0.0000, 1.0000]
+        [
+            size: {2},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>,
+          #Tensor<
+        [2., 3.]
+        [
+            size: {2},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>,
+          #Tensor<
+        [4., 5.]
+        [
+            size: {2},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>,
+          #Tensor<
+        [6., 7.]
+        [
+            size: {2},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>,
+          #Tensor<
+        [8., 9.]
+        [
+            size: {2},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>,
+          #Tensor<
+        [10.]
+        [size: {1}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+    """
+    @spec chunk(ExTorch.Tensor.t(), integer(), integer()) :: [ExTorch.Tensor.t()]
+    defbinding(chunk(input, chunks, dim \\ 0))
   end
 end

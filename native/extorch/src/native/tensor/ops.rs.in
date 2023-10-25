@@ -32,3 +32,6 @@ fn transpose(
 
 /// Concatenate a sequence of tensors across a dimension.
 fn cat(seq: TensorList, dim: i64, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
+
+/// Attempt to split a tensor into a given number of chunks.
+fn chunk(input: &SharedPtr<CrossTensor>, chunks: i64, dim: i64) -> Result<TensorList>;
