@@ -55,6 +55,11 @@ struct TensorTuple {
     used: bool
 }
 
+struct TensorList {
+    values: Vec<TensorOut>,
+    used: bool
+}
+
 struct OptionalInt {
     value: i64,
     used: bool

@@ -134,3 +134,17 @@ std::shared_ptr<CrossTensor> transpose(
     torch::Tensor tensor = torch::transpose(in_tensor, dim0, dim1);
     return std::make_shared<CrossTensor>(std::move(tensor));
 }
+
+std::shared_ptr<CrossTensor> cat(TensorList seq, int64_t dim, TensorOut opt_out) {
+    std::vector<CrossTensor> tensor_seq = unpack_tensor_list(seq);
+    CrossTensor out_tensor;
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::cat_out(out_tensor, tensor_seq, dim);
+    } else {
+        out_tensor = torch::cat(tensor_seq, dim);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

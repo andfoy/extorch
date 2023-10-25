@@ -14,4 +14,5 @@ struct SortResult;
 struct OptionalInt;
 struct TensorOut;
 struct TensorTuple;
+struct TensorList;
 using CrossTensor = torch::Tensor;
