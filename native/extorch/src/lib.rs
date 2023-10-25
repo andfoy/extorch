@@ -93,6 +93,8 @@ rustler::init!(
         index,
         index_put,
         conj,
+        adjoint,
+        transpose,
 
         // Tensor comparing operations
         allclose,

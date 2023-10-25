@@ -19,3 +19,6 @@ std::shared_ptr<CrossTensor> index_put(
     const std::shared_ptr<CrossTensor> &value);
 
 std::shared_ptr<CrossTensor> conj(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> adjoint(const std::shared_ptr<CrossTensor> &input);
+std::shared_ptr<CrossTensor> transpose(
+        const std::shared_ptr<CrossTensor> &input, int64_t dim0, int64_t dim1);

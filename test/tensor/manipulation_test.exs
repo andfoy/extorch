@@ -72,4 +72,18 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
     assert signs == back_signs
   end
+
+  test "transpose/3" do
+    input = ExTorch.tensor([[0, 1, 2], [3, 4, 5]], dtype: :int32)
+    expected = ExTorch.tensor([[0, 3], [1, 4], [2, 5]], dtype: :int32)
+    out = ExTorch.transpose(input, 0, 1)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "adjoint/1" do
+    input = ExTorch.rand({3, 3}, dtype: :complex64)
+    expected = ExTorch.conj(ExTorch.transpose(input, 0, 1))
+    out = ExTorch.adjoint(input)
+    assert ExTorch.allclose(out, expected)
+  end
 end
