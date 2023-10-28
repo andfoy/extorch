@@ -127,4 +127,28 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     sizes = for t <- out, do: t.size
     assert sizes == expected
   end
+
+  test "tensor_split/2" do
+    input = ExTorch.arange(10)
+    out = ExTorch.tensor_split(input, 2)
+    expected = [{5}, {5}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
+
+  test "tensor_split/2 with sections" do
+    input = ExTorch.arange(10)
+    out = ExTorch.tensor_split(input, [2, 5])
+    expected = [{2}, {3}, {5}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
+
+  test "tensor_split/3" do
+    input = ExTorch.rand({4, 6})
+    out = ExTorch.tensor_split(input, 2, 1)
+    expected = [{4, 3}, {4, 3}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
 end

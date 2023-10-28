@@ -851,3 +851,24 @@ impl Encoder for torch::TensorList {
         out_vec.encode(env)
     }
 }
+
+impl<'a> Decoder<'a> for torch::TensorOrInt {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        let integer_term: NifResult<i64> = term.decode();
+        match integer_term {
+            Ok(value) => Ok(Self {
+                tensor: SharedPtr::<torch::CrossTensor>::null(),
+                value,
+                is_tensor: false
+            }),
+            Err(_) => {
+                let tensor: TensorStruct<'a> = term.decode()?;
+                Ok(Self {
+                    tensor: tensor.resource.tensor.clone(),
+                    value: -1,
+                    is_tensor: true
+                })
+            }
+        }
+    }
+}

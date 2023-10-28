@@ -155,3 +155,19 @@ TensorList chunk(
     std::vector<CrossTensor> seq = torch::chunk(in_tensor, chunks, dim);
     return pack_tensor_list(seq);
 }
+
+TensorList tensor_split(
+        const std::shared_ptr<CrossTensor> &input, TensorOrInt indices_or_sections,
+        int64_t dim) {
+
+    CrossTensor in_tensor = *input.get();
+    std::vector<CrossTensor> seq;
+
+    if(indices_or_sections.is_tensor) {
+        CrossTensor sections = *indices_or_sections.tensor.get();
+        seq = torch::tensor_split(in_tensor, sections, dim);
+    } else {
+        seq = torch::tensor_split(in_tensor, indices_or_sections.value, dim);
+    }
+    return pack_tensor_list(seq);
+}

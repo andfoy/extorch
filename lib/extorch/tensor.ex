@@ -59,9 +59,9 @@ defmodule ExTorch.Tensor do
 
       concat([
         Inspect.Algebra.color("#Tensor<", :string, opts),
-        "\n",
+        Inspect.Algebra.break(),
         repr,
-        "\n",
+        Inspect.Algebra.break(),
         to_doc(
           [
             size: tensor.size,

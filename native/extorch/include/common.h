@@ -15,4 +15,5 @@ struct OptionalInt;
 struct TensorOut;
 struct TensorTuple;
 struct TensorList;
+struct TensorOrInt;
 using CrossTensor = torch::Tensor;

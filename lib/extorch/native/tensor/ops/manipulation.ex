@@ -347,5 +347,79 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec chunk(ExTorch.Tensor.t(), integer(), integer()) :: [ExTorch.Tensor.t()]
     defbinding(chunk(input, chunks, dim \\ 0))
+
+    @doc """
+    Splits a tensor into multiple sub-tensors, all of which are views of `input`,
+    along dimension `dim` according to the indices or number of sections specified
+    by `indices_or_sections`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the tensor to split.
+    - `indices_or_sections` (`integer | ExTorch.Tensor | [integer()] | tuple`) -
+      * If `indices_or_sections` is an integer `n` or a zero dimensional long tensor with value `n`,
+      `input` is split into `n` sections along dimension `dim`. If `input` is divisible by `n`
+      along dimension `dim`, each section will be of equal size, `input.size[dim] / n`.
+      * If `input` is not divisible by n, the sizes of the first `input.size[dim] % n` sections will have size
+      `input.size[dim] / n + 1`, and the rest will have size `input.size[dim] / n`.
+      * If `indices_or_sections` is a list or tuple of ints, or a one-dimensional long tensor,
+      then `input` is split along dimension `dim` at each of the indices in the list, tuple or tensor.
+      For instance, `indices_or_sections = [2, 3]` and `dim = 0` would result in the tensors
+      `input[:2]`, `input[2:3]`, and `input[3:]`.
+      * If `indices_or_sections` is a tensor, it must be a zero-dimensional or one-dimensional long tensor on the CPU.
+
+    ## Optional arguments
+    - `dim` (`integer`) - dimension along which to split the tensor. Default: 0
+
+    ## Examples
+        # Split a tensor in a given number of chunks
+        iex> a = ExTorch.arange(10)
+        iex> ExTorch.tensor_split(a, 2)
+        [
+          #Tensor<
+        [0.0000, 1.0000, 2.0000, 3.0000, 4.0000]
+        [
+            size: {5},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>,
+          #Tensor<
+        [5., 6., 7., 8., 9.]
+        [
+            size: {5},
+            dtype: :float,
+            device: :cpu,
+            requires_grad: false
+          ]>
+        ]
+
+        # Split a tensor into the given sections
+        iex> ExTorch.tensor_split(a, [2, 5])
+        [
+          #Tensor<
+          [0.0000, 1.0000]
+          [size: {2}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [2., 3., 4.]
+          [size: {3}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [5., 6., 7., 8., 9.]
+          [size: {5}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+
+    """
+    @spec tensor_split(
+            ExTorch.Tensor.t(),
+            integer() | [integer()] | tuple() | ExTorch.Tensor.t(),
+            integer()
+          ) :: [ExTorch.Tensor.t()]
+    defbinding(tensor_split(input, indices_or_sections, dim \\ 0),
+      indices_or_sections:
+        case indices_or_sections do
+          x when is_integer(x) -> x
+          %ExTorch.Tensor{} = x -> x
+          x -> ExTorch.tensor(x, device: :cpu, dtype: :int64)
+        end
+    )
   end
 end

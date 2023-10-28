@@ -69,3 +69,9 @@ struct TensorOut {
     tensor: SharedPtr<CrossTensor>,
     used: bool
 }
+
+struct TensorOrInt {
+    tensor: SharedPtr<CrossTensor>,
+    value: i64,
+    is_tensor: bool
+}
