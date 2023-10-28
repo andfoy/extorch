@@ -113,4 +113,18 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.cat([input, input], -1, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "chunk/2" do
+   input = ExTorch.arange(11)
+   out = ExTorch.chunk(input, 6)
+   assert length(out) == 6
+  end
+
+  test "chunk/3" do
+    input = ExTorch.rand({3, 6})
+    out = ExTorch.chunk(input, 3, -1)
+    expected = [{3, 2}, {3, 2}, {3, 2}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
 end

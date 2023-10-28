@@ -360,10 +360,11 @@ std::vector<CrossTensor> unpack_tensor_list(TensorList tuple) {
     return out_vec;
 }
 
-TensorList pack_tensor_list(std::vector<std::shared_ptr<CrossTensor>> vec) {
+TensorList pack_tensor_list(std::vector<CrossTensor> vec) {
     rust::Vec<TensorOut> out_vec;
     for(int i = 0; i < vec.size(); i++) {
-        out_vec.push_back(TensorOut { vec[i], true });
+        std::shared_ptr<CrossTensor> tensor_ptr = std::make_shared<CrossTensor>(std::move(vec[i]));
+        out_vec.push_back(TensorOut { tensor_ptr, true });
     }
     return TensorList{out_vec, true};
 }
