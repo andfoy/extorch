@@ -97,6 +97,7 @@ rustler::init!(
         transpose,
         cat,
         chunk,
+        tensor_split,
 
         // Tensor comparing operations
         allclose,

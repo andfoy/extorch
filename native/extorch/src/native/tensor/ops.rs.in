@@ -35,3 +35,10 @@ fn cat(seq: TensorList, dim: i64, out: TensorOut) -> Result<SharedPtr<CrossTenso
 
 /// Attempt to split a tensor into a given number of chunks.
 fn chunk(input: &SharedPtr<CrossTensor>, chunks: i64, dim: i64) -> Result<TensorList>;
+
+/// Split a tensor into multiple ones in a given dimension, according to indices_or_sections.
+fn tensor_split(
+    input: &SharedPtr<CrossTensor>,
+    indices_or_sections: TensorOrInt,
+    dim: i64,
+) -> Result<TensorList>;
