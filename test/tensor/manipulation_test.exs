@@ -151,4 +151,20 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     sizes = for t <- out, do: t.size
     assert sizes == expected
   end
+
+  test "dsplit/2" do
+    input = ExTorch.arange(16) |> ExTorch.reshape({2, 2, 4})
+    out = ExTorch.dsplit(input, 2)
+    expected = [{2, 2, 2}, {2, 2, 2}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
+
+  test "dsplit/2 with list" do
+    input = ExTorch.rand({2, 2, 10})
+    out = ExTorch.dsplit(input, [2, 7])
+    expected = [{2, 2, 2}, {2, 2, 5}, {2, 2, 3}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
 end

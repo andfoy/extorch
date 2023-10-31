@@ -75,3 +75,9 @@ struct TensorOrInt {
     value: i64,
     is_tensor: bool
 }
+
+struct IntListOrInt {
+    list: Vec<i64>,
+    value: i64,
+    is_list: bool
+}

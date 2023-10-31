@@ -872,3 +872,26 @@ impl<'a> Decoder<'a> for torch::TensorOrInt {
         }
     }
 }
+
+impl<'a> Decoder<'a> for torch::IntListOrInt {
+    fn decode(term: Term<'a>) -> NifResult<Self> {
+        let integer_term: NifResult<i64> = term.decode();
+        match integer_term {
+            Ok(value) => {
+                Ok(Self {
+                    list: Vec::<i64>::new(),
+                    value,
+                    is_list: false
+                })
+            },
+            Err(_) => {
+                let int_vec: Size = term.decode()?;
+                Ok(Self {
+                    list: int_vec.size,
+                    value: -1,
+                    is_list: true
+                })
+            }
+        }
+    }
+}
