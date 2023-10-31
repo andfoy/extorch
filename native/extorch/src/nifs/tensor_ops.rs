@@ -1,6 +1,6 @@
 use crate::native::torch;
 use crate::shared_types::{Size, TensorIndex, TensorStruct};
-use crate::torch::{TensorList, TensorOrInt, TensorOut, IntListOrInt};
+use crate::torch::{IntListOrInt, TensorList, TensorOrInt, TensorOut};
 
 use rustler::{Error, NifResult};
 
@@ -50,3 +50,10 @@ nif_impl!(
     TensorList,
     input: TensorStruct<'a>,
     indices_or_sections: IntListOrInt);
+
+nif_impl!(
+    column_stack,
+    TensorStruct<'a>,
+    tensors: TensorList,
+    out: TensorOut
+);

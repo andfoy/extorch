@@ -467,5 +467,46 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             ExTorch.Tensor.t()
           ]
     defbinding(dsplit(input, indices_or_sections))
+
+    @doc """
+    Creates a new tensor by horizontally stacking the tensors in `tensors`.
+
+    Equivalent to `ExTorch.hstack(tensors)`, except each zero or one dimensional
+    tensor `t` in `tensors` is first reshaped into a `(ExTorch.Tensor.numel(t), 1)`
+    column before being stacked horizontally.
+
+    ## Arguments
+    - tensors (`[ExTorch.Tensor] | tuple()`) - sequence of tensors to concatenate.
+
+    ## Optional arguments
+    - out (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        # Stack two 1D tensors
+        iex> a = ExTorch.tensor([1, 2, 3])
+        iex> b = ExTorch.tensor([4, 5, 6])
+        iex> ExTorch.column_stack([a, b])
+        #Tensor<
+        [[1, 4],
+         [2, 5],
+         [3, 6]]
+        [size: {3, 2}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+        # Stack 2D tensors
+        iex> a = ExTorch.arange(5)
+        iex> b = ExTorch.arange(10) |> ExTorch.reshape({5, 2})
+        iex> ExTorch.column_stack({a, b, b})
+        #Tensor<
+        [[0.0000, 0.0000, 1.0000, 0.0000, 1.0000],
+         [1.0000, 2.0000, 3.0000, 2.0000, 3.0000],
+         [2.0000, 4.0000, 5.0000, 4.0000, 5.0000],
+         [3.0000, 6.0000, 7.0000, 6.0000, 7.0000],
+         [4.0000, 8.0000, 9.0000, 8.0000, 9.0000]]
+        [size: {5, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec column_stack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(column_stack(tensors, out \\ nil))
   end
 end

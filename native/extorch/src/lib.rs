@@ -99,6 +99,7 @@ rustler::init!(
         chunk,
         tensor_split,
         dsplit,
+        column_stack,
 
         // Tensor comparing operations
         allclose,
