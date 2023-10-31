@@ -275,7 +275,8 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           requires_grad: false
         ]>
     """
-    @spec cat([ExTorch.Tensor.t()] | tuple(), integer(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    @spec cat([ExTorch.Tensor.t()] | tuple(), integer(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
     defbinding(cat(input, dim \\ 0, out \\ nil), fn_aliases: [:concatenate, :concat])
 
     @doc """

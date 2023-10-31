@@ -115,9 +115,9 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
   end
 
   test "chunk/2" do
-   input = ExTorch.arange(11)
-   out = ExTorch.chunk(input, 6)
-   assert length(out) == 6
+    input = ExTorch.arange(11)
+    out = ExTorch.chunk(input, 6)
+    assert length(out) == 6
   end
 
   test "chunk/3" do
