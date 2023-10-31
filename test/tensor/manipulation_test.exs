@@ -167,4 +167,21 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     sizes = for t <- out, do: t.size
     assert sizes == expected
   end
+
+  test "column_stack/1" do
+    a = ExTorch.rand({3})
+    b = ExTorch.rand({3})
+    out = ExTorch.column_stack({a, b})
+    expected = {3, 2}
+    assert out.size == expected
+  end
+
+  test "column_stack/2" do
+    a = ExTorch.rand({3, 2})
+    b = ExTorch.rand({3, 7})
+    c = ExTorch.rand({3})
+    out = ExTorch.empty({3, 10})
+
+    ExTorch.column_stack([a, b, c], out)
+  end
 end

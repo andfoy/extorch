@@ -31,3 +31,5 @@ TensorList tensor_split(
         int64_t dim);
 TensorList dsplit(
         const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections);
+
+std::shared_ptr<CrossTensor> column_stack(TensorList tensor_list, TensorOut opt_out);

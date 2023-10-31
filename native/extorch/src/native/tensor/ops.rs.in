@@ -48,3 +48,9 @@ fn dsplit(
     input: &SharedPtr<CrossTensor>,
     indices_or_sections: IntListOrInt
 ) -> Result<TensorList>;
+
+/// Creates a new tensor by horizontally stacking a sequence of tensors.
+fn column_stack(
+    tensors: TensorList,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;
