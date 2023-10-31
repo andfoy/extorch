@@ -421,5 +421,51 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           x -> ExTorch.tensor(x, device: :cpu, dtype: :int64)
         end
     )
+
+    @doc """
+    Splits `input`, a tensor with three or more dimensions, into multiple tensors
+    depthwise according to `indices_or_sections`. Each split is a view of `input`.
+
+    This is equivalent to calling `ExTorch.tensor_split(input, indices_or_sections, dim: 2)`
+    (the split dimension is 2), except that if `indices_or_sections` is an integer it must
+    evenly divide the split dimension or a runtime error will be thrown.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - tensor to split.
+    - `indices_or_sections` (`integer() | [integer()] | tuple()`) - See argument in `ExTorch.tensor_split/3`
+
+    ## Examples
+        iex> t = ExTorch.arange(16) |> ExTorch.reshape({2, 2, 4})
+        #Tensor<
+        [[[ 0.0000,  1.0000,  2.0000,  3.0000],
+          [ 4.0000,  5.0000,  6.0000,  7.0000]],
+
+         [[ 8.0000,  9.0000, 10.0000, 11.0000],
+          [12.0000, 13.0000, 14.0000, 15.0000]]]
+        [size: {2, 2, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.dsplit(t, 2)
+        [
+          #Tensor<
+          [[[ 0.0000,  1.0000],
+            [ 4.0000,  5.0000]],
+
+           [[ 8.0000,  9.0000],
+            [12.0000, 13.0000]]]
+          [size: {2, 2, 2}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [[[ 2.,  3.],
+            [ 6.,  7.]],
+
+           [[10., 11.],
+            [14., 15.]]]
+          [size: {2, 2, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+
+    """
+    @spec dsplit(ExTorch.Tensor.t(), integer() | [integer()] | tuple()) :: [
+            ExTorch.Tensor.t()
+          ]
+    defbinding(dsplit(input, indices_or_sections))
   end
 end

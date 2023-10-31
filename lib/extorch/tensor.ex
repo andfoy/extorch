@@ -57,10 +57,15 @@ defmodule ExTorch.Tensor do
       # %ExTorch.Tensor{resource: resource} = tensor
       repr = ExTorch.Native.repr(tensor, ExTorch.Utils.PrintOptions.default())
 
+      repr =
+        repr
+        |> String.split(~r/\R/)
+        |> Enum.intersperse(Inspect.Algebra.break())
+
       concat([
         Inspect.Algebra.color("#Tensor<", :string, opts),
         Inspect.Algebra.break(),
-        repr,
+        concat(repr),
         Inspect.Algebra.break(),
         to_doc(
           [

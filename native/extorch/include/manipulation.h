@@ -29,3 +29,5 @@ TensorList chunk(
 TensorList tensor_split(
         const std::shared_ptr<CrossTensor> &input, TensorOrInt indices_or_sections,
         int64_t dim);
+TensorList dsplit(
+        const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections);

@@ -42,3 +42,9 @@ fn tensor_split(
     indices_or_sections: TensorOrInt,
     dim: i64,
 ) -> Result<TensorList>;
+
+/// Split a tensor of three or more dimensions depthwise according to indices_or_sections.
+fn dsplit(
+    input: &SharedPtr<CrossTensor>,
+    indices_or_sections: IntListOrInt
+) -> Result<TensorList>;
