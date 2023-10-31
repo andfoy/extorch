@@ -54,3 +54,9 @@ fn column_stack(
     tensors: TensorList,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Creates a new tensor by stacking depthwise a sequence of tensors.
+fn dstack(
+    tensors: TensorList,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

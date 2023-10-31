@@ -184,4 +184,25 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
     ExTorch.column_stack([a, b, c], out)
   end
+
+  test "dstack/1" do
+    a = ExTorch.rand({4})
+    b = ExTorch.rand({4})
+    values_3d = for v <- [a, b], do: ExTorch.unsqueeze(v, 0) |> ExTorch.unsqueeze(-1)
+
+    expected = ExTorch.concat(values_3d, -1)
+    out = ExTorch.dstack([a, b])
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "dstack/2" do
+    a = ExTorch.rand({4, 2})
+    b = ExTorch.rand({4, 2})
+    values_3d = for v <- [a, b], do: ExTorch.unsqueeze(v, -1)
+
+    expected = ExTorch.concat(values_3d, -1)
+    out = ExTorch.empty_like(expected)
+    ExTorch.dstack([a, b], out)
+    assert ExTorch.allclose(out, expected)
+  end
 end
