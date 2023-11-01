@@ -69,3 +69,9 @@ fn gather(
     sparse_grad: bool,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Split a tensor of one or more dimensions horizontally according to indices_or_sections.
+fn hsplit(
+    input: &SharedPtr<CrossTensor>,
+    indices_or_sections: IntListOrInt
+) -> Result<TensorList>;

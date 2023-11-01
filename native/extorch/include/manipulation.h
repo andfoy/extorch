@@ -39,3 +39,6 @@ std::shared_ptr<CrossTensor> gather(
         const std::shared_ptr<CrossTensor> &input, int64_t dim,
         const std::shared_ptr<CrossTensor> &index, bool sparse_grad,
         TensorOut opt_out);
+
+TensorList hsplit(
+        const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections);

@@ -599,5 +599,66 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(gather(input, dim, index, sparse_grad \\ false, out \\ nil))
+
+    @doc """
+    Splits `input`, a tensor with one or more dimensions, into multiple tensors horizontally according to `indices_or_sections`.
+    Each split is a view of `input`.
+
+    If `input` is one dimensional this is equivalent to calling `ExTorch.tensor_split(input, indices_or_sections, dim: 0)`
+    (the split dimension is zero), and if `input` has two or more dimensions it’s equivalent to calling
+    `ExTorch.tensor_split(input, indices_or_sections, dim: 1)` (the split dimension is 1),
+    except that if `indices_or_sections` is an integer it must evenly divide the split
+    dimension or a runtime error will be thrown.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - tensor to split.
+    - `indices_or_sections` (`integer() | [integer()] | tuple()`) - See argument in `ExTorch.tensor_split/3`
+
+    ## Examples
+        iex> a = ExTorch.arange(16) |> ExTorch.reshape({4, 4})
+        #Tensor<
+        [[ 0.0000,  1.0000,  2.0000,  3.0000],
+         [ 4.0000,  5.0000,  6.0000,  7.0000],
+         [ 8.0000,  9.0000, 10.0000, 11.0000],
+         [12.0000, 13.0000, 14.0000, 15.0000]]
+        [size: {4, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.hsplit(a, 2)
+        [
+          #Tensor<
+          [[ 0.0000,  1.0000],
+           [ 4.0000,  5.0000],
+           [ 8.0000,  9.0000],
+           [12.0000, 13.0000]]
+          [size: {4, 2}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [[ 2.,  3.],
+           [ 6.,  7.],
+           [10., 11.],
+           [14., 15.]]
+          [size: {4, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+
+        iex> ExTorch.hsplit(a, [3, 6])
+        [
+          #Tensor<
+          [[ 0.0000,  1.0000,  2.0000],
+           [ 4.0000,  5.0000,  6.0000],
+           [ 8.0000,  9.0000, 10.0000],
+           [12.0000, 13.0000, 14.0000]]
+          [size: {4, 3}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [[ 3.],
+           [ 7.],
+           [11.],
+           [15.]]
+          [size: {4, 1}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          []
+          [size: {4, 0}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+    """
+    @spec hsplit(ExTorch.Tensor.t(), integer() | [integer()] | tuple()) :: [ExTorch.Tensor.t()]
+    defbinding(hsplit(input, indices_or_sections))
   end
 end
