@@ -250,3 +250,17 @@ TensorList hsplit(
     }
     return pack_tensor_list(seq);
 }
+
+std::shared_ptr<CrossTensor> hstack(TensorList tensor_list, TensorOut opt_out) {
+    std::vector<CrossTensor> tensor_vec = unpack_tensor_list(tensor_list);
+    CrossTensor out_tensor;
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::hstack_out(out_tensor, tensor_vec);
+    } else {
+        out_tensor = torch::hstack(tensor_vec);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

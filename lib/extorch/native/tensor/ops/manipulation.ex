@@ -533,7 +533,7 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           [3, 6]]]
         [size: {1, 3, 2}, dtype: :byte, device: :cpu, requires_grad: false]>
 
-        iex> iex> a = ExTorch.tensor([[1],[2],[3]])
+        iex> a = ExTorch.tensor([[1],[2],[3]])
         #Tensor<
         [[1],
          [2],
@@ -660,5 +660,48 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec hsplit(ExTorch.Tensor.t(), integer() | [integer()] | tuple()) :: [ExTorch.Tensor.t()]
     defbinding(hsplit(input, indices_or_sections))
+
+    @doc """
+    Stack tensors in sequence horizontally (column wise).
+
+    This is equivalent to concatenation along the first axis for 1-D tensors, and along the second axis for all other tensors.
+
+    ## Arguments
+    - `tensors` (`[ExTorch.Tensor] | tuple()`) - sequence of tensors to concatenate.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.tensor([1, 2, 3])
+        iex> b = ExTorch.tensor([4, 5, 6])
+        iex> ExTorch.hstack({a, b})
+        #Tensor<
+        [1, 2, 3, 4, 5, 6]
+        [size: {6}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+        iex> a = ExTorch.tensor([[1],[2],[3]])
+        #Tensor<
+        [[1],
+         [2],
+         [3]]
+        [size: {3, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+        iex> b = ExTorch.tensor([[4],[5],[6]])
+        #Tensor<
+        [[4],
+         [5],
+         [6]]
+        [size: {3, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.hstack([a, b])
+        #Tensor<
+        [[1, 4],
+         [2, 5],
+         [3, 6]]
+        [size: {3, 2}, dtype: :byte, device: :cpu, requires_grad: false]>
+    """
+    @spec hstack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    defbinding(hstack(tensors, out \\ nil))
   end
 end
