@@ -74,3 +74,9 @@ nif_impl!(
     sparse_grad: bool,
     out: TensorOut
 );
+
+nif_impl!(
+    hsplit,
+    TensorList,
+    input: TensorStruct<'a>,
+    indices_or_sections: IntListOrInt);

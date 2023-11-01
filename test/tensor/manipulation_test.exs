@@ -258,4 +258,20 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.gather(input, 0, index, false, out)
     assert ExTorch.equal(out, expected)
   end
+
+  test "hsplit/2" do
+    input = ExTorch.rand({4, 6})
+    out = ExTorch.hsplit(input, 2)
+    expected = [{4, 3}, {4, 3}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
+
+  test "hsplit/2 with list" do
+    input = ExTorch.rand({2, 10, 2})
+    out = ExTorch.hsplit(input, [2, 7])
+    expected = [{2, 2, 2}, {2, 5, 2}, {2, 3, 2}]
+    sizes = for t <- out, do: t.size
+    assert sizes == expected
+  end
 end

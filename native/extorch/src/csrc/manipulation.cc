@@ -234,3 +234,19 @@ std::shared_ptr<CrossTensor> gather(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+TensorList hsplit(
+        const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections) {
+
+    CrossTensor in_tensor = *input.get();
+    std::vector<CrossTensor> seq;
+
+    if(indices_or_sections.is_list) {
+        rust::Vec<int64_t> sections = indices_or_sections.list;
+        const int64_t *ptr = sections.data();
+        seq = torch::hsplit(in_tensor, torch::IntArrayRef{ptr, sections.size()});
+    } else {
+        seq = torch::hsplit(in_tensor, indices_or_sections.value);
+    }
+    return pack_tensor_list(seq);
+}
