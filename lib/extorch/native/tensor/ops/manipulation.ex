@@ -275,7 +275,8 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           requires_grad: false
         ]>
     """
-    @spec cat(ExTorch.Tensor.t(), integer(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    @spec cat([ExTorch.Tensor.t()] | tuple(), integer(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
     defbinding(cat(input, dim \\ 0, out \\ nil), fn_aliases: [:concatenate, :concat])
 
     @doc """
@@ -508,5 +509,52 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     @spec column_stack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) ::
             ExTorch.Tensor.t()
     defbinding(column_stack(tensors, out \\ nil))
+
+    @doc """
+    Stack tensors in sequence depthwise (along third axis).
+
+    This is equivalent to concatenation along the third axis after 1-D and 2-D tensors have been reshaped
+    by `ExTorch.atleast_3d/1`.
+
+    ## Arguments
+    - `tensors` (`[ExTorch.Tensor.t()] | tuple()`) - sequence of tensors to concatenate.
+
+    ## Optional arguments
+     - out (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.tensor([1, 2, 3])
+        iex> b = ExTorch.tensor([4, 5, 6])
+        iex> ExTorch.dstack({a, b})
+        #Tensor<
+        [[[1, 4],
+          [2, 5],
+          [3, 6]]]
+        [size: {1, 3, 2}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+        iex> iex> a = ExTorch.tensor([[1],[2],[3]])
+        #Tensor<
+        [[1],
+         [2],
+         [3]]
+        [size: {3, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+        iex> b = ExTorch.tensor([[4],[5],[6]])
+        #Tensor<
+        [[4],
+         [5],
+         [6]]
+        [size: {3, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+        iex> ExTorch.dstack([a, b])
+        #Tensor<
+        [[[1, 4]],
+
+         [[2, 5]],
+
+         [[3, 6]]]
+        [size: {3, 1, 2}, dtype: :byte, device: :cpu, requires_grad: false]>
+    """
+    @spec dstack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    defbinding(dstack(tensors, out \\ nil))
   end
 end

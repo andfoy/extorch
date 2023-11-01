@@ -201,3 +201,17 @@ std::shared_ptr<CrossTensor> column_stack(TensorList tensor_list, TensorOut opt_
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> dstack(TensorList tensor_list, TensorOut opt_out) {
+    std::vector<CrossTensor> tensor_vec = unpack_tensor_list(tensor_list);
+    CrossTensor out_tensor;
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::dstack_out(out_tensor, tensor_vec);
+    } else {
+        out_tensor = torch::dstack(tensor_vec);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

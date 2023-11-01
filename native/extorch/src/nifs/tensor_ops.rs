@@ -57,3 +57,10 @@ nif_impl!(
     tensors: TensorList,
     out: TensorOut
 );
+
+nif_impl!(
+    dstack,
+    TensorStruct<'a>,
+    tensors: TensorList,
+    out: TensorOut
+);

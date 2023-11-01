@@ -100,6 +100,7 @@ rustler::init!(
         tensor_split,
         dsplit,
         column_stack,
+        dstack,
 
         // Tensor comparing operations
         allclose,
