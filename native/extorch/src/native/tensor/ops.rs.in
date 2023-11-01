@@ -60,3 +60,12 @@ fn dstack(
     tensors: TensorList,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Gathers values along an axis specified by dim.
+fn gather(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index: &SharedPtr<CrossTensor>,
+    sparse_grad: bool,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

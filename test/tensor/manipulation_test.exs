@@ -205,4 +205,57 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.dstack([a, b], out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "gather/3" do
+    input =
+      ExTorch.tensor([
+        [1, 2],
+        [3, 4]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [2, 1],
+        [4, 3]
+      ])
+
+    index =
+      ExTorch.tensor(
+        [
+          [1, 0],
+          [1, 0]
+        ],
+        dtype: :int64
+      )
+
+    out = ExTorch.gather(input, -1, index)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "gather/5" do
+    input =
+      ExTorch.tensor([
+        [1, 2],
+        [3, 4]
+      ])
+
+    expected =
+      ExTorch.tensor([
+        [3, 4],
+        [1, 2]
+      ])
+
+    index =
+      ExTorch.tensor(
+        [
+          [1, 1],
+          [0, 0]
+        ],
+        dtype: :int64
+      )
+
+    out = ExTorch.empty_like(input)
+    ExTorch.gather(input, 0, index, false, out)
+    assert ExTorch.equal(out, expected)
+  end
 end

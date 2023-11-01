@@ -556,5 +556,48 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec dstack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
     defbinding(dstack(tensors, out \\ nil))
+
+    @doc """
+    Gathers values along an axis specified by dim.
+
+    For a 3-D tensor the output is specified by:
+
+    ```
+    out[i][j][k] = input[index[i][j][k]][j][k]  # if dim == 0
+    out[i][j][k] = input[i][index[i][j][k]][k]  # if dim == 1
+    out[i][j][k] = input[i][j][index[i][j][k]]  # if dim == 2
+    ```
+
+    `input` and `index` must have the same number of dimensions. It is also required
+    that `ExTorch.Tensor.size(index, d) <= ExTorch.Tensor.size(input, d)` for all dimensions `d != dim`.
+    `out` will have the same shape as index. Note that `input` and `index` do not broadcast
+    against each other.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the source tensor.
+    - `dim` (`integer()`) - the axis along which to index.
+    - `index` (`ExTorch.Tensor`) - the indices of elements to gather. Its dtype must be `:int64` or `:long`
+
+    ## Optional arguments
+    - `sparse_grad` (`boolean()`) - if `true`, then the gradient w.r.t. `input` will be a sparse tensor. Default: `false`
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> t = ExTorch.tensor([[1, 2], [3, 4]])
+        iex> ExTorch.gather(t, 1, ExTorch.tensor([[0, 0], [1, 0]], dtype: :int64))
+        #Tensor<
+        [[1, 1],
+         [4, 3]]
+        [size: {2, 2}, dtype: :byte, device: :cpu, requires_grad: false]>
+    """
+    @spec gather(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            boolean(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(gather(input, dim, index, sparse_grad \\ false, out \\ nil))
   end
 end
