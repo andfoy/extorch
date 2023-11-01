@@ -80,3 +80,10 @@ nif_impl!(
     TensorList,
     input: TensorStruct<'a>,
     indices_or_sections: IntListOrInt);
+
+nif_impl!(
+    hstack,
+    TensorStruct<'a>,
+    tensors: TensorList,
+    out: TensorOut
+);

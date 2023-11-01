@@ -42,3 +42,4 @@ std::shared_ptr<CrossTensor> gather(
 
 TensorList hsplit(
         const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections);
+std::shared_ptr<CrossTensor> hstack(TensorList tensor_list, TensorOut opt_out);

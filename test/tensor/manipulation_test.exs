@@ -274,4 +274,20 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     sizes = for t <- out, do: t.size
     assert sizes == expected
   end
+
+  test "hstack/1" do
+    input = ExTorch.rand({2, 10, 2})
+    split = ExTorch.hsplit(input, [2, 7])
+    out = ExTorch.hstack(split)
+    assert ExTorch.allclose(out, input)
+  end
+
+  test "hstack/2" do
+    input = ExTorch.rand({2, 10, 2})
+    split = ExTorch.hsplit(input, [2, 7])
+    out = ExTorch.empty_like(input)
+
+    ExTorch.hstack(split, out)
+    assert ExTorch.allclose(out, input)
+  end
 end

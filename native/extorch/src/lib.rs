@@ -103,6 +103,7 @@ rustler::init!(
         dstack,
         gather,
         hsplit,
+        hstack,
 
         // Tensor comparing operations
         allclose,
