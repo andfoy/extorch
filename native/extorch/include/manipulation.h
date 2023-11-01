@@ -34,3 +34,8 @@ TensorList dsplit(
 
 std::shared_ptr<CrossTensor> column_stack(TensorList tensor_list, TensorOut opt_out);
 std::shared_ptr<CrossTensor> dstack(TensorList tensor_list, TensorOut opt_out);
+
+std::shared_ptr<CrossTensor> gather(
+        const std::shared_ptr<CrossTensor> &input, int64_t dim,
+        const std::shared_ptr<CrossTensor> &index, bool sparse_grad,
+        TensorOut opt_out);

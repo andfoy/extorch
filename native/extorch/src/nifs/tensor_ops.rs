@@ -64,3 +64,13 @@ nif_impl!(
     tensors: TensorList,
     out: TensorOut
 );
+
+nif_impl!(
+    gather,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    index_param: TensorStruct<'a>,
+    sparse_grad: bool,
+    out: TensorOut
+);

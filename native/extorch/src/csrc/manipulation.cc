@@ -215,3 +215,22 @@ std::shared_ptr<CrossTensor> dstack(TensorList tensor_list, TensorOut opt_out) {
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> gather(
+        const std::shared_ptr<CrossTensor> &input, int64_t dim,
+        const std::shared_ptr<CrossTensor> &index, bool sparse_grad,
+        TensorOut opt_out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor index_tensor = *index.get();
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::gather_out(out_tensor, in_tensor, dim, index_tensor, sparse_grad);
+    } else {
+        out_tensor = torch::gather(in_tensor, dim, index_tensor, sparse_grad);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
