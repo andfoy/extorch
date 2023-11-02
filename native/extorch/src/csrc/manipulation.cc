@@ -63,7 +63,9 @@ std::shared_ptr<CrossTensor> index(const std::shared_ptr<CrossTensor> &tensor, c
 std::shared_ptr<CrossTensor> index_put(
         const std::shared_ptr<CrossTensor> &tensor,
         const rust::Vec<TorchIndex> index,
-        const std::shared_ptr<CrossTensor> &value) {
+        const std::shared_ptr<CrossTensor> &value,
+        bool inplace) {
+    CrossTensor out_tensor;
     CrossTensor cross_tensor = *tensor.get();
     CrossTensor value_tensor = *value.get();
 
@@ -111,8 +113,13 @@ std::shared_ptr<CrossTensor> index_put(
     // opts = opts.requires_grad(torch::nullopt);
     // torch::Tensor value_tensor = torch::tensor(scalar_list, opts);
     // value_tensor = value_tensor.reshape(torch::IntArrayRef{ptr, list.size.size()}).contiguous();
+    if(!inplace) {
+        out_tensor = cross_tensor.clone();
+    } else {
+        out_tensor = cross_tensor;
+    }
 
-    auto out_tensor = cross_tensor.index_put_(act_index, value_tensor);
+    out_tensor = out_tensor.index_put_(act_index, value_tensor);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
 

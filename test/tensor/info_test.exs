@@ -163,7 +163,7 @@ defmodule ExTorchTest.Tensor.InfoTest do
   test "to/1" do
     a = ExTorch.rand({3, 3})
     b = ExTorch.Tensor.to(a)
-    a = ExTorch.index_put(a, [0, 0], 1)
+    a = ExTorch.index_put(a, [0, 0], 1, inplace: true)
     assert ExTorch.equal(a, b)
   end
 

@@ -153,6 +153,10 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     - `index` - Indices to replace (`ExTorch.Index`)
     - `value` - The value to assign into the tensor (`ExTorch.Tensor` | `number()` | `list()` | `tuple()` | `number()`)
 
+    ## Optional arguments
+    - `inplace` (`boolean()`) - If `true`, then the values will be replaced on the original `tensor` argument. Else,
+    it will return a copy of `tensor` with the values replaced. Default: `false`
+
     ## Examples
         # Assign a particular value
         iex> x = ExTorch.zeros({2, 3, 3})
@@ -243,9 +247,10 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     @spec index_put(
             ExTorch.Tensor.t(),
             ExTorch.Index.t(),
-            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list()
+            ExTorch.Tensor.t() | ExTorch.Scalar.scalar_or_list(),
+            boolean()
           ) :: ExTorch.Tensor.t()
-    defbinding(index_put(tensor, indices, value),
+    defbinding(index_put(tensor, indices, value, inplace \\ false),
       indices: ExTorch.Utils.Indices.parse_indices(indices),
       value:
         case value do

@@ -9,6 +9,7 @@ fn index_put(
     tensor: &SharedPtr<CrossTensor>,
     indices: Vec<TorchIndex>,
     value: &SharedPtr<CrossTensor>,
+    inplace: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Add an empty dimension to a tensor at the given dimension.
