@@ -29,7 +29,8 @@ nif_impl!(
     TensorStruct<'a>,
     tensor: TensorStruct<'a>,
     indices: TensorIndex,
-    value: TensorStruct<'a>
+    value: TensorStruct<'a>,
+    inplace: bool
 );
 
 nif_impl!(conj, TensorStruct<'a>, input: TensorStruct<'a>);
