@@ -264,3 +264,30 @@ std::shared_ptr<CrossTensor> hstack(TensorList tensor_list, TensorOut opt_out) {
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> index_add(
+        const std::shared_ptr<CrossTensor> &tensor,
+        int64_t dim,
+        const std::shared_ptr<CrossTensor> &index,
+        const std::shared_ptr<CrossTensor> &source,
+        Scalar s_scalar,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *tensor.get();
+    CrossTensor index_tensor = *index.get();
+    CrossTensor source_tensor = *source.get();
+
+    torch::Scalar scalar = get_scalar_type(s_scalar);
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::index_add_out(
+            out_tensor, in_tensor, dim, index_tensor, source_tensor, scalar);
+    } else {
+        out_tensor = torch::index_add(
+            in_tensor, dim, index_tensor, source_tensor, scalar);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
