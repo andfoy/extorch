@@ -2,6 +2,7 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
   @moduledoc false
 
   use ExTorch.Native.BindingDeclaration
+  import ExTorch.Scalar, only: [is_scalar: 1]
 
   @doc """
   Create a slice to index a tensor.
@@ -258,5 +259,56 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             )
         end
     )
+
+    @doc """
+    Accumulate the elements of `alpha` times `source` into the `input` tensor by adding to the indices in the order given in `index`.
+
+    For example, if `dim == 0`, `index[i] == j`, and `alpha=-1`, then the `i`th row of `source` is
+    subtracted from the `j`th row of `input`.
+
+    The `dim`-th dimension of `source` must have the same size as the length of `index` (which must be a vector), and all other
+    dimensions must match `input`, or an error will be raised.
+
+    For a 3-D tensor the output is given as:
+
+    ```
+    out[index[i], :, :] = input[index[i], :, :] + alpha * src[i, :, :]  # if dim == 0
+    out[:, index[i], :] = input[:, index[i], :] + alpha * src[:, i, :]  # if dim == 1
+    out[:, :, index[i]] = input[:, :, index[i]] + alpha * src[:, :, i]  # if dim == 2
+    ```
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - input tensor.
+    - `dim` (`integer()`) - dimension along which to index.
+    - `source` (`ExTorch.Tensor`) - the tensor containing values to add.
+
+    ## Optional arguments
+    - `alpha` (`ExTorch.Scalar`) - the scalar multiplier for `source`. Default: 1
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> x = ExTorch.ones({5, 3})
+        iex> t = ExTorch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype: :float)
+        iex> index = ExTorch.tensor([0, 4, 2], dtype: :long)
+        iex>  ExTorch.index_add(x, 0, index, t)
+        #Tensor<
+        [[ 2.,  3.,  4.],
+         [ 1.,  1.,  1.],
+         [ 8.,  9., 10.],
+         [ 1.,  1.,  1.],
+         [ 5.,  6.,  7.]]
+        [size: {5, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+    """
+    @spec index_add(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            ExTorch.Scalar.t(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(index_add(input, dim, index, source, alpha \\ 1, out \\ nil))
   end
 end

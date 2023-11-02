@@ -81,3 +81,13 @@ fn hstack(
     tensors: TensorList,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Add a source tensor values into input (times an scalar) given an index.
+fn index_add(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index: &SharedPtr<CrossTensor>,
+    source: &SharedPtr<CrossTensor>,
+    alpha: Scalar,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

@@ -23,4 +23,7 @@ defmodule ExTorch.Scalar do
   Scalar or scalar list type specifier.
   """
   @type scalar_or_list :: t() | scalar_list() | tuple()
+
+  defguard is_scalar(x)
+           when is_number(x) or is_struct(x, ExTorch.Complex) or x in [:nan, :inf, :ninf]
 end

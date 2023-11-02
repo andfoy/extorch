@@ -870,7 +870,8 @@ defmodule ExTorch.Native.Macros do
   defp parse_type(type) do
     type_alias =
       case type do
-        {{:., _, [{:__aliases__, [line: 122], [:ExTorch, :Tensor]}, :t]}} -> :tensor
+        {{:., _, [{:__aliases__, _, [:ExTorch, :Tensor]}, :t]}} -> :tensor
+        {{:., _, [{:__aliases__, _, [:ExTorch, :Scalar]}, :t]}, _, []} -> :scalar
         {{:., _, [{:__aliases__, _, [:ExTorch, _]}, extorch_type]}, _, []} -> extorch_type
         {_, _} -> :tuple
         nil -> nil
