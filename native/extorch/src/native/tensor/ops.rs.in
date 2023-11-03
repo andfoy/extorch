@@ -93,3 +93,13 @@ fn index_add(
     out: TensorOut,
     inplace: bool
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Copy a source tensor values into input given an index.
+fn index_copy(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index: &SharedPtr<CrossTensor>,
+    source: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+    inplace: bool
+) -> Result<SharedPtr<CrossTensor>>;

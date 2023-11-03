@@ -266,13 +266,15 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     )
 
     @doc """
-    Accumulate the elements of `alpha` times `source` into the `input` tensor by adding to the indices in the order given in `index`.
+    Accumulate the elements of `alpha` times `source` into the `input` tensor by adding
+    to the indices in the order given in `index`.
 
     For example, if `dim == 0`, `index[i] == j`, and `alpha=-1`, then the `i`th row of `source` is
     subtracted from the `j`th row of `input`.
 
-    The `dim`-th dimension of `source` must have the same size as the length of `index` (which must be a vector), and all other
-    dimensions must match `input`, or an error will be raised.
+    The `dim`-th dimension of `source` must have the same size as the length of `index`
+    (which must be a 1D tensor), and all other dimensions must match `input`, or an error
+    will be raised.
 
     For a 3-D tensor the output is given as:
 
@@ -285,6 +287,7 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     ## Arguments
     - `input` (`ExTorch.Tensor`) - input tensor.
     - `dim` (`integer()`) - dimension along which to index.
+    - `index` (`ExTorch.Tensor`) -  indices of `input` to select from, its dtype must be `:long`.
     - `source` (`ExTorch.Tensor`) - the tensor containing values to add.
 
     ## Optional arguments
@@ -319,5 +322,56 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             boolean()
           ) :: ExTorch.Tensor.t()
     defbinding(index_add(input, dim, index, source, alpha \\ 1, out \\ nil, inplace \\ false))
+
+    @doc """
+    Copies the elements of `source` into the `input` tensor by selecting the indices
+    in the order given in `index`.
+
+    For example, if `dim == 0` and `index[i] == j`, then the `i`th row of `source` is
+    copied to the jth row of `input`.
+
+    The `dim`th dimension of `source` must have the same size as the length of `index`
+    (which must be a 1D tensor), and all other dimensions must match `input`, or an error will be raised.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - input tensor.
+    - `dim` (`integer()`) - dimension along which to index.
+    - `index` (`ExTorch.Tensor`) -  indices of `input` to select from, its dtype must be `:long`.
+    - `source` (`ExTorch.Tensor`) - the tensor containing values to copy.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+    - `inplace` (boolean) - if `true`, the `input` tensor will be modified and be the object of
+    the modifications done by this function. Else it will return a new tensor with the changes, or
+    it will apply them to `out`. Default: `false`
+
+    ## Notes
+    If `index` contains duplicate entries, multiple elements from `source` will be copied to the same
+    index of `self`. The result is nondeterministic since it depends on which copy occurs last.
+
+    ## Examples
+        iex> x = ExTorch.zeros({5, 3})
+        iex> t = ExTorch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype: :float)
+        iex> ExTorch.index_copy(input, 0, index, t)
+        #Tensor<
+        [[1.0000, 2.0000, 3.0000],
+         [0.0000, 0.0000, 0.0000],
+         [7.0000, 8.0000, 9.0000],
+         [0.0000, 0.0000, 0.0000],
+         [4.0000, 5.0000, 6.0000]]
+        [size: {5, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+    """
+    @spec index_copy(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t() | nil,
+            boolean()
+          ) ::
+            ExTorch.Tensor.t()
+    defbinding(index_copy(input, dim, index, source, out \\ nil, inplace \\ false))
   end
 end
