@@ -241,4 +241,56 @@ defmodule ExTorchTest.Tensor.IndexingTest do
 
     assert valid_add
   end
+
+  test "index_copy/4" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    out = ExTorch.index_copy(input, 0, index, source)
+
+    valid_add =
+      indices
+      |> Enum.with_index()
+      |> Enum.reduce(true, fn {to_take, i}, acc ->
+        acc and ExTorch.allclose(out[to_take], source[i])
+      end)
+
+    assert valid_add
+  end
+
+  test "index_copy/5" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+
+    expected = ExTorch.index_put(input, index, source)
+    out = ExTorch.empty_like(input)
+
+    ExTorch.index_copy(input, 0, index, source, out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_copy/5 with kwargs" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = ExTorch.index_put(input, index, source)
+
+    ExTorch.index_copy(input, 0, index, source, inplace: true)
+    assert ExTorch.allclose(input, expected)
+  end
+
+  test "index_copy/6" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = ExTorch.index_put(input, index, source)
+
+    ExTorch.index_copy(input, 0, index, source, nil, true)
+    assert ExTorch.allclose(input, expected)
+  end
 end

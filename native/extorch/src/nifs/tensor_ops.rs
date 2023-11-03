@@ -100,3 +100,14 @@ nif_impl!(
     out: TensorOut,
     inplace: bool
 );
+
+nif_impl!(
+    index_copy,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    index_param: TensorStruct<'a>,
+    source: TensorStruct<'a>,
+    out: TensorOut,
+    inplace: bool
+);
