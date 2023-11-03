@@ -90,5 +90,6 @@ fn index_add(
     index: &SharedPtr<CrossTensor>,
     source: &SharedPtr<CrossTensor>,
     alpha: Scalar,
-    out: TensorOut
+    out: TensorOut,
+    inplace: bool
 ) -> Result<SharedPtr<CrossTensor>>;

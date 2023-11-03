@@ -180,7 +180,7 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     expected = ExTorch.full({3, 3}, -3.4)
     indices = [0, 4, 2]
     index = ExTorch.tensor(indices, dtype: :long)
-    out = ExTorch.index_add(input, 0, index, source, -3.4)
+    out = ExTorch.index_add(input, 0, index, source, alpha: -3.4)
 
     valid_add =
       indices
@@ -204,5 +204,41 @@ defmodule ExTorchTest.Tensor.IndexingTest do
 
     ExTorch.index_add(input, 0, index, source, 1, out)
     assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_add/6 with kwargs" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.ones({3, 3})
+    expected = ExTorch.full({3, 3}, 2)
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    ExTorch.index_add(input, 0, index, source, 2, inplace: true)
+
+    valid_add =
+      indices
+      |> Enum.with_index()
+      |> Enum.reduce(true, fn {to_take, i}, acc ->
+        acc and ExTorch.allclose(input[to_take], expected[i])
+      end)
+
+    assert valid_add
+  end
+
+  test "index_add/7" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.ones({3, 3})
+    expected = ExTorch.full({3, 3}, 2)
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    ExTorch.index_add(input, 0, index, source, 2, nil, true)
+
+    valid_add =
+      indices
+      |> Enum.with_index()
+      |> Enum.reduce(true, fn {to_take, i}, acc ->
+        acc and ExTorch.allclose(input[to_take], expected[i])
+      end)
+
+    assert valid_add
   end
 end

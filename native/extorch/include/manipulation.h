@@ -51,4 +51,5 @@ std::shared_ptr<CrossTensor> index_add(
     const std::shared_ptr<CrossTensor> &index,
     const std::shared_ptr<CrossTensor> &source,
     Scalar s_scalar,
-    TensorOut out);
+    TensorOut out,
+    bool inplace);

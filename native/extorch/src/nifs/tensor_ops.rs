@@ -97,5 +97,6 @@ nif_impl!(
     index_param: TensorStruct<'a>,
     source: TensorStruct<'a>,
     alpha: Scalar,
-    out: TensorOut
+    out: TensorOut,
+    inplace: bool
 );

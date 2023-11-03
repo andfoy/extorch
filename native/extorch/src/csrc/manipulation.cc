@@ -278,7 +278,8 @@ std::shared_ptr<CrossTensor> index_add(
         const std::shared_ptr<CrossTensor> &index,
         const std::shared_ptr<CrossTensor> &source,
         Scalar s_scalar,
-        TensorOut out) {
+        TensorOut out,
+        bool inplace) {
 
     CrossTensor out_tensor;
     CrossTensor in_tensor = *tensor.get();
@@ -291,9 +292,12 @@ std::shared_ptr<CrossTensor> index_add(
         out_tensor = *out.tensor.get();
         out_tensor = torch::index_add_out(
             out_tensor, in_tensor, dim, index_tensor, source_tensor, scalar);
-    } else {
+    } else if(!inplace) {
         out_tensor = torch::index_add(
             in_tensor, dim, index_tensor, source_tensor, scalar);
+    } else {
+        out_tensor = in_tensor;
+        out_tensor.index_add_(dim, index_tensor, source_tensor, scalar);
     }
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));

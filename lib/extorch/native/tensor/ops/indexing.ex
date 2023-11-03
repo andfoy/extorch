@@ -291,6 +291,9 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     - `alpha` (`ExTorch.Scalar`) - the scalar multiplier for `source`. Default: 1
     - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
     store the output result. Default: `nil`
+    - `inplace` (`boolean`) - if `true`, then the operation will be written to the
+    `input` tensor (the `out` argument will be ignored). Else, it returns a new tensor or
+    writes to the `out` argument (if not `nil`)
 
     ## Examples
         iex> x = ExTorch.ones({5, 3})
@@ -312,8 +315,9 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             ExTorch.Tensor.t(),
             ExTorch.Tensor.t(),
             ExTorch.Scalar.t(),
-            ExTorch.Tensor.t() | nil
+            ExTorch.Tensor.t() | nil,
+            boolean()
           ) :: ExTorch.Tensor.t()
-    defbinding(index_add(input, dim, index, source, alpha \\ 1, out \\ nil))
+    defbinding(index_add(input, dim, index, source, alpha \\ 1, out \\ nil, inplace \\ false))
   end
 end
