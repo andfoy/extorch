@@ -485,6 +485,11 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
     store the output result. Default: `nil`
 
+    ## Notes
+    * The returned tensor does not use the same storage as the original tensor.
+    * If `out` has a different shape than expected, we silently change it to the
+    correct shape, reallocating the underlying storage if necessary.
+
     ## Examples
         iex> x = ExTorch.randn({3, 4})
         #Tensor<
