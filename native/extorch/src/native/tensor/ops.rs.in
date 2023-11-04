@@ -103,3 +103,15 @@ fn index_copy(
     out: TensorOut,
     inplace: bool
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Reduce a source tensor values into input given an index and a reduction operation.
+fn index_reduce(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index: &SharedPtr<CrossTensor>,
+    source: &SharedPtr<CrossTensor>,
+    reduce: String,
+    include_self: bool,
+    out: TensorOut,
+    inplace: bool
+) -> Result<SharedPtr<CrossTensor>>;
