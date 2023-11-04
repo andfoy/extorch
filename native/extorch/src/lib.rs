@@ -108,6 +108,7 @@ rustler::init!(
         index_copy,
         index_reduce,
         index_select,
+        masked_select,
 
         // Tensor comparing operations
         allclose,

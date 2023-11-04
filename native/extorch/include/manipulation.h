@@ -77,3 +77,8 @@ std::shared_ptr<CrossTensor> index_select(
     int64_t dim,
     const std::shared_ptr<CrossTensor> &index,
     TensorOut out);
+
+std::shared_ptr<CrossTensor> masked_select(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &mask,
+    TensorOut out);
