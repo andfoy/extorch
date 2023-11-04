@@ -352,4 +352,25 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     ExTorch.index_reduce(input, 0, index, source, :amin, true, nil, true)
     assert ExTorch.allclose(input, expected)
   end
+
+  test "index_select/3" do
+    input = ExTorch.rand({5, 6})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = input[index]
+
+    out = ExTorch.index_select(input, 0, index)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_select/4" do
+    input = ExTorch.rand({5, 6})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = input[{:"::", index}]
+    out = ExTorch.empty_like(expected)
+
+    ExTorch.index_select(input, 1, index, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

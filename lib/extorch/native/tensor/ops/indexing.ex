@@ -467,5 +467,58 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
         inplace \\ false
       )
     )
+
+    @doc """
+    Returns a new tensor which indexes the `input` tensor along dimension `dim`
+    using the entries in `index` (whose dtype is `:long`).
+
+    The returned tensor has the same number of dimensions as the original tensor
+    (`input`). The `dim`th dimension has the same size as the length of `index`;
+    other dimensions have the same size as in the original tensor.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - input tensor.
+    - `dim` (`integer()`) - dimension along which to index.
+    - `index` (`ExTorch.Tensor`) -  indices of `input` to select from, its dtype must be `:long`.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Notes
+    * The returned tensor does not use the same storage as the original tensor.
+    * If `out` has a different shape than expected, we silently change it to the
+    correct shape, reallocating the underlying storage if necessary.
+
+    ## Examples
+        iex> x = ExTorch.randn({3, 4})
+        #Tensor<
+        [[ 2.3564,  1.1268, -0.3407, -0.0561],
+         [ 0.6479, -2.3011, -1.6695,  0.5547],
+         [ 1.3554,  3.6460,  2.5569, -0.1892]]
+        [size: {3, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> indices = ExTorch.tensor([0, 2], dtype: :long)
+
+        iex> ExTorch.index_select(x, 0, indices)
+        #Tensor<
+        [[ 2.3564,  1.1268, -0.3407, -0.0561],
+         [ 1.3554,  3.6460,  2.5569, -0.1892]]
+        [size: {2, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.index_select(x, 1, indices)
+        #Tensor<
+        [[ 2.3564, -0.3407],
+         [ 0.6479, -1.6695],
+         [ 1.3554,  2.5569]]
+        [size: {3, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec index_select(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(index_select(input, dim, index, out \\ nil))
   end
 end

@@ -45,22 +45,13 @@ fn tensor_split(
 ) -> Result<TensorList>;
 
 /// Split a tensor of three or more dimensions depthwise according to indices_or_sections.
-fn dsplit(
-    input: &SharedPtr<CrossTensor>,
-    indices_or_sections: IntListOrInt
-) -> Result<TensorList>;
+fn dsplit(input: &SharedPtr<CrossTensor>, indices_or_sections: IntListOrInt) -> Result<TensorList>;
 
 /// Creates a new tensor by horizontally stacking a sequence of tensors.
-fn column_stack(
-    tensors: TensorList,
-    out: TensorOut
-) -> Result<SharedPtr<CrossTensor>>;
+fn column_stack(tensors: TensorList, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
 
 /// Creates a new tensor by stacking depthwise a sequence of tensors.
-fn dstack(
-    tensors: TensorList,
-    out: TensorOut
-) -> Result<SharedPtr<CrossTensor>>;
+fn dstack(tensors: TensorList, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
 
 /// Gathers values along an axis specified by dim.
 fn gather(
@@ -68,20 +59,14 @@ fn gather(
     dim: i64,
     index: &SharedPtr<CrossTensor>,
     sparse_grad: bool,
-    out: TensorOut
+    out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Split a tensor of one or more dimensions horizontally according to indices_or_sections.
-fn hsplit(
-    input: &SharedPtr<CrossTensor>,
-    indices_or_sections: IntListOrInt
-) -> Result<TensorList>;
+fn hsplit(input: &SharedPtr<CrossTensor>, indices_or_sections: IntListOrInt) -> Result<TensorList>;
 
 /// Creates a new tensor by stacking horizontally a sequence of tensors.
-fn hstack(
-    tensors: TensorList,
-    out: TensorOut
-) -> Result<SharedPtr<CrossTensor>>;
+fn hstack(tensors: TensorList, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
 
 /// Add a source tensor values into input (times an scalar) given an index.
 fn index_add(
@@ -91,7 +76,7 @@ fn index_add(
     source: &SharedPtr<CrossTensor>,
     alpha: Scalar,
     out: TensorOut,
-    inplace: bool
+    inplace: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Copy a source tensor values into input given an index.
@@ -101,7 +86,7 @@ fn index_copy(
     index: &SharedPtr<CrossTensor>,
     source: &SharedPtr<CrossTensor>,
     out: TensorOut,
-    inplace: bool
+    inplace: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Reduce a source tensor values into input given an index and a reduction operation.
@@ -113,5 +98,13 @@ fn index_reduce(
     reduce: String,
     include_self: bool,
     out: TensorOut,
-    inplace: bool
+    inplace: bool,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Index an input tensor alongside a dimension given an index tensor.
+fn index_select(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index: &SharedPtr<CrossTensor>,
+    out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;

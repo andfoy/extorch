@@ -362,3 +362,24 @@ std::shared_ptr<CrossTensor> index_reduce(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> index_select(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim,
+        const std::shared_ptr<CrossTensor> &index,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor index_tensor = *index.get();
+
+    if (out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::index_select_out(
+            out_tensor, in_tensor, dim, index_tensor);
+    } else {
+        out_tensor = torch::index_select(in_tensor, dim, index_tensor);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
