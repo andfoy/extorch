@@ -71,3 +71,9 @@ std::shared_ptr<CrossTensor> index_reduce(
     bool include_self,
     TensorOut out,
     bool inplace);
+
+std::shared_ptr<CrossTensor> index_select(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t dim,
+    const std::shared_ptr<CrossTensor> &index,
+    TensorOut out);
