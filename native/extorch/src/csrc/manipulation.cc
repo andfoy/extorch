@@ -329,3 +329,36 @@ std::shared_ptr<CrossTensor> index_copy(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> index_reduce(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim,
+        const std::shared_ptr<CrossTensor> &index,
+        const std::shared_ptr<CrossTensor> &source,
+        rust::String s_reduce,
+        bool include_self,
+        TensorOut out,
+        bool inplace) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor index_tensor = *index.get();
+    CrossTensor source_tensor = *source.get();
+    std::string reduce(s_reduce.data(), s_reduce.size());
+
+    if(inplace) {
+        out_tensor = in_tensor;
+        out_tensor.index_reduce_(
+            dim, index_tensor, source_tensor, reduce, include_self);
+    } else if (out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::index_reduce_out(
+            out_tensor, in_tensor, dim, index_tensor, source_tensor,
+            reduce, include_self);
+    } else {
+        out_tensor = torch::index_reduce(
+            in_tensor, dim, index_tensor, source_tensor, reduce, include_self);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

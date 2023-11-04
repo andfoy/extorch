@@ -61,3 +61,13 @@ std::shared_ptr<CrossTensor> index_copy(
     const std::shared_ptr<CrossTensor> &source,
     TensorOut out,
     bool inplace);
+
+std::shared_ptr<CrossTensor> index_reduce(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t dim,
+    const std::shared_ptr<CrossTensor> &index,
+    const std::shared_ptr<CrossTensor> &source,
+    rust::String s_reduce,
+    bool include_self,
+    TensorOut out,
+    bool inplace);

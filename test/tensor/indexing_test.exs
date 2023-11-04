@@ -293,4 +293,63 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     ExTorch.index_copy(input, 0, index, source, nil, true)
     assert ExTorch.allclose(input, expected)
   end
+
+  test "index_reduce/5" do
+    input = ExTorch.ones({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = ExTorch.index_put(input, index, source)
+
+    out = ExTorch.index_reduce(input, 0, index, source, :prod)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_reduce/6" do
+    input = ExTorch.zeros({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = ExTorch.index_put(input, index, source)
+
+    out = ExTorch.index_reduce(input, 0, index, source, :prod, false)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_reduce/6 with kwargs" do
+    input = ExTorch.rand({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    expected = ExTorch.index_put(input, index, source)
+
+    out = ExTorch.index_reduce(input, 0, index, source, :mean, include_self: false)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_reduce/7" do
+    input = ExTorch.rand({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    result = ExTorch.maximum(input[index], source)
+
+    expected = ExTorch.index_put(input, index, result)
+    out = ExTorch.empty_like(input)
+
+    ExTorch.index_reduce(input, 0, index, source, :amax, true, out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "index_reduce/8" do
+    input = ExTorch.rand({5, 3})
+    source = ExTorch.rand({3, 3})
+    indices = [0, 4, 2]
+    index = ExTorch.tensor(indices, dtype: :long)
+    result = ExTorch.minimum(input[index], source)
+    expected = ExTorch.index_put(input, index, result)
+
+    ExTorch.index_reduce(input, 0, index, source, :amin, true, nil, true)
+    assert ExTorch.allclose(input, expected)
+  end
 end

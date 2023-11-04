@@ -1,5 +1,5 @@
 use crate::native::torch;
-use crate::shared_types::{Size, TensorIndex, TensorStruct};
+use crate::shared_types::{Size, TensorIndex, TensorStruct, AtomString};
 use crate::torch::{IntListOrInt, Scalar, TensorList, TensorOrInt, TensorOut};
 
 use rustler::{Error, NifResult};
@@ -111,3 +111,17 @@ nif_impl!(
     out: TensorOut,
     inplace: bool
 );
+
+nif_impl!(
+    index_reduce,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    index_param: TensorStruct<'a>,
+    source: TensorStruct<'a>,
+    reduce: AtomString,
+    include_self: bool,
+    out: TensorOut,
+    inplace: bool
+);
+

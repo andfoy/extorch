@@ -373,5 +373,99 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
           ) ::
             ExTorch.Tensor.t()
     defbinding(index_copy(input, dim, index, source, out \\ nil, inplace \\ false))
+
+    @doc """
+    Accumulate the elements of source into the `self` tensor by accumulating to the indices in
+    the order given in `index` using the reduction given by the `reduce` argument.
+
+    For example, if `dim == 0`, `index[i] == j`, `reduce == :prod` and `include_self == true` then
+    the `i`th row of `source` is multiplied by the `j`th row of self. If `include_self = true`,
+    the values in the `self` tensor are included in the reduction, otherwise, rows in the
+    `self` tensor that are accumulated to are treated as if they were filled with the
+    reduction identites.
+
+    The `dim`th dimension of `source` must have the same size as the length of `index`
+    (which must be a 1D tensor), and all other dimensions must match `self`, or an error
+    will be raised.
+
+    For a 3-D tensor with `reduce = :prod` and `include_self = true` the output is given as:
+
+    ```
+    self[index[i], :, :] *= src[i, :, :]  # if dim == 0
+    self[:, index[i], :] *= src[:, i, :]  # if dim == 1
+    self[:, :, index[i]] *= src[:, :, i]  # if dim == 2
+    ```
+
+    ## Arguments
+    - `self` (`ExTorch.Tensor`) - input tensor.
+    - `dim` (`integer()`) - dimension along which to index.
+    - `index` (`ExTorch.Tensor`) -  indices of `source` to select from, its dtype must be `:long`.
+    - `source` (`ExTorch.Tensor`) - the tensor containing values to copy.
+    - `reduce` (`:prod | :mean | :amax | :amin`) - the reduction operation to apply.
+
+    ## Optional arguments
+    - `include_self` (`boolean`) - whether the elements from the `self` tensor are included
+    in the reduction. Default: `true`
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+    - `inplace` (boolean) - if `true`, the `self` tensor will be modified and be the object of
+    the modifications done by this function. Else it will return a new tensor with the changes, or
+    it will apply them to `out`. Default: `false`
+
+    ## Notes
+    * This operation may behave nondeterministically when given tensors on a CUDA device.
+    See [Reproducibility](https://pytorch.org/docs/stable/notes/randomness.html) for more information.
+    * This function only supports floating point tensors.
+    * This function is in beta and may change in the near future.
+
+    ## Examples
+        iex> x = ExTorch.full({5, 3}, 2)
+        iex> t = ExTorch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]], dtype: :float)
+        iex> index = ExTorch.tensor([0, 4, 2, 0], dtype: :long)
+        #Tensor<
+        [0, 4, 2, 0]
+        [size: {4}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.index_reduce(x, 0, index, t, :prod)
+        #Tensor<
+        [[20., 44., 72.],
+         [ 2.,  2.,  2.],
+         [14., 16., 18.],
+         [ 2.,  2.,  2.],
+         [ 8., 10., 12.]]
+        [size: {5, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.index_reduce(x, 0, index, t, :prod, include_self: false)
+        #Tensor<
+        [[10., 22., 36.],
+         [ 2.,  2.,  2.],
+         [ 7.,  8.,  9.],
+         [ 2.,  2.,  2.],
+         [ 4.,  5.,  6.]]
+        [size: {5, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+    """
+    @spec index_reduce(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            :prod | :mean | :amax | :amin,
+            boolean(),
+            ExTorch.Tensor.t() | nil,
+            boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      index_reduce(
+        self,
+        dim,
+        index,
+        source,
+        reduce,
+        include_self \\ true,
+        out \\ nil,
+        inplace \\ false
+      )
+    )
   end
 end
