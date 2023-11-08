@@ -133,3 +133,11 @@ nif_impl!(
     index_param: TensorStruct<'a>,
     out: TensorOut
 );
+
+nif_impl!(
+    masked_select,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    index_param: TensorStruct<'a>,
+    out: TensorOut
+);

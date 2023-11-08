@@ -520,5 +520,48 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(index_select(input, dim, index, out \\ nil))
+
+    @doc """
+    Returns a new 1-D tensor which indexes the `input` tensor according to the
+    boolean mask `mask` which has dtype `:bool`.
+
+    The shapes of the `mask` tensor and the `input` tensor don’t need to match,
+    but they must be broadcastable.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - input tensor.
+    - `mask` (`ExTorch.Tensor`) - the tensor containing the binary mask to index with. It's dtype must be `:bool`
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Notes
+    The returned tensor does **not** use the same storage as the original tensor.
+
+    ## Examples
+        iex> x = ExTorch.randn({4, 5})
+        #Tensor<
+        [[ 1.6055, -0.1662, -0.6764, -0.8615, -2.1960],
+         [ 0.8188, -1.1111, -0.2659,  1.4720, -0.0226],
+         [-0.7065, -1.0628, -0.7172, -1.0006,  0.3091],
+         [-0.8901, -0.6624, -0.4590,  0.0821, -0.9716]]
+        [size: {4, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> mask = ExTorch.ge(x, 0)
+        #Tensor<
+        [[ true, false, false, false, false],
+         [ true, false, false,  true, false],
+         [false, false, false, false,  true],
+         [false, false, false,  true, false]]
+        [size: {4, 5}, dtype: :bool, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.masked_select(x, mask)
+        #Tensor<
+        [1.6055, 0.8188, 1.4720, 0.3091, 0.0821]
+        [size: {5}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec masked_select(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(masked_select(input, mask, out \\ nil))
   end
 end

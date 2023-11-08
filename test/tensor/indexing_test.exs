@@ -373,4 +373,22 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     ExTorch.index_select(input, 1, index, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "masked_select/2" do
+    input = ExTorch.randn({5, 4})
+    mask = ExTorch.ge(input, 0)
+    expected = input[mask]
+    out = ExTorch.masked_select(input, mask)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "masked_select/3" do
+    input = ExTorch.randn({5, 4})
+    mask = ExTorch.ge(input, 0)
+    expected = input[mask]
+    out = ExTorch.empty_like(expected)
+
+    ExTorch.masked_select(input, mask, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

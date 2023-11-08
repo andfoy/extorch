@@ -383,3 +383,23 @@ std::shared_ptr<CrossTensor> index_select(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> masked_select(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &mask,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor mask_tensor = *mask.get();
+
+    if (out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::masked_select_out(
+            out_tensor, in_tensor, mask_tensor);
+    } else {
+        out_tensor = torch::masked_select(in_tensor, mask_tensor);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

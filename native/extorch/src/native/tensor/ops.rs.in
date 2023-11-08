@@ -108,3 +108,10 @@ fn index_select(
     index: &SharedPtr<CrossTensor>,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Index an input tensor using a boolean mask tensor.
+fn masked_select(
+    input: &SharedPtr<CrossTensor>,
+    mask: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;
