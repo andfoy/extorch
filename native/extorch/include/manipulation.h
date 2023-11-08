@@ -87,3 +87,9 @@ std::shared_ptr<CrossTensor> movedim(
     const std::shared_ptr<CrossTensor> &input,
     rust::Vec<int64_t> source,
     rust::Vec<int64_t> destination);
+
+std::shared_ptr<CrossTensor> narrow(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t dim,
+    TensorOrInt start,
+    int64_t length);
