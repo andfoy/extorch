@@ -141,3 +141,11 @@ nif_impl!(
     index_param: TensorStruct<'a>,
     out: TensorOut
 );
+
+nif_impl!(
+    movedim,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    source: Size,
+    destination: Size
+);

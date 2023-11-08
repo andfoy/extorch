@@ -703,5 +703,53 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec hstack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
     defbinding(hstack(tensors, out \\ nil))
+
+    @doc """
+    Moves the dimension(s) of `input` at the position(s) in `source` to the position(s) in `destination`.
+
+    Other dimensions of `input` that are not explicitly moved remain in their original order and appear
+    at the positions not specified in `destination`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `source` (`integer() | tuple()`) - original positions of the dims to move. These must be unique.
+    - `destination` (`integer() | tuple()`) - destination positions of the dims to move. These must be unique.
+
+    ## Examples
+        iex> a = ExTorch.randn({3, 2, 1})
+        #Tensor<
+        [[[-0.0404],
+          [ 0.5073]],
+
+         [[ 0.3008],
+          [-0.6428]],
+
+         [[-0.8649],
+          [ 0.3615]]]
+        [size: {3, 2, 1}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Swap two singular dimensions
+        iex> ExTorch.movedim(a, 1, 0)
+        #Tensor<
+        [[[-0.0404],
+          [ 0.3008],
+          [-0.8649]],
+
+         [[ 0.5073],
+          [-0.6428],
+          [ 0.3615]]]
+        [size: {2, 3, 1}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Swap multiple dimensions
+        iex> ExTorch.movedim(a, {1, 2}, {0, 1})
+        #Tensor<
+        [[[-0.0404,  0.3008, -0.8649]],
+
+         [[ 0.5073, -0.6428,  0.3615]]]
+        [size: {2, 1, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec movedim(ExTorch.Tensor.t(), tuple() | integer(), tuple() | integer()) ::
+            ExTorch.Tensor.t()
+    defbinding(movedim(input, source, destination), fn_aliases: [:moveaxis])
   end
 end

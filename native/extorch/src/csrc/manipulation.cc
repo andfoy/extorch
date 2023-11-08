@@ -403,3 +403,17 @@ std::shared_ptr<CrossTensor> masked_select(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> movedim(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> source,
+        rust::Vec<int64_t> destination) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    out_tensor = torch::movedim(
+        in_tensor, torch::IntArrayRef{source.data(), source.size()},
+        torch::IntArrayRef{destination.data(), destination.size()});
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

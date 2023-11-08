@@ -290,4 +290,16 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.hstack(split, out)
     assert ExTorch.allclose(out, input)
   end
+
+  test "movedim/3" do
+    input = ExTorch.empty({3, 4, 5})
+    out = ExTorch.movedim(input, 0, 1)
+    assert out.size == {4, 3, 5}
+  end
+
+  test "movedim/3 with tuple" do
+    input = ExTorch.empty({3, 4, 5, 1})
+    out = ExTorch.movedim(input, {0, 2}, {1, -1})
+    assert out.size == {4, 3, 1, 5}
+  end
 end

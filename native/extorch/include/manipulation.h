@@ -82,3 +82,8 @@ std::shared_ptr<CrossTensor> masked_select(
     const std::shared_ptr<CrossTensor> &input,
     const std::shared_ptr<CrossTensor> &mask,
     TensorOut out);
+
+std::shared_ptr<CrossTensor> movedim(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> source,
+    rust::Vec<int64_t> destination);
