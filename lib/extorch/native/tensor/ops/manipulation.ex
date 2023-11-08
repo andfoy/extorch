@@ -748,7 +748,8 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
          [[ 0.5073, -0.6428,  0.3615]]]
         [size: {2, 1, 3}, dtype: :float, device: :cpu, requires_grad: false]>
     """
-    @spec movedim(ExTorch.Tensor.t(), tuple() | integer(), tuple() | integer()) :: ExTorch.Tensor.t()
+    @spec movedim(ExTorch.Tensor.t(), tuple() | integer(), tuple() | integer()) ::
+            ExTorch.Tensor.t()
     defbinding(movedim(input, source, destination), fn_aliases: [:moveaxis])
   end
 end
