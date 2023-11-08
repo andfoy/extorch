@@ -115,3 +115,10 @@ fn masked_select(
     mask: &SharedPtr<CrossTensor>,
     out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Swap two or more dimensions to a new position.
+fn movedim(
+    input: &SharedPtr<CrossTensor>,
+    source: Vec<i64>,
+    destination: Vec<i64>,
+) -> Result<SharedPtr<CrossTensor>>;
