@@ -417,3 +417,25 @@ std::shared_ptr<CrossTensor> movedim(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> narrow(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim,
+        TensorOrInt start,
+        int64_t length) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+
+    if(start.is_tensor) {
+        CrossTensor start_tensor = *start.tensor.get();
+        if(start_tensor.numel() == 1) {
+            start_tensor = start_tensor.squeeze();
+        }
+        out_tensor = torch::narrow(in_tensor, dim, start_tensor, length);
+    } else {
+        out_tensor = torch::narrow(in_tensor, dim, start.value, length);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

@@ -391,4 +391,18 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     ExTorch.masked_select(input, mask, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "narrow/4" do
+    input = ExTorch.randn({4, 3})
+    expected = input[0..2]
+    out = ExTorch.narrow(input, 0, 0, 2)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "narrow/4 with tensor start" do
+    input = ExTorch.randn({4, 3})
+    expected = input[{:"::", 1..3}]
+    out = ExTorch.narrow(input, 1, ExTorch.tensor(1), 2)
+    assert ExTorch.allclose(out, expected)
+  end
 end

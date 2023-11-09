@@ -122,3 +122,11 @@ fn movedim(
     source: Vec<i64>,
     destination: Vec<i64>,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Narrow a tensor (slice) from `start` to `start + length` in a given dimension.
+fn narrow(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    start: TensorOrInt,
+    length: i64,
+) -> Result<SharedPtr<CrossTensor>>;

@@ -751,5 +751,57 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     @spec movedim(ExTorch.Tensor.t(), tuple() | integer(), tuple() | integer()) ::
             ExTorch.Tensor.t()
     defbinding(movedim(input, source, destination), fn_aliases: [:moveaxis])
+
+    @doc """
+    Returns a new tensor that is a narrowed version of `input` tensor.
+
+    The dimension `dim` is input from `start` to `start` + `length`.
+    The returned tensor and `input` tensor share the same underlying storage.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the tensor to narrow.
+    - `dim` (`integer`) - the dimension along which to narrow.
+    - `start` (`integer | ExTorch.Tensor`) - index of the element to start the
+    narrowed dimension from. Can be negative, which means indexing from the
+    end of `dim`. If `ExTorch.Tensor`, it must be an 0-dim integral Tensor (bools not allowed).
+    - `length` (`integer`) - length of the narrowed dimension, must be weakly positive.
+
+    ## Examples
+        iex> a = ExTorch.arange(12) |> ExTorch.reshape({4, 3})
+        #Tensor<
+        [[ 0.0000,  1.0000,  2.0000],
+         [ 3.0000,  4.0000,  5.0000],
+         [ 6.0000,  7.0000,  8.0000],
+         [ 9.0000, 10.0000, 11.0000]]
+        [size: {4, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Narrow tensor from 0 to 2 in the first dimension
+        iex> ExTorch.narrow(a, 0, 0, 2)
+        #Tensor<
+        [[0.0000, 1.0000, 2.0000],
+         [3.0000, 4.0000, 5.0000]]
+        [size: {2, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Narrow tensor from 1 to 3 in the second dimension
+        iex> ExTorch.narrow(a, 1, 1, 2)
+        #Tensor<
+        [[ 1.,  2.],
+         [ 4.,  5.],
+         [ 7.,  8.],
+         [10., 11.]]
+        [size: {4, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Narrow tensor using a `start` tensor
+        iex> ExTorch.narrow(a, -1, ExTorch.tensor(-1), 1)
+        #Tensor<
+        [[ 2.],
+         [ 5.],
+         [ 8.],
+         [11.]]
+        [size: {4, 1}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec narrow(ExTorch.Tensor.t(), integer(), integer() | ExTorch.Tensor.t(), integer()) ::
+            ExTorch.Tensor.t()
+    defbinding(narrow(input, dim, start, length))
   end
 end

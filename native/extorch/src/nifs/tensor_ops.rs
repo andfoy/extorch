@@ -149,3 +149,12 @@ nif_impl!(
     source: Size,
     destination: Size
 );
+
+nif_impl!(
+    narrow,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    start: TensorOrInt,
+    length: i64
+);
