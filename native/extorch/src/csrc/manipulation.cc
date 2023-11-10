@@ -460,3 +460,32 @@ std::shared_ptr<CrossTensor> narrow_copy(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+TensorTuple nonzero(
+        const std::shared_ptr<CrossTensor> &input,
+        TensorOut out,
+        bool as_tuple) {
+
+    std::vector<std::shared_ptr<CrossTensor>> out_tensor_vec;
+    CrossTensor in_tensor = *input.get();
+
+    if(!as_tuple) {
+        CrossTensor out_tensor;
+        if(out.used) {
+            out_tensor = *out.tensor.get();
+            out_tensor = torch::nonzero_out(out_tensor, in_tensor);
+        } else {
+            out_tensor = torch::nonzero(in_tensor);
+        }
+        out_tensor_vec.push_back(
+            std::make_shared<CrossTensor>(std::move(out_tensor)));
+    } else  {
+        std::vector<CrossTensor> out_tensors = torch::nonzero_numpy(in_tensor);
+        for(int i = 0; i < out_tensors.size(); i++) {
+            out_tensor_vec.push_back(
+                std::make_shared<CrossTensor>(std::move(out_tensors[i])));
+        }
+    }
+
+    return pack_tensor_tuple(out_tensor_vec);
+}

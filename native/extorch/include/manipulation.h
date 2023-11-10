@@ -100,3 +100,8 @@ std::shared_ptr<CrossTensor> narrow_copy(
     int64_t start,
     int64_t length,
     TensorOut out);
+
+TensorTuple nonzero(
+    const std::shared_ptr<CrossTensor> &input,
+    TensorOut out,
+    bool as_tuple);

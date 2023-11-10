@@ -112,6 +112,7 @@ rustler::init!(
         movedim,
         narrow,
         narrow_copy,
+        nonzero,
 
         // Tensor comparing operations
         allclose,
