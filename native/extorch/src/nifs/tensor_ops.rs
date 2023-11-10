@@ -176,3 +176,10 @@ nif_impl!(
     out: TensorOut,
     as_tuple: bool
 );
+
+nif_impl!(
+    permute,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dims: Size
+);

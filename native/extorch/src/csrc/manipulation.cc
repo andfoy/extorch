@@ -489,3 +489,15 @@ TensorTuple nonzero(
 
     return pack_tensor_tuple(out_tensor_vec);
 }
+
+std::shared_ptr<CrossTensor> permute(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    out_tensor = torch::permute(
+        in_tensor, torch::IntArrayRef{dims.data(), dims.size()});
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

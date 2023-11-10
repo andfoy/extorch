@@ -930,5 +930,21 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     @spec nonzero(ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil, boolean()) ::
             ExTorch.Tensor.t() | tuple()
     defbinding(nonzero(input, out \\ nil, as_tuple \\ false))
+
+    @doc """
+    Returns a view of the original tensor `input` with its dimensions permuted.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dims` (`tuple() | [integer()]`) - The desired ordering of dimensions.
+
+    ## Examples
+        iex> a = ExTorch.rand({3, 2, 4, 5})
+        iex> out = ExTorch.permute(a, {2, -1, 0, 1})
+        iex> out.size
+        {4, 5, 3, 2}
+    """
+    @spec permute(ExTorch.Tensor.t(), tuple() | [integer()]) :: ExTorch.Tensor.t()
+    defbinding(permute(input, dims))
   end
 end

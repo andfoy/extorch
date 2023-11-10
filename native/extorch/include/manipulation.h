@@ -105,3 +105,7 @@ TensorTuple nonzero(
     const std::shared_ptr<CrossTensor> &input,
     TensorOut out,
     bool as_tuple);
+
+std::shared_ptr<CrossTensor> permute(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> dims);
