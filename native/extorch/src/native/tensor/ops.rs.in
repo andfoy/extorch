@@ -146,3 +146,9 @@ fn nonzero(
     out: TensorOut,
     as_tuple: bool
 ) -> Result<TensorTuple>;
+
+/// Permute a tensor dimensions and return the result as a view.
+fn permute(
+    input: &SharedPtr<CrossTensor>,
+    dims: Vec<i64>
+) -> Result<SharedPtr<CrossTensor>>;

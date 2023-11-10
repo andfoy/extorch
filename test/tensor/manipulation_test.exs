@@ -361,4 +361,10 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out_idx = ExTorch.nonzero(input, as_tuple: true)
     assert ExTorch.all(ExTorch.ne(input[out_idx], 0.0))
   end
+
+  test "permute/2" do
+    input = ExTorch.rand({3, 4, 5, 2})
+    out = ExTorch.permute(input, {2, -1, 0, 1})
+    assert out.size == {5, 2, 3, 4}
+  end
 end

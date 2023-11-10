@@ -113,6 +113,7 @@ rustler::init!(
         narrow,
         narrow_copy,
         nonzero,
+        permute,
 
         // Tensor comparing operations
         allclose,
