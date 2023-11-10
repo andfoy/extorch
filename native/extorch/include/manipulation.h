@@ -111,3 +111,8 @@ std::shared_ptr<CrossTensor> permute(
     rust::Vec<int64_t> dims);
 
 std::shared_ptr<CrossTensor> vstack(TensorList tensor_list, TensorOut opt_out);
+
+std::shared_ptr<CrossTensor> select(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t dim,
+    int64_t index);

@@ -155,3 +155,10 @@ fn permute(
 
 /// Creates a new tensor by stacking vertically a sequence of tensors.
 fn vstack(tensors: TensorList, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
+
+/// Index a tensor in a given dimension.
+fn select(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index_param: i64
+) -> Result<SharedPtr<CrossTensor>>;

@@ -190,3 +190,11 @@ nif_impl!(
     tensors: TensorList,
     out: TensorOut
 );
+
+nif_impl!(
+    select,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    index_param: i64
+);

@@ -563,5 +563,53 @@ defmodule ExTorch.Native.Tensor.Ops.Indexing do
     @spec masked_select(ExTorch.Tensor.t(), ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil) ::
             ExTorch.Tensor.t()
     defbinding(masked_select(input, mask, out \\ nil))
+
+    @doc """
+    Slices the `input` tensor along the selected dimension at the given `index`.
+    This function returns a view of the original tensor with the given dimension removed.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dim` (`integer`) - the dimension to slice.
+    - `index` (`integer`) - the index to select.
+
+    ## Notes
+    `ExTorch.select/3` is equivalent to slicing. For example, `ExTorch.select(0, index)`
+    is equivalent to `tensor[index]` and `ExTorch.select(2, index)` is equivalent to
+    `tensor[{:::, :::, index}]`.
+
+    ## Examples
+        iex> a = ExTorch.arange(2 * 3 * 4) |> ExTorch.reshape({2, 3, 4})
+        #Tensor<
+        [[[ 0.0000,  1.0000,  2.0000,  3.0000],
+          [ 4.0000,  5.0000,  6.0000,  7.0000],
+          [ 8.0000,  9.0000, 10.0000, 11.0000]],
+
+         [[12.0000, 13.0000, 14.0000, 15.0000],
+          [16.0000, 17.0000, 18.0000, 19.0000],
+          [20.0000, 21.0000, 22.0000, 23.0000]]]
+        [size: {2, 3, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.select(a, 0, 1)
+        #Tensor<
+        [[12., 13., 14., 15.],
+         [16., 17., 18., 19.],
+         [20., 21., 22., 23.]]
+        [size: {3, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.select(a, 1, 0)
+        #Tensor<
+        [[ 0.0000,  1.0000,  2.0000,  3.0000],
+         [12.0000, 13.0000, 14.0000, 15.0000]]
+        [size: {2, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.select(a, 2, 2)
+        #Tensor<
+        [[ 2.,  6., 10.],
+         [14., 18., 22.]]
+        [size: {2, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec select(ExTorch.Tensor.t(), integer(), integer()) :: ExTorch.Tensor.t()
+    defbinding(select(input, dim, index))
   end
 end
