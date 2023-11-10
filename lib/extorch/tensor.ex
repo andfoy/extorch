@@ -78,6 +78,7 @@ defmodule ExTorch.Tensor do
         ),
         Inspect.Algebra.color(">", :string, opts)
       ])
+      |> Inspect.Algebra.group()
     end
   end
 

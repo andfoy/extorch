@@ -318,4 +318,47 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.narrow_copy(input, 1, 1, 2, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "nonzero/1" do
+    input = ExTorch.eye(4)
+
+    expected =
+      ExTorch.tensor(
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+          [3, 3]
+        ],
+        dtype: :long
+      )
+
+    out = ExTorch.nonzero(input)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "nonzero/2" do
+    input = ExTorch.eye(4)
+
+    expected =
+      ExTorch.tensor(
+        [
+          [0, 0],
+          [1, 1],
+          [2, 2],
+          [3, 3]
+        ],
+        dtype: :long
+      )
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.nonzero(input, out)
+    assert ExTorch.equal(out, expected)
+  end
+
+  test "nonzero/2 with kwargs" do
+    input = ExTorch.rand({3, 4}) |> ExTorch.ge(0.2) |> ExTorch.Tensor.to(dtype: :float)
+    out_idx = ExTorch.nonzero(input, as_tuple: true)
+    assert ExTorch.all(ExTorch.ne(input[out_idx], 0.0))
+  end
 end

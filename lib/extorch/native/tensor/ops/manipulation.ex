@@ -853,5 +853,82 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(narrow_copy(input, dim, start, length, out \\ nil))
+
+    @doc """
+    Retrieve the indices of all non-zero elements in a tensor.
+
+    This function can behave differently depending of the value set by the
+    `as_tuple` parameter:
+
+    ### When `as_tuple` is `false` (default):
+    Returns a tensor containing the indices of all non-zero elements of `input`.
+    Each row in the result contains the indices of a non-zero element in `input`.
+    The result is sorted lexicographically, with the last index changing the fastest (C-style).
+
+    If `input` has $n$ dimensions, then the resulting indices tensor out is of size $(z \\times n)$,
+    where $z$ is the total number of non-zero elements in the input tensor.
+
+    ### When `as_tuple` is `true`
+    Returns a tuple of 1-D tensors, one for each dimension in `input`, each containing the indices
+    (in that dimension) of all non-zero elements of input .
+
+    If `input` has $n$ dimensions, then the resulting tuple contains $n$ tensors of size $z$, where $z$
+    is the total number of non-zero elements in the input tensor.
+
+    As a special case, when `input` has zero dimensions and a nonzero scalar value, it is treated as a
+    one-dimensional tensor with one element.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+      store the output result. This will only take effect when `as_tuple = false`.
+      Default: `nil`
+    - `as_tuple` (`boolean`) - if `false`, the function will return the output tensor
+    containing indices. Else, it returns one 1-D tensor for each dimension, containing
+    the indices of each nonzero element along that dimension. Default: `false`
+
+    ## Examples
+        iex> input1 = ExTorch.tensor([1, 1, 1, 0, 1])
+        iex> input2 = ExTorch.tensor([[0.6, 0.0, 0.0, 0.0],
+        ...>                          [0.0, 0.4, 0.0, 0.0],
+        ...>                          [0.0, 0.0, 1.2, 0.0],
+        ...>                          [0.0, 0.0, 0.0,-0.4]])
+
+        # Return tensor indices
+        iex> ExTorch.nonzero(input1)
+        #Tensor<
+        [[0],
+         [1],
+         [2],
+         [4]]
+        [size: {4, 1}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.nonzero(input2)
+        #Tensor<
+        [[0, 0],
+         [1, 1],
+         [2, 2],
+         [3, 3]]
+        [size: {4, 2}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        # Return tuple indices
+        iex> ExTorch.nonzero(input1, as_tuple: true)
+        #Tensor<
+        [0, 1, 2, 4]
+        [size: {4}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.nonzero(input2, as_tuple: true)
+        {#Tensor<
+         [0, 1, 2, 3]
+         [size: {4}, dtype: :long, device: :cpu, requires_grad: false]>,
+         #Tensor<
+         [0, 1, 2, 3]
+         [size: {4}, dtype: :long, device: :cpu, requires_grad: false]>}
+    """
+    @spec nonzero(ExTorch.Tensor.t(), ExTorch.Tensor.t() | nil, boolean()) ::
+            ExTorch.Tensor.t() | tuple()
+    defbinding(nonzero(input, out \\ nil, as_tuple \\ false))
   end
 end
