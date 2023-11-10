@@ -183,3 +183,10 @@ nif_impl!(
     input: TensorStruct<'a>,
     dims: Size
 );
+
+nif_impl!(
+    vstack,
+    TensorStruct<'a>,
+    tensors: TensorList,
+    out: TensorOut
+);

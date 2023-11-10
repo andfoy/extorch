@@ -109,3 +109,5 @@ TensorTuple nonzero(
 std::shared_ptr<CrossTensor> permute(
     const std::shared_ptr<CrossTensor> &input,
     rust::Vec<int64_t> dims);
+
+std::shared_ptr<CrossTensor> vstack(TensorList tensor_list, TensorOut opt_out);
