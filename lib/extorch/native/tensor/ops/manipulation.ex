@@ -946,5 +946,54 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec permute(ExTorch.Tensor.t(), tuple() | [integer()]) :: ExTorch.Tensor.t()
     defbinding(permute(input, dims))
+
+    @doc """
+    Stack tensors in sequence vertically (row wise).
+
+    This is equivalent to concatenation along the first axis after all 1-D tensors
+    have been reshaped by `ExTorch.atleast_2d/1`.
+
+    ## Arguments
+    - `tensors` (`[ExTorch.Tensor.t()] | tuple()`) - sequence of tensors to concatenate.
+
+    ## Optional arguments
+     - out (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.tensor([1, 2, 3])
+        iex> b = ExTorch.tensor([4, 5, 6])
+        iex> ExTorch.vstack({a, b})
+        #Tensor<
+        [[1, 2, 3],
+         [4, 5, 6]]
+        [size: {2, 3}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+        iex> a = ExTorch.tensor([[1],[2],[3]])
+        #Tensor<
+        [[1],
+         [2],
+         [3]]
+        [size: {3, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+        iex> b = ExTorch.tensor([[4],[5],[6]])
+        #Tensor<
+        [[4],
+         [5],
+         [6]]
+        [size: {3, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.vstack([a, b])
+        #Tensor<
+        [[1],
+         [2],
+         [3],
+         [4],
+         [5],
+         [6]]
+        [size: {6, 1}, dtype: :byte, device: :cpu, requires_grad: false]>
+
+    """
+    @spec vstack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
+    defbinding(vstack(tensors, out \\ nil), fn_aliases: [:row_stack])
   end
 end

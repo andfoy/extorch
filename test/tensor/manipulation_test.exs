@@ -367,4 +367,19 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out = ExTorch.permute(input, {2, -1, 0, 1})
     assert out.size == {5, 2, 3, 4}
   end
+
+  test "vstack/1" do
+    input = ExTorch.rand({5, 10, 2})
+    parts = [input[0..3], input[3..5]]
+    out = ExTorch.vstack(parts)
+    assert ExTorch.allclose(out, input)
+  end
+
+  test "vstack/2" do
+    input = ExTorch.rand({5, 10, 2})
+    parts = [input[0..3], input[3..5]]
+    out = ExTorch.empty_like(input)
+    ExTorch.vstack(parts, out)
+    assert ExTorch.allclose(out, input)
+  end
 end

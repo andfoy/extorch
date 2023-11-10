@@ -114,6 +114,7 @@ rustler::init!(
         narrow_copy,
         nonzero,
         permute,
+        vstack,
 
         // Tensor comparing operations
         allclose,
