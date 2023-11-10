@@ -111,6 +111,7 @@ rustler::init!(
         masked_select,
         movedim,
         narrow,
+        narrow_copy,
 
         // Tensor comparing operations
         allclose,

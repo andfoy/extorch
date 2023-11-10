@@ -93,3 +93,10 @@ std::shared_ptr<CrossTensor> narrow(
     int64_t dim,
     TensorOrInt start,
     int64_t length);
+
+std::shared_ptr<CrossTensor> narrow_copy(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t dim,
+    int64_t start,
+    int64_t length,
+    TensorOut out);
