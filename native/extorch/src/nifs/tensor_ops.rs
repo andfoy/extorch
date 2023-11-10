@@ -158,3 +158,13 @@ nif_impl!(
     start: TensorOrInt,
     length: i64
 );
+
+nif_impl!(
+    narrow_copy,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    start: i64,
+    length: i64,
+    out: TensorOut
+);

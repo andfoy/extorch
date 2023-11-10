@@ -302,4 +302,20 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out = ExTorch.movedim(input, {0, 2}, {1, -1})
     assert out.size == {4, 3, 1, 5}
   end
+
+  test "narrow_copy/4" do
+    input = ExTorch.randn({4, 3})
+    expected = input[0..2]
+    out = ExTorch.narrow_copy(input, 0, 0, 2)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "narrow_copy/5" do
+    input = ExTorch.randn({4, 3})
+    expected = input[{:"::", 1..3}]
+    out = ExTorch.empty_like(expected)
+
+    ExTorch.narrow_copy(input, 1, 1, 2, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

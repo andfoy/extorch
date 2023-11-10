@@ -130,3 +130,12 @@ fn narrow(
     start: TensorOrInt,
     length: i64,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Narrow a tensor (slice) from `start` to `start + length` in a given dimension, taking a copy.
+fn narrow_copy(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    start: i64,
+    length: i64,
+    out: TensorOut,
+) -> Result<SharedPtr<CrossTensor>>;

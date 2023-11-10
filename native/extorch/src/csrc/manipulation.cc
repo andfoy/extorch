@@ -439,3 +439,24 @@ std::shared_ptr<CrossTensor> narrow(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> narrow_copy(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim,
+        int64_t start,
+        int64_t length,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::narrow_copy_out(
+            out_tensor, in_tensor, dim, start, length);
+    } else {
+        out_tensor = torch::narrow_copy(in_tensor, dim, start, length);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

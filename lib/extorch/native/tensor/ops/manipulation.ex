@@ -803,5 +803,55 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     @spec narrow(ExTorch.Tensor.t(), integer(), integer() | ExTorch.Tensor.t(), integer()) ::
             ExTorch.Tensor.t()
     defbinding(narrow(input, dim, start, length))
+
+    @doc """
+    Same as `ExTorch.narrow/4` except this returns a copy rather than shared storage.
+    This is primarily for sparse tensors, which do not have a shared-storage narrow method.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the tensor to narrow.
+    - `dim` (`integer`) - the dimension along which to narrow.
+    - `start` (`integer`) - index of the element to start the
+    narrowed dimension from. Can be negative, which means indexing from the
+    end of `dim`.
+    - `length` (`integer`) - length of the narrowed dimension, must be weakly positive.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.arange(12) |> ExTorch.reshape({4, 3})
+        #Tensor<
+        [[ 0.0000,  1.0000,  2.0000],
+         [ 3.0000,  4.0000,  5.0000],
+         [ 6.0000,  7.0000,  8.0000],
+         [ 9.0000, 10.0000, 11.0000]]
+        [size: {4, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Narrow tensor from 0 to 2 in the first dimension
+        iex> ExTorch.narrow_copy(a, 0, 0, 2)
+        #Tensor<
+        [[0.0000, 1.0000, 2.0000],
+         [3.0000, 4.0000, 5.0000]]
+        [size: {2, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Narrow tensor from 1 to 3 in the second dimension
+        iex> ExTorch.narrow_copy(a, 1, 1, 2)
+        #Tensor<
+        [[ 1.,  2.],
+         [ 4.,  5.],
+         [ 7.,  8.],
+         [10., 11.]]
+        [size: {4, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec narrow_copy(
+            ExTorch.Tensor.t(),
+            integer(),
+            integer(),
+            integer(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(narrow_copy(input, dim, start, length, out \\ nil))
   end
 end
