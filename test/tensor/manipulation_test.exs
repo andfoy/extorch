@@ -382,4 +382,69 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.vstack(parts, out)
     assert ExTorch.allclose(out, input)
   end
+
+  test "scatter/4" do
+    src = ExTorch.arange(1, 11) |> ExTorch.reshape({2, 5})
+    index = ExTorch.tensor([[0, 1, 2, 0]], dtype: :int64)
+    input = ExTorch.zeros({3, 5}, dtype: src.dtype)
+
+    expected =
+      ExTorch.tensor([
+        [1.0000, 0.0000, 0.0000, 4.0000, 0.0000],
+        [0.0000, 2.0000, 0.0000, 0.0000, 0.0000],
+        [0.0000, 0.0000, 3.0000, 0.0000, 0.0000]
+      ])
+
+    out = ExTorch.scatter(input, 0, index, src)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter/5" do
+    src = ExTorch.arange(1, 11) |> ExTorch.reshape({2, 5})
+    index = ExTorch.tensor([[0, 1, 2], [0, 1, 4]], dtype: :int64)
+    input = ExTorch.zeros({3, 5}, dtype: src.dtype)
+
+    out = ExTorch.empty_like(input)
+    expected =
+      ExTorch.tensor([
+        [1.0000, 2.0000, 3.0000, 0.0000, 0.0000],
+        [6.0000, 7.0000, 0.0000, 0.0000, 8.0000],
+        [0.0000, 0.0000, 0.0000, 0.0000, 0.0000]
+      ])
+
+    ExTorch.scatter(input, 1, index, src, out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter/5 with kwargs" do
+    src = ExTorch.arange(1, 11) |> ExTorch.reshape({2, 5})
+    index = ExTorch.tensor([[0, 1, 2], [0, 1, 4]], dtype: :int64)
+    input = ExTorch.zeros({3, 5}, dtype: src.dtype)
+
+    expected =
+      ExTorch.tensor([
+        [1.0000, 2.0000, 3.0000, 0.0000, 0.0000],
+        [6.0000, 7.0000, 0.0000, 0.0000, 8.0000],
+        [0.0000, 0.0000, 0.0000, 0.0000, 0.0000]
+      ])
+
+    ExTorch.scatter(input, 1, index, src, inplace: true)
+    assert ExTorch.allclose(input, expected)
+  end
+
+  test "scatter/6" do
+    src = ExTorch.arange(1, 11) |> ExTorch.reshape({2, 5})
+    index = ExTorch.tensor([[0, 1, 2, 0]], dtype: :int64)
+    input = ExTorch.zeros({3, 5}, dtype: src.dtype)
+
+    expected =
+      ExTorch.tensor([
+        [1.0000, 0.0000, 0.0000, 4.0000, 0.0000],
+        [0.0000, 2.0000, 0.0000, 0.0000, 0.0000],
+        [0.0000, 0.0000, 3.0000, 0.0000, 0.0000]
+      ])
+
+    ExTorch.scatter(input, 0, index, src, nil, true)
+    assert ExTorch.allclose(input, expected)
+  end
 end

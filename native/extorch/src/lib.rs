@@ -116,6 +116,7 @@ rustler::init!(
         permute,
         vstack,
         select,
+        scatter,
 
         // Tensor comparing operations
         allclose,

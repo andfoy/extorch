@@ -116,3 +116,11 @@ std::shared_ptr<CrossTensor> select(
     const std::shared_ptr<CrossTensor> &input,
     int64_t dim,
     int64_t index);
+
+std::shared_ptr<CrossTensor> scatter(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t dim,
+    const std::shared_ptr<CrossTensor> &index,
+    const std::shared_ptr<CrossTensor> &src,
+    TensorOut out,
+    const bool inplace);
