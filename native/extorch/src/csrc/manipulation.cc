@@ -515,3 +515,14 @@ std::shared_ptr<CrossTensor> vstack(TensorList tensor_list, TensorOut opt_out) {
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> select(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim,
+        int64_t index) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    out_tensor = torch::select(in_tensor, dim, index);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

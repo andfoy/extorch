@@ -405,4 +405,11 @@ defmodule ExTorchTest.Tensor.IndexingTest do
     out = ExTorch.narrow(input, 1, ExTorch.tensor(1), 2)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "select/3" do
+    input = ExTorch.rand({5, 10, 2})
+    expected = input[{:"::", 4}]
+    out = ExTorch.select(input, 1, 4)
+    assert ExTorch.allclose(out, expected)
+  end
 end
