@@ -526,3 +526,30 @@ std::shared_ptr<CrossTensor> select(
     out_tensor = torch::select(in_tensor, dim, index);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> scatter(
+        const std::shared_ptr<CrossTensor> &input,
+        int64_t dim,
+        const std::shared_ptr<CrossTensor> &index,
+        const std::shared_ptr<CrossTensor> &src,
+        TensorOut out,
+        const bool inplace) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor index_tensor = *index.get();
+    CrossTensor src_tensor = *src.get();
+
+    if(inplace) {
+        out_tensor = in_tensor;
+        out_tensor.scatter_(dim, index_tensor, src_tensor);
+    } else if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::scatter_out(
+            out_tensor, in_tensor, dim, index_tensor, src_tensor);
+    } else {
+        out_tensor = torch::scatter(in_tensor, dim, index_tensor, src_tensor);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

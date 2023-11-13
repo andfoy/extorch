@@ -995,5 +995,102 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec vstack([ExTorch.Tensor.t()] | tuple(), ExTorch.Tensor.t() | nil) :: ExTorch.Tensor.t()
     defbinding(vstack(tensors, out \\ nil), fn_aliases: [:row_stack])
+
+    @doc """
+    Writes all values from the tensor `src` into `input` at the indices specified in the `index` tensor.
+    For each value in `src`, its output index is specified by its index in `src` for `dimension != dim` and by
+    the corresponding value in `index` for `dimension = dim`.
+
+    For a 3-D tensor, `input` is updated as:
+
+    ```
+    input[index[i][j][k]][j][k] = src[i][j][k]  # if dim == 0
+    input[i][index[i][j][k]][k] = src[i][j][k]  # if dim == 1
+    input[i][j][index[i][j][k]] = src[i][j][k]  # if dim == 2
+    ```
+
+    This is the reverse operation of the manner described in `ExTorch.gather/5`.
+
+    `input`, `index` and `src` (if it is a `ExTorch.Tensor`) should all have the same number of dimensions.
+    It is also required that `index.size(d) <= src.size(d)` for all dimensions `d`, and that
+    `index.size(d) <= input.size(d)` for all `dimensions d != dim`. Note that `index` and `src` do not broadcast.
+
+    Moreover, as for `ExTorch.gather/5`, the values of `index` must be between 0 and `input.size(dim) - 1`
+    inclusive.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dim` (`integer`) - the axis along which to index.
+    - `index` (`ExTorch.Tensor`) -  the indices of elements to scatter, can be either empty or of the
+    same dimensionality as `src`. When empty, the operation returns `input` unchanged. It's dtype must be `:long` or
+    `:int64`
+    - `src` (`ExTorch.Tensor` or `float`) - the source element(s) to scatter.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to
+    store the output result. If `inplace = true` it will not take any effect. Default: `nil`
+    - `inplace` (`bool`) - if `true` then the scatter operation will take inplace on the `input` argument. Else it will
+    return a separate tensor with the result. Default: `false`
+
+    ## Warnings
+    When indices are not unique, the behavior is non-deterministic (one of the values from `src` will be picked arbitrarily)
+    and the gradient will be incorrect (it will be propagated to all locations in the source that correspond to the same index)!
+
+    ## Notes
+    1. The backward pass is implemented only for `src.size == index.size`.
+    2. This function does not expose the `reduce` argument since it is set for deprecation. It is recommended to use
+    the `ExTorch.scatter_reduce` function instead.
+
+    ## Examples
+        iex> src = ExTorch.arange(1, 11) |> ExTorch.reshape({2, 5})
+        #Tensor<
+        [[ 1.,  2.,  3.,  4.,  5.],
+         [ 6.,  7.,  8.,  9., 10.]]
+        [size: {2, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> index = ExTorch.tensor([[0, 1, 2, 0]], dtype: :int64)
+        #Tensor<
+        [[0, 1, 2, 0]]
+        [size: {1, 4}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> input = ExTorch.zeros({3, 5}, dtype: src.dtype)
+        #Tensor<
+        [[   0.,    0.,    0.,    0.,    0.],
+         [   0.,    0.,    0.,    0.,    0.],
+         [   0.,    0.,    0.,    0.,    0.]]
+        [size: {3, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.scatter(input, 0, index, src)
+        #Tensor<
+        [[1.0000, 0.0000, 0.0000, 4.0000, 0.0000],
+         [0.0000, 2.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 3.0000, 0.0000, 0.0000]]
+        [size: {3, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> index = ExTorch.tensor([[0, 1, 2], [0, 1, 4]], dtype: :int64)
+        #Tensor<
+        [[0, 1, 2],
+         [0, 1, 4]]
+        [size: {2, 3}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> ExTorch.scatter(input, 1, index, src)
+        #Tensor<
+        [[1.0000, 2.0000, 3.0000, 0.0000, 0.0000],
+         [6.0000, 7.0000, 0.0000, 0.0000, 8.0000],
+         [0.0000, 0.0000, 0.0000, 0.0000, 0.0000]]
+        [size: {3, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec scatter(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t() | float(),
+            ExTorch.Tensor.t() | nil,
+            boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(scatter(input, dim, index, src, out \\ nil, inplace \\ false),
+      src:
+        case is_float(src) do
+          true -> ExTorch.tensor(src)
+          false -> src
+        end
+    )
   end
 end
