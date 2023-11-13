@@ -2315,7 +2315,14 @@ defmodule ExTorchTest.Tensor.ReductionTest do
         dtype: :int64
       )
 
-    expected = ExTorch.tensor([3, -1, 0, 1], dtype: :int64)
+    comp_version = Keyword.get(ExTorch.Native.compilation_info(), :version)
+    comp_version = System.get_env("PYTORCH_VERSION", comp_version)
+    # TODO: Remove this after the next PyTorch release.
+    expected = case comp_version do
+      "latest" -> [-1, 0, 1, 3]
+      _ -> [3, -1, 0, 1]
+    end
+    expected = ExTorch.tensor(expected, dtype: :int64)
     out = ExTorch.unique(input, false)
     assert ExTorch.equal(out, expected)
   end
