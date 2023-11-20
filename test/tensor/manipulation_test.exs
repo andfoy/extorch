@@ -405,6 +405,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     input = ExTorch.zeros({3, 5}, dtype: src.dtype)
 
     out = ExTorch.empty_like(input)
+
     expected =
       ExTorch.tensor([
         [1.0000, 2.0000, 3.0000, 0.0000, 0.0000],
@@ -446,5 +447,74 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
     ExTorch.scatter(input, 0, index, src, nil, true)
     assert ExTorch.allclose(input, expected)
+  end
+
+  test "diagonal_scatter/2" do
+    input = ExTorch.zeros({3, 3})
+    expected = ExTorch.eye(3)
+    out = ExTorch.diagonal_scatter(input, ExTorch.ones(3))
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "diagonal_scatter/3" do
+    input = ExTorch.zeros({3, 3})
+    expected = ExTorch.eye(3)
+    out = ExTorch.diagonal_scatter(input, ExTorch.ones(3), 0)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "diagonal_scatter/3 with kwargs" do
+    input = ExTorch.zeros({3, 3})
+
+    expected =
+      ExTorch.tensor([
+        [0.0000, 1.0000, 0.0000],
+        [0.0000, 0.0000, 1.0000],
+        [0.0000, 0.0000, 0.0000]
+      ])
+
+    out = ExTorch.diagonal_scatter(input, ExTorch.ones(2), offset: 1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "diagonal_scatter/4" do
+    input = ExTorch.zeros({3, 3, 3})
+    base = ExTorch.eye(3) |> ExTorch.unsqueeze(0)
+    expected = ExTorch.cat([base, base, base], 0)
+
+    out = ExTorch.diagonal_scatter(input, ExTorch.ones({3, 3}), 0, 2)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "diagonal_scatter/4 with kwargs" do
+    input = ExTorch.zeros({3, 3, 3})
+
+    advanced_index = [
+      [0, 0, 0, 1, 1, 1, 2, 2, 2],
+      [0, 1, 2, 0, 1, 2, 0, 1, 2],
+      [0, 0, 0, 1, 1, 1, 2, 2, 2]
+    ]
+
+    expected = ExTorch.index_put(input, advanced_index, 1.0)
+
+    out = ExTorch.diagonal_scatter(input, ExTorch.ones({3, 3}), 0, dim2: -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "diagonal_scatter/5" do
+    input = ExTorch.zeros({3, 3, 3})
+    expected = ExTorch.index_put(input, [[0, 1, 2], [0, 1, 2]], 1.0)
+
+    out = ExTorch.diagonal_scatter(input, ExTorch.ones({3, 3}), 0, 0, 1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "diagonal_scatter/6" do
+    input = ExTorch.zeros({3, 3, 3})
+    expected = ExTorch.index_put(input, [[0, 1, 2], [0, 1, 2]], 1.0)
+
+    out = ExTorch.empty_like(input)
+    ExTorch.diagonal_scatter(input, ExTorch.ones({3, 3}), 0, 0, 1, out)
+    assert ExTorch.allclose(out, expected)
   end
 end

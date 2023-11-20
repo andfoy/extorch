@@ -209,3 +209,14 @@ nif_impl!(
     out: TensorOut,
     inplace: bool
 );
+
+nif_impl!(
+    diagonal_scatter,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    src: TensorStruct<'a>,
+    offset: i64,
+    dim1: i64,
+    dim2: i64,
+    out: TensorOut
+);

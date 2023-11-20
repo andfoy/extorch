@@ -1092,5 +1092,64 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           false -> src
         end
     )
+
+    @doc """
+    Embeds the values of the `src` tensor into `input` along the diagonal elements of `input`,
+    with respect to `dim1` and `dim2`.
+
+    This function returns a tensor with fresh storage; it does not return a view.
+
+    The argument `offset` controls which diagonal to consider:
+
+    * If `offset = 0`, it is the main diagonal.
+    * If `offset > 0`, it is above the main diagonal.
+    * If `offset < 0`, it is below the main diagonal.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor. Must be at least 2-dimensional.
+    - `src` (`ExTorch.Tensor`) - the tensor to embed into `input`.
+    - `offset` (`integer`) - which diagonal to consider. Default: 0 (main diagonal).
+    - `dim1` (`integer`) - first dimension with respect to which to take diagonal. Default: 0.
+    - `dim2` (`integer`) - second dimension with respect to which to take diagonal. Default: 1.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Notes
+    `src` must be of the proper size in order to be embedded into `input`. Specifically, it should have
+    the same shape as `ExTorch.diagonal(input, offset, dim1, dim2)`
+
+    ## Examples
+        iex> a = ExTorch.zeros({3, 3})
+        #Tensor<
+        [[   0.,    0.,    0.],
+         [   0.,    0.,    0.],
+         [   0.,    0.,    0.]]
+        [size: {3, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.diagonal_scatter(a, ExTorch.ones(3), 0)
+        #Tensor<
+        [[1.0000, 0.0000, 0.0000],
+         [0.0000, 1.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000]]
+        [size: {3, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.diagonal_scatter(a, ExTorch.ones(2), 1)
+        #Tensor<
+        [[0.0000, 1.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000],
+         [0.0000, 0.0000, 0.0000]]
+        [size: {3, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec diagonal_scatter(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            integer(),
+            integer(),
+            integer(),
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(diagonal_scatter(input, src, offset \\ 0, dim1 \\ 0, dim2 \\ 1, out \\ nil))
   end
 end

@@ -117,6 +117,7 @@ rustler::init!(
         vstack,
         select,
         scatter,
+        diagonal_scatter,
 
         // Tensor comparing operations
         allclose,
