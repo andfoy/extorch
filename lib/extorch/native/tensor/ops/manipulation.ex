@@ -1151,5 +1151,50 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
     defbinding(diagonal_scatter(input, src, offset \\ 0, dim1 \\ 0, dim2 \\ 1, out \\ nil))
+
+    @doc """
+    Embeds the values of the `src` tensor into `input` at the given `index`.
+    This function returns a tensor with fresh storage; it does not create a view.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `src` (`ExTorch.Tensor`) - the tensor to embed into `input`.
+    - `dim` (`integer`) - the dimension to insert the slice into.
+    - `index` (`integer`) - the index to select with.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Note
+    `src` must be of the proper size in order to be embedded into `input`.
+    Specifically, it should have the same shape as `ExTorch.select(input, dim, index)`
+
+    ## Examples
+        iex> a = ExTorch.zeros({2, 2})
+        #Tensor<
+        [[   0.,    0.],
+         [   0.,    0.]]
+        [size: {2, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> b = ExTorch.ones(2)
+        #Tensor<
+        [1., 1.]
+        [size: {2}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.select_scatter(a, b, 0, 0)
+        #Tensor<
+        [[1.0000, 1.0000],
+         [0.0000, 0.0000]]
+        [size: {2, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec select_scatter(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            integer(),
+            integer(),
+            ExTorch.Tensor.t() | nil
+          ) ::
+            ExTorch.Tensor.t()
+    defbinding(select_scatter(input, src, dim, index, out \\ nil))
   end
 end

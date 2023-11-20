@@ -220,3 +220,13 @@ nif_impl!(
     dim2: i64,
     out: TensorOut
 );
+
+nif_impl!(
+    select_scatter,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    src: TensorStruct<'a>,
+    dim: i64,
+    index_param: i64,
+    out: TensorOut
+);

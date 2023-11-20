@@ -517,4 +517,23 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.diagonal_scatter(input, ExTorch.ones({3, 3}), 0, 0, 1, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "select_scatter/4" do
+    input = ExTorch.rand({3, 2, 2})
+    src = ExTorch.rand({2, 2})
+    expected = ExTorch.index_put(input, 0, src)
+    out = ExTorch.select_scatter(input, src, 0, 0)
+
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "select_scatter/5" do
+    input = ExTorch.rand({3, 2, 2})
+    src = ExTorch.rand({3, 2})
+    expected = ExTorch.index_put(input, [:"::", 1], src)
+    out = ExTorch.empty_like(input)
+
+    ExTorch.select_scatter(input, src, 1, 1, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

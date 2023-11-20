@@ -577,3 +577,24 @@ std::shared_ptr<CrossTensor> diagonal_scatter(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> select_scatter(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &src,
+        int64_t dim,
+        int64_t index,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor src_tensor = *src.get();
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::select_scatter_out(out_tensor, in_tensor, src_tensor, dim, index);
+    } else {
+        out_tensor = torch::select_scatter(in_tensor, src_tensor, dim, index);
+    }
+
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
