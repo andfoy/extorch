@@ -182,3 +182,12 @@ fn diagonal_scatter(
     dim2: i64,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Embeds the values of the `src` tensor into input at the given `index`.
+fn select_scatter(
+    input: &SharedPtr<CrossTensor>,
+    src: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index: i64,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

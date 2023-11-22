@@ -132,3 +132,10 @@ std::shared_ptr<CrossTensor> diagonal_scatter(
     int64_t dim1,
     int64_t dim2,
     TensorOut out);
+
+std::shared_ptr<CrossTensor> select_scatter(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &src,
+    int64_t dim,
+    int64_t index,
+    TensorOut out);
