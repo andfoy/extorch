@@ -1196,5 +1196,60 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
           ) ::
             ExTorch.Tensor.t()
     defbinding(select_scatter(input, src, dim, index, out \\ nil))
+
+    @doc """
+    Embeds the values of the `src` tensor into `input` at the given dimension.
+    This function returns a tensor with fresh storage; it does not create a view.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `src` (`ExTorch.Tensor`) - the tensor to embed into `input`.
+
+    ## Optional arguments
+    - `dim` (`integer`) - the dimension to insert the slice into. Default: 0
+    - `start` (`integer` or `nil`) - the start index from which the slice should be inserted into. Default: `nil`
+    - `stop` (`integer` or `nil`) - the end index until which the slice is inserted. Default: `nil`
+    - `step` (`integer` or `nil`) - how many elements are skipped in between slice insertions. Default: 1
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to
+    store the output result. Default: `nil`
+
+    ## Examples
+        iex> a = ExTorch.zeros({8, 8})
+        iex> b = ExTorch.ones({2, 8})
+        iex> ExTorch.slice_scatter(a, b, start: 6)
+        #Tensor<
+        [[0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000, 0.0000],
+         [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000],
+         [1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000, 1.0000]]
+        [size: {8, 8}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> b = ExTorch.ones({8, 2})
+        iex> ExTorch.slice_scatter(a, b, dim: 1, start: 2, stop: 6, step: 2)
+        #Tensor<
+        [[0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 1.0000, 0.0000, 0.0000, 0.0000]]
+        [size: {8, 8}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec slice_scatter(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            integer(),
+            integer() | nil,
+            integer() | nil,
+            integer() | nil,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(slice_scatter(input, src, dim \\ 0, start \\ nil, stop \\ nil, step \\ 1, out \\ nil))
   end
 end

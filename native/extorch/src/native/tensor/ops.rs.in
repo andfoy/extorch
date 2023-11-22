@@ -191,3 +191,14 @@ fn select_scatter(
     index: i64,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Embeds the values of the `src` tensor into `input` at the given dimension.
+fn slice_scatter(
+    input: &SharedPtr<CrossTensor>,
+    src: &SharedPtr<CrossTensor>,
+    dim: i64,
+    start: OptionalInt,
+    end: OptionalInt,
+    step: i64,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

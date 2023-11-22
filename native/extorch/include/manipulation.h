@@ -139,3 +139,12 @@ std::shared_ptr<CrossTensor> select_scatter(
     int64_t dim,
     int64_t index,
     TensorOut out);
+
+std::shared_ptr<CrossTensor> slice_scatter(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &src,
+    int64_t dim,
+    OptionalInt start,
+    OptionalInt end,
+    int64_t step,
+    TensorOut out);

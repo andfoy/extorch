@@ -536,4 +536,93 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.select_scatter(input, src, 1, 1, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "slice_scatter/2" do
+    input = ExTorch.zeros({4, 5})
+    src = ExTorch.rand({4, 5})
+    out = ExTorch.slice_scatter(input, src)
+
+    assert ExTorch.allclose(out, src)
+  end
+
+  test "slice_scatter/3" do
+    input = ExTorch.zeros({4, 5})
+    src = ExTorch.rand({4, 5})
+    out = ExTorch.slice_scatter(input, src, 1)
+    assert ExTorch.allclose(out, src)
+  end
+
+  test "slice_scatter/3 with kwargs" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({8, 3})
+    expected = ExTorch.index_put(input, [:"::", 2..5], src)
+
+    out = ExTorch.slice_scatter(input, src, dim: 1, start: 2, stop: 5)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "slice_scatter/4" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({3, 8})
+    expected = ExTorch.index_put(input, [5..8], src)
+
+    out = ExTorch.slice_scatter(input, src, 0, 5)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "slice_scatter/4 with kwargs" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({8, 3})
+    expected = ExTorch.index_put(input, [:"::", 2..7//2], src)
+
+    out = ExTorch.slice_scatter(input, src, 1, 2, stop: 7, step: 2)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "slice_scatter/5" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({2, 8})
+    expected = ExTorch.index_put(input, [4..6], src)
+
+    out = ExTorch.slice_scatter(input, src, 0, 4, 6)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "slice_scatter/5 with kwargs" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({8, 3})
+    expected = ExTorch.index_put(input, [:"::", 0..7//3], src)
+
+    out = ExTorch.slice_scatter(input, src, 1, 0, stop: 7, step: 3)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "slice_scatter/6" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({2, 8})
+    expected = ExTorch.index_put(input, [1..5//3], src)
+
+    out = ExTorch.slice_scatter(input, src, 0, 1, 5, 3)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "test_scatter/6 with kwargs" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({2, 8})
+    expected = ExTorch.index_put(input, [1..5//3], src)
+    out = ExTorch.empty_like(input)
+
+    ExTorch.slice_scatter(input, src, 0, 1, 5, 3, out: out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "test_scatter/7" do
+    input = ExTorch.zeros({8, 8})
+    src = ExTorch.rand({8, 3})
+    expected = ExTorch.index_put(input, [:"::", 0..7//3], src)
+    out = ExTorch.empty_like(input)
+
+    ExTorch.slice_scatter(input, src, 1, 0, 7, 3, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end
