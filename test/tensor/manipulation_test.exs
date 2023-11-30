@@ -644,6 +644,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
   test "scatter_add/5" do
     input = ExTorch.zeros({3, 5})
+
     index =
       ExTorch.tensor(
         [
@@ -651,7 +652,9 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
         ],
         dtype: :int64
       )
+
     src = ExTorch.rand({2, 5})
+
     expected =
       ExTorch.index_put(
         input,
@@ -666,6 +669,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
   test "scatter_add/5 with kwargs" do
     input = ExTorch.zeros({3, 5})
+
     index =
       ExTorch.tensor(
         [
@@ -673,7 +677,9 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
         ],
         dtype: :int64
       )
+
     src = ExTorch.rand({2, 5})
+
     expected =
       ExTorch.index_put(
         input,
