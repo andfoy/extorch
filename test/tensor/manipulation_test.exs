@@ -625,4 +625,69 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.slice_scatter(input, src, 1, 0, 7, 3, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "scatter_add/4" do
+    input = ExTorch.zeros({3, 5})
+    index = ExTorch.tensor([[0, 1, 2, 0, 0]], dtype: :int64)
+    src = ExTorch.rand({2, 5})
+
+    expected =
+      ExTorch.index_put(
+        input,
+        [[0, 1, 2, 0, 0], [0, 1, 2, 3, 4]],
+        src[0]
+      )
+
+    out = ExTorch.scatter_add(input, 0, index, src)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter_add/5" do
+    input = ExTorch.zeros({3, 5})
+
+    index =
+      ExTorch.tensor(
+        [
+          [0, 1, 2, 0, 0]
+        ],
+        dtype: :int64
+      )
+
+    src = ExTorch.rand({2, 5})
+
+    expected =
+      ExTorch.index_put(
+        input,
+        [[0, 1, 2, 0, 0], [0, 1, 2, 3, 4]],
+        src[0]
+      )
+
+    out = ExTorch.empty_like(input)
+    ExTorch.scatter_add(input, 0, index, src, out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter_add/5 with kwargs" do
+    input = ExTorch.zeros({3, 5})
+
+    index =
+      ExTorch.tensor(
+        [
+          [0, 1, 2, 0, 0]
+        ],
+        dtype: :int64
+      )
+
+    src = ExTorch.rand({2, 5})
+
+    expected =
+      ExTorch.index_put(
+        input,
+        [[0, 1, 2, 0, 0], [0, 1, 2, 3, 4]],
+        src[0]
+      )
+
+    ExTorch.scatter_add(input, 0, index, src, inplace: true)
+    assert ExTorch.allclose(input, expected)
+  end
 end

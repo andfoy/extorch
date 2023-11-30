@@ -202,3 +202,13 @@ fn slice_scatter(
     step: i64,
     out: TensorOut
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Adds all values from the tensor `src` into `input` at the indices specified in the `index` tensor.
+fn scatter_add(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index_param: &SharedPtr<CrossTensor>,
+    src: &SharedPtr<CrossTensor>,
+    out: TensorOut,
+    inplace: bool,
+) -> Result<SharedPtr<CrossTensor>>;
