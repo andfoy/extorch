@@ -1250,6 +1250,96 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             integer() | nil,
             ExTorch.Tensor.t() | nil
           ) :: ExTorch.Tensor.t()
-    defbinding(slice_scatter(input, src, dim \\ 0, start \\ nil, stop \\ nil, step \\ 1, out \\ nil))
+    defbinding(
+      slice_scatter(input, src, dim \\ 0, start \\ nil, stop \\ nil, step \\ 1, out \\ nil)
+    )
+
+    @doc """
+    Adds all values from the tensor `src` into `input` at the indices specified in the `index` tensor in a similar
+    fashion to `ExTorch.scatter/6`.
+
+    For each value in `src`, its output index is specified by its index in `src` for `dimension != dim` and by
+    the corresponding value in `index` for `dimension = dim`.
+
+    For a 3-D tensor, `input` is updated as:
+
+    ```
+    input[index[i][j][k]][j][k] += src[i][j][k]  # if dim == 0
+    input[i][index[i][j][k]][k] += src[i][j][k]  # if dim == 1
+    input[i][j][index[i][j][k]] += src[i][j][k]  # if dim == 2
+    ```
+
+    This is the reverse operation of the manner described in `ExTorch.gather/5`.
+
+    `input`, `index` and `src` (if it is a `ExTorch.Tensor`) should all have the same number of dimensions.
+    It is also required that `index.size(d) <= src.size(d)` for all dimensions `d`, and that
+    `index.size(d) <= input.size(d)` for all `dimensions d != dim`. Note that `index` and `src` do not broadcast.
+
+    Moreover, as for `ExTorch.gather/5`, the values of `index` must be between 0 and `input.size(dim) - 1`
+    inclusive.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dim` (`integer`) - the axis along which to index.
+    - `index` (`ExTorch.Tensor`) -  the indices of elements to scatter, can be either empty or of the
+    same dimensionality as `src`. When empty, the operation returns `input` unchanged. It's dtype must be `:long` or
+    `:int64`
+    - `src` (`ExTorch.Tensor`) - the source elements to scatter and add.
+
+    ## Optional arguments
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to
+    store the output result. If `inplace = true` it will not take any effect. Default: `nil`
+    - `inplace` (`bool`) - if `true` then the scatter operation will take inplace on the `input` argument. Else it will
+    return a separate tensor with the result. Default: `false`
+
+    ## Notes
+    1. The backward pass is implemented only for `src.size == index.size`.
+    2. This operation may behave nondeterministically when given tensors on a CUDA device.
+    See Reproducibility for more information.
+
+    ## Examples
+        iex> src = ExTorch.ones({2, 5})
+        #Tensor<
+        [[1., 1., 1., 1., 1.],
+         [1., 1., 1., 1., 1.]]
+        [size: {2, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> index = ExTorch.tensor([[0, 1, 2, 0, 0]], dtype: :int64)
+        #Tensor<
+        [[0, 1, 2, 0, 0]]
+        [size: {1, 5}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> input = ExTorch.zeros({3, 5}, dtype: src.dtype)
+        #Tensor<
+        [[   0.,    0.,    0.,    0.,    0.],
+         [   0.,    0.,    0.,    0.,    0.],
+         [   0.,    0.,    0.,    0.,    0.]]
+        [size: {3, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex(4)> ExTorch.scatter_add(input, 0, index, src)
+        #Tensor<
+        [[1.0000, 0.0000, 0.0000, 1.0000, 1.0000],
+         [0.0000, 1.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 1.0000, 0.0000, 0.0000]]
+        [size: {3, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> index = ExTorch.tensor([[0, 1, 2, 0, 0], [0, 1, 2, 2, 2]], dtype: :int64)
+        #Tensor<
+        [[0, 1, 2, 0, 0],
+         [0, 1, 2, 2, 2]]
+        [size: {2, 5}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> ExTorch.scatter_add(input, 0, index, src)
+        #Tensor<
+        [[2.0000, 0.0000, 0.0000, 1.0000, 1.0000],
+         [0.0000, 2.0000, 0.0000, 0.0000, 0.0000],
+         [0.0000, 0.0000, 2.0000, 1.0000, 1.0000]]
+        [size: {3, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec scatter_add(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t() | nil,
+            boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(scatter_add(input, dim, index, src, out \\ nil, inplace \\ false))
   end
 end

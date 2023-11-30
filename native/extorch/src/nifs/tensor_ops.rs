@@ -242,3 +242,14 @@ nif_impl!(
     step: i64,
     out: TensorOut
 );
+
+nif_impl!(
+    scatter_add,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    index_param: TensorStruct<'a>,
+    src: TensorStruct<'a>,
+    out: TensorOut,
+    inplace: bool
+);
