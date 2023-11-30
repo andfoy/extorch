@@ -166,3 +166,7 @@ std::shared_ptr<CrossTensor> scatter_reduce(
     bool include_self,
     TensorOut out,
     const bool inplace);
+
+TensorList split(
+    const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections,
+    int64_t dim);

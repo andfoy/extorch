@@ -224,3 +224,6 @@ fn scatter_reduce(
     out: TensorOut,
     inplace: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Split a tensor of one or more dimensions across an axis according to indices_or_sections.
+fn split(input: &SharedPtr<CrossTensor>, indices_or_sections: IntListOrInt, dim: i64) -> Result<TensorList>;

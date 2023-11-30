@@ -266,3 +266,11 @@ nif_impl!(
     out: TensorOut,
     inplace: bool
 );
+
+nif_impl!(
+    split,
+    TensorList,
+    input: TensorStruct<'a>,
+    indices_or_sections: IntListOrInt,
+    dim: i64
+);
