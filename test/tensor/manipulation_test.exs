@@ -690,4 +690,73 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.scatter_add(input, 0, index, src, inplace: true)
     assert ExTorch.allclose(input, expected)
   end
+
+  test "scatter_reduce/5" do
+    input = ExTorch.rand({3, 5})
+    index =
+      ExTorch.tensor(
+        [
+          [0, 1, 2, 0, 0],
+          [0, 1, 2, 2, 2]
+        ],
+        dtype: :int64
+      )
+
+    src = ExTorch.rand({2, 5})
+    expected = ExTorch.scatter_add(input, 0, index, src)
+    out = ExTorch.scatter_reduce(input, 0, index, src, :sum)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter_reduce/6" do
+    input = ExTorch.zeros({3, 5})
+    index =
+      ExTorch.tensor(
+        [
+          [0, 1, 2, 0, 0],
+          [0, 1, 2, 2, 2]
+        ],
+        dtype: :int64
+      )
+
+    src = ExTorch.rand({2, 5})
+    expected = ExTorch.scatter_add(input, 0, index, src)
+    out = ExTorch.scatter_reduce(input, 0, index, src, :sum, false)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter_reduce/7 with out" do
+    input = ExTorch.rand({3, 5})
+    index =
+      ExTorch.tensor(
+        [
+          [0, 1, 2, 0, 0],
+          [0, 1, 2, 2, 2]
+        ],
+        dtype: :int64
+      )
+
+    src = ExTorch.rand({2, 5})
+    expected = ExTorch.scatter_add(input, 0, index, src)
+    out = ExTorch.empty_like(input)
+    ExTorch.scatter_reduce(input, 0, index, src, :sum, true, out: out)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "scatter_reduce/7 with inplace" do
+    input = ExTorch.rand({3, 5})
+    index =
+      ExTorch.tensor(
+        [
+          [0, 1, 2, 0, 0],
+          [0, 1, 2, 2, 2]
+        ],
+        dtype: :int64
+      )
+
+    src = ExTorch.rand({2, 5})
+    expected = ExTorch.scatter_add(input, 0, index, src)
+    ExTorch.scatter_reduce(input, 0, index, src, :sum, true, inplace: true)
+    assert ExTorch.allclose(input, expected)
+  end
 end

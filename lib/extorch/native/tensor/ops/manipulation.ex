@@ -1341,5 +1341,113 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             boolean()
           ) :: ExTorch.Tensor.t()
     defbinding(scatter_add(input, dim, index, src, out \\ nil, inplace \\ false))
+
+    @doc """
+    Reduces all values from the `src` tensor to the indices specified in the `index` tensor in the `input` tensor
+    using the applied reduction defined via the `reduce` argument (`:sum`, `:prod`, `:mean`, `:amax`, `:amin`).
+    For each value in `src`, it is reduced to an index in `input` which is specified by its index in `src` for
+    `dimension != dim` and by the corresponding value in `index` for `dimension = dim`. If `include_self: true`,
+    the values in the `input` tensor are included in the reduction.
+
+    For each value in `src`, its output index is specified by its index in `src` for `dimension != dim` and by
+    the corresponding value in `index` for `dimension = dim`.
+
+    For a 3-D tensor with `reduce: :sum` and `include_self: true`, `input` is updated as:
+
+    ```
+    input[index[i][j][k]][j][k] += src[i][j][k]  # if dim == 0
+    input[i][index[i][j][k]][k] += src[i][j][k]  # if dim == 1
+    input[i][j][index[i][j][k]] += src[i][j][k]  # if dim == 2
+    ```
+
+    This is the reverse operation of the manner described in `ExTorch.gather/5`.
+
+    `input`, `index` and `src` (if it is a `ExTorch.Tensor`) should all have the same number of dimensions.
+    It is also required that `index.size(d) <= src.size(d)` for all dimensions `d`, and that
+    `index.size(d) <= input.size(d)` for all `dimensions d != dim`. Note that `index` and `src` do not broadcast.
+
+    Moreover, as for `ExTorch.gather/5`, the values of `index` must be between 0 and `input.size(dim) - 1`
+    inclusive.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `dim` (`integer`) - the axis along which to index.
+    - `index` (`ExTorch.Tensor`) -  the indices of elements to scatter, can be either empty or of the
+    same dimensionality as `src`. When empty, the operation returns `input` unchanged. It's dtype must be `:long` or
+    `:int64`
+    - `src` (`ExTorch.Tensor`) - the source elements to scatter and add.
+    - `reduce` (`:sum` or `:prod` or `:mean` or `:amax` or `:amin`) - the reduction operation to apply for non-unique indices.s
+
+    ## Optional arguments
+    - `include_self` (`boolean`) - whether elements from the `input` tensor are included in the reduction. Default: `true`
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to
+    store the output result. If `inplace = true` it will not take any effect. Default: `nil`
+    - `inplace` (`bool`) - if `true` then the scatter operation will take inplace on the `input` argument. Else it will
+    return a separate tensor with the result. Default: `false`
+
+    ## Notes
+    1. The backward pass is implemented only for `src.size == index.size`.
+    2. This operation may behave nondeterministically when given tensors on a CUDA device.
+    See Reproducibility for more information.
+    3. This function is in beta and may change in the near future.
+
+    ## Examples
+        iex> src = ExTorch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+        #Tensor<
+        [1., 2., 3., 4., 5., 6.]
+        [size: {6}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> index = ExTorch.tensor([0, 1, 0, 1, 2, 1], dtype: :long)
+        #Tensor<
+        [0, 1, 0, 1, 2, 1]
+        [size: {6}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> input = ExTorch.tensor([1.0, 2.0, 3.0, 4.0])
+        #Tensor<
+        [1., 2., 3., 4.]
+        [size: {4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.scatter_reduce(input, 0, index, src, :sum)
+        #Tensor<
+        [ 5., 14.,  8.,  4.]
+        [size: {4}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.scatter_reduce(input, 0, index, src, :sum, include_self: false)
+        #Tensor<
+        [ 4., 12.,  5.,  4.]
+        [size: {4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> input2 = ExTorch.tensor([5.0, 4.0, 3.0, 2.0])
+        #Tensor<
+        [5., 4., 3., 2.]
+        [size: {4}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.scatter_reduce(input2, 0, index, src, :amax)
+        #Tensor<
+        [5., 6., 5., 2.]
+        [size: {4}, dtype: :float, device: :cpu, requires_grad: false]>
+        iex> ExTorch.scatter_reduce(input2, 0, index, src, :amax, include_self: false)
+        #Tensor<
+        [3., 6., 5., 2.]
+        [size: {4}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec scatter_reduce(
+            ExTorch.Tensor.t(),
+            integer(),
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            :sum | :prod | :mean | :amax | :amin,
+            boolean(),
+            ExTorch.Tensor.t() | nil,
+            boolean()
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      scatter_reduce(
+        input,
+        dim,
+        index,
+        src,
+        reduce,
+        include_self \\ true,
+        out \\ nil,
+        inplace \\ false
+      )
+    )
   end
 end

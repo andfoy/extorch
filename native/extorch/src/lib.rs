@@ -121,6 +121,7 @@ rustler::init!(
         select_scatter,
         slice_scatter,
         scatter_add,
+        scatter_reduce,
 
         // Tensor comparing operations
         allclose,

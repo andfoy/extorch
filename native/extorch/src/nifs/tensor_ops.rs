@@ -253,3 +253,16 @@ nif_impl!(
     out: TensorOut,
     inplace: bool
 );
+
+nif_impl!(
+    scatter_reduce,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dim: i64,
+    index_param: TensorStruct<'a>,
+    src: TensorStruct<'a>,
+    reduce: AtomString,
+    include_self: bool,
+    out: TensorOut,
+    inplace: bool
+);
