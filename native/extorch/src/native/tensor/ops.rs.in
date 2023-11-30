@@ -212,3 +212,15 @@ fn scatter_add(
     out: TensorOut,
     inplace: bool,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Reduces all values from the tensor `src` into `input` at the indices specified in the `index` tensor with a given op.
+fn scatter_reduce(
+    input: &SharedPtr<CrossTensor>,
+    dim: i64,
+    index_param: &SharedPtr<CrossTensor>,
+    src: &SharedPtr<CrossTensor>,
+    reduce: String,
+    include_self: bool,
+    out: TensorOut,
+    inplace: bool,
+) -> Result<SharedPtr<CrossTensor>>;
