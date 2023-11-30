@@ -1449,5 +1449,64 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
         inplace \\ false
       )
     )
+
+    @doc """
+    Splits the tensor into chunks. Each chunk is a view of the original tensor.
+
+    If `split_size_or_sections` is an integer type, then `tensor` will be split into equally
+    sized chunks (if possible). Last chunk will be smaller if the tensor size along the given
+    dimension `dim` is not divisible by `split_size`.
+
+    If `split_size_or_sections` is a list, then `tensor` will be split into
+    `length(split_size_or_sections)` chunks with sizes in `dim` according to `split_size_or_sections`.
+
+    ## Arguments
+    - `tensor` (`ExTorch.Tensor`) - tensor to split.
+    - `split_size_or_sections` (`integer` or `[integer]`) - size of a single chunk or list of sizes for each chunk.
+
+    ## Optional arguments
+    - `dim` (`integer`) - dimension along which to split the tensor.
+
+    ## Examples
+        iex> a = ExTorch.arange(10) |> ExTorch.reshape({5, 2})
+        #Tensor<
+        [[0.0000, 1.0000],
+         [2.0000, 3.0000],
+         [4.0000, 5.0000],
+         [6.0000, 7.0000],
+         [8.0000, 9.0000]]
+        [size: {5, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.split(a, 2)
+        [
+          #Tensor<
+          [[0.0000, 1.0000],
+           [2.0000, 3.0000]]
+          [size: {2, 2}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [[4., 5.],
+           [6., 7.]]
+          [size: {2, 2}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [[8., 9.]]
+          [size: {1, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+        iex> ExTorch.split(a, [2, 3])
+        [
+          #Tensor<
+          [[0.0000, 1.0000],
+           [2.0000, 3.0000]]
+          [size: {2, 2}, dtype: :float, device: :cpu, requires_grad: false]>,
+          #Tensor<
+          [[4., 5.],
+           [6., 7.],
+           [8., 9.]]
+          [size: {3, 2}, dtype: :float, device: :cpu, requires_grad: false]>
+        ]
+    """
+    @spec split(ExTorch.Tensor.t(), integer() | [integer()] | tuple(), integer()) :: [
+            ExTorch.Tensor.t()
+          ]
+    defbinding(split(tensor, split_size_or_sections, dim \\ 0))
   end
 end

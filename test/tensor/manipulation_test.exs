@@ -693,6 +693,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
   test "scatter_reduce/5" do
     input = ExTorch.rand({3, 5})
+
     index =
       ExTorch.tensor(
         [
@@ -710,6 +711,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
   test "scatter_reduce/6" do
     input = ExTorch.zeros({3, 5})
+
     index =
       ExTorch.tensor(
         [
@@ -727,6 +729,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
   test "scatter_reduce/7 with out" do
     input = ExTorch.rand({3, 5})
+
     index =
       ExTorch.tensor(
         [
@@ -745,6 +748,7 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
 
   test "scatter_reduce/7 with inplace" do
     input = ExTorch.rand({3, 5})
+
     index =
       ExTorch.tensor(
         [
@@ -758,5 +762,24 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     expected = ExTorch.scatter_add(input, 0, index, src)
     ExTorch.scatter_reduce(input, 0, index, src, :sum, true, inplace: true)
     assert ExTorch.allclose(input, expected)
+  end
+
+  test "split/2" do
+    input = ExTorch.rand({10, 3})
+    expected = [input[0..5], input[5..10]]
+    out = ExTorch.split(input, 5)
+
+    assert out
+           |> Enum.zip(expected)
+           |> Enum.reduce(true, fn {o, e}, acc -> ExTorch.allclose(o, e) and acc end)
+  end
+
+  test "split/3" do
+    input = ExTorch.rand({3, 10})
+    expected = [input[{:"::", 0..6}], input[{:"::", 6..10}]]
+    out = ExTorch.split(input, [6, 4], 1)
+    assert out
+           |> Enum.zip(expected)
+           |> Enum.reduce(true, fn {o, e}, acc -> ExTorch.allclose(o, e) and acc end)
   end
 end
