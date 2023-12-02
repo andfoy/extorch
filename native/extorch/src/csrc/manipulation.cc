@@ -735,3 +735,10 @@ std::shared_ptr<CrossTensor> stack(TensorList seq, int64_t dim, TensorOut opt_ou
     }
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> t(const std::shared_ptr<CrossTensor> &input) {
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    out_tensor = torch::t(in_tensor);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

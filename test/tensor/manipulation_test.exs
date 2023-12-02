@@ -840,4 +840,11 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     ExTorch.stack([input, input, input], 1, out)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "t/1" do
+    input = ExTorch.rand({2, 6})
+    expected = ExTorch.transpose(input, 0, 1)
+    out = ExTorch.t(input)
+    assert ExTorch.allclose(out, expected)
+  end
 end

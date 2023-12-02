@@ -230,3 +230,6 @@ fn squeeze(input: &SharedPtr<CrossTensor>, dims: Vec<i64>) -> Result<SharedPtr<C
 
 /// Concatenate a sequence of tensors across a new dimension.
 fn stack(seq: TensorList, dim: i64, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
+
+/// Transpose a 2D tensor.
+fn t(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;

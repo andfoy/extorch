@@ -1614,5 +1614,37 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     @spec stack([ExTorch.Tensor.t()] | tuple(), integer(), ExTorch.Tensor.t() | nil) ::
             ExTorch.Tensor.t()
     defbinding(stack(input, dim \\ 0, out \\ nil))
+
+    @doc """
+    Expects `input` to be <= 2-D tensor and transposes dimensions 0 and 1.
+
+    0-D and 1-D tensors are returned as is. When `input` is a 2-D tensor this
+    is equivalent to `ExTorch.transpose(input, 0, 1)`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Examples
+        iex> a = ExTorch.rand({4, 5})
+        #Tensor<
+        [[0.3812, 0.6590, 0.8400, 0.4826, 0.3654],
+         [0.4542, 0.4252, 0.5376, 0.8787, 0.6286],
+         [0.3727, 0.4394, 0.0584, 0.2185, 0.7270],
+         [0.8123, 0.2479, 0.2493, 0.2429, 0.3871]]
+        [size: {4, 5}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.t(a)
+        #Tensor<
+        [[0.3812, 0.4542, 0.3727, 0.8123],
+         [0.6590, 0.4252, 0.4394, 0.2479],
+         [0.8400, 0.5376, 0.0584, 0.2493],
+         [0.4826, 0.8787, 0.2185, 0.2429],
+         [0.3654, 0.6286, 0.7270, 0.3871]]
+        [size: {5, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+    """
+    @spec t(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(t(input))
+
   end
 end

@@ -125,6 +125,7 @@ rustler::init!(
         split,
         squeeze,
         stack,
+        t,
 
         // Tensor comparing operations
         allclose,
