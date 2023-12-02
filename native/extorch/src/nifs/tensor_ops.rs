@@ -283,3 +283,9 @@ nif_impl!(
 );
 
 nif_impl!(stack, TensorStruct<'a>, seq: TensorList, dim: i64, out: TensorOut);
+
+nif_impl!(
+    t,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>
+);
