@@ -1646,5 +1646,32 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     @spec t(ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(t(input))
 
+    @doc """
+    Returns a new tensor with the elements of `input` at the given `indices`.
+
+    The `input` tensor is treated as if it were viewed as a 1-D tensor.
+    The result takes the same shape as the `indices`.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `indices` (`ExTorch.Tensor`) - the indices into tensor.
+    It must be of `:int64` or `:long` dtype.
+
+    ## Examples
+        iex> a = ExTorch.rand({3, 3})
+        #Tensor<
+        [[0.0860, 0.9378, 0.3475],
+         [0.3576, 0.7145, 0.1036],
+         [0.7352, 0.4285, 0.2933]]
+        [size: {3, 3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        iex> ExTorch.take(a, ExTorch.tensor([1, 5, 6], dtype: :int64))
+        #Tensor<
+        [0.9378, 0.1036, 0.7352]
+        [size: {3}, dtype: :float, device: :cpu, requires_grad: false]>
+
+    """
+    @spec take(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
+    defbinding(take(input, indices))
   end
 end

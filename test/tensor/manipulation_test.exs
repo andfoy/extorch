@@ -847,4 +847,11 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out = ExTorch.t(input)
     assert ExTorch.allclose(out, expected)
   end
+
+  test "take/2" do
+    input = ExTorch.rand({3, 3})
+    expected = input[{[0, 1, 2], [1, 2, 0]}]
+    out = ExTorch.take(input, ExTorch.tensor([1, 5, 6], dtype: :int64))
+    assert ExTorch.allclose(out, expected)
+  end
 end
