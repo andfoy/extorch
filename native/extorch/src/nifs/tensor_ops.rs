@@ -274,3 +274,10 @@ nif_impl!(
     indices_or_sections: IntListOrInt,
     dim: i64
 );
+
+nif_impl!(
+    squeeze,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    dims: Size
+);

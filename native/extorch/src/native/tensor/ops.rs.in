@@ -141,17 +141,10 @@ fn narrow_copy(
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Retrieve the indices of all non-zero elements in a tensor.
-fn nonzero(
-    input: &SharedPtr<CrossTensor>,
-    out: TensorOut,
-    as_tuple: bool
-) -> Result<TensorTuple>;
+fn nonzero(input: &SharedPtr<CrossTensor>, out: TensorOut, as_tuple: bool) -> Result<TensorTuple>;
 
 /// Permute a tensor dimensions and return the result as a view.
-fn permute(
-    input: &SharedPtr<CrossTensor>,
-    dims: Vec<i64>
-) -> Result<SharedPtr<CrossTensor>>;
+fn permute(input: &SharedPtr<CrossTensor>, dims: Vec<i64>) -> Result<SharedPtr<CrossTensor>>;
 
 /// Creates a new tensor by stacking vertically a sequence of tensors.
 fn vstack(tensors: TensorList, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;
@@ -160,7 +153,7 @@ fn vstack(tensors: TensorList, out: TensorOut) -> Result<SharedPtr<CrossTensor>>
 fn select(
     input: &SharedPtr<CrossTensor>,
     dim: i64,
-    index_param: i64
+    index_param: i64,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Writes all values from the tensor `src` into `input` at the indices specified in the `index` tensor.
@@ -180,7 +173,7 @@ fn diagonal_scatter(
     offset: i64,
     dim1: i64,
     dim2: i64,
-    out: TensorOut
+    out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Embeds the values of the `src` tensor into input at the given `index`.
@@ -189,7 +182,7 @@ fn select_scatter(
     src: &SharedPtr<CrossTensor>,
     dim: i64,
     index: i64,
-    out: TensorOut
+    out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Embeds the values of the `src` tensor into `input` at the given dimension.
@@ -200,7 +193,7 @@ fn slice_scatter(
     start: OptionalInt,
     end: OptionalInt,
     step: i64,
-    out: TensorOut
+    out: TensorOut,
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Adds all values from the tensor `src` into `input` at the indices specified in the `index` tensor.
@@ -226,4 +219,11 @@ fn scatter_reduce(
 ) -> Result<SharedPtr<CrossTensor>>;
 
 /// Split a tensor of one or more dimensions across an axis according to indices_or_sections.
-fn split(input: &SharedPtr<CrossTensor>, indices_or_sections: IntListOrInt, dim: i64) -> Result<TensorList>;
+fn split(
+    input: &SharedPtr<CrossTensor>,
+    indices_or_sections: IntListOrInt,
+    dim: i64,
+) -> Result<TensorList>;
+
+/// Remove specified or all singleton dimensions from a input tensor.
+fn squeeze(input: &SharedPtr<CrossTensor>, dims: Vec<i64>) -> Result<SharedPtr<CrossTensor>>;

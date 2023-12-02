@@ -782,4 +782,25 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
            |> Enum.zip(expected)
            |> Enum.reduce(true, fn {o, e}, acc -> ExTorch.allclose(o, e) and acc end)
   end
+
+  test "squeeze/1" do
+    input = ExTorch.empty({1, 3, 1, 10, 1})
+    expected = {3, 10}
+    out = ExTorch.squeeze(input)
+    assert out.size == expected
+  end
+
+  test "squeeze/2 with a single dimension" do
+    input = ExTorch.empty({1, 3, 1, 10, 1})
+    expected = {1, 3, 10, 1}
+    out = ExTorch.squeeze(input, 2)
+    assert out.size == expected
+  end
+
+  test "squeeze/2 with a dimension list" do
+    input = ExTorch.empty({1, 3, 1, 10, 1})
+    expected = {3, 10, 1}
+    out = ExTorch.squeeze(input, {0, 2})
+    assert out.size == expected
+  end
 end
