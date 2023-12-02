@@ -1508,5 +1508,52 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
             ExTorch.Tensor.t()
           ]
     defbinding(split(tensor, split_size_or_sections, dim \\ 0))
+
+    @doc """
+    Returns a tensor with all specified dimensions of `input` of size 1 removed.
+
+    For example, if `input` is of shape: $\\(A \\times 1 \\times B \\times C \\times 1 \\times D\\)$ then
+    `ExTorch.squeeze(input)` will be of shape: $\\(A \\times B \\times C \\times D \\)$.
+
+    When `dim` is given, a squeeze operation is done only in the given dimension(s).
+    If `input` is of shape: $\\(A \\times 1 \\times B \\)$, `squeeze(input, 0)` leaves the tensor
+    unchanged, but `squeeze(input, 1)` will squeeze the tensor to the shape $\\(A \\times B \\)$.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+
+    ## Optional arguments
+    - `dim` (`integer` or `tuple` or `[integer]` or `nil`) - the dimension(s) to squeeze from `input`.
+    If `nil`, then all singleton dimensions will be squeezed.
+
+    ## Notes
+    1. The returned tensor shares the storage with the `input` tensor, so changing the
+    contents of one will change the contents of the other.
+    2. If the tensor has a batch dimension of size 1, then `squeeze(input)` will also
+    remove the batch dimension, which can lead to unexpected errors.
+    Consider specifying only the dims you wish to be squeezed.
+
+    ## Examples
+        iex> a = ExTorch.empty({1, 3, 1, 4, 1, 5})
+        iex> a.size
+        {1, 3, 1, 4, 5}
+
+        # Squeeze all singleton dimensions
+        iex> b = ExTorch.squeeze(a)
+        iex> b.size
+        {3, 4, 5}
+
+        # Squeeze a particular dimension
+        iex> b = ExTorch.squeeze(a, -2)
+        iex> b.size
+        {1, 3, 1, 4, 5}
+
+        # Squeeze particular dimensions
+        iex> b = ExTorch.squeeze(a, {2, 4})
+        iex> b.size
+        {1, 3, 4, 5}
+    """
+    @spec squeeze(ExTorch.Tensor.t(), integer() | tuple() | [integer()] | nil) :: ExTorch.Tensor.t()
+    defbinding(squeeze(input, dim \\ nil))
   end
 end

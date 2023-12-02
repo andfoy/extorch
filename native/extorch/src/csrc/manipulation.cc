@@ -709,3 +709,16 @@ TensorList split(
     }
     return pack_tensor_list(seq);
 }
+
+std::shared_ptr<CrossTensor> squeeze(
+        const std::shared_ptr<CrossTensor> &input,
+        rust::Vec<int64_t> dims) {
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    if(dims.size() == 0) {
+        out_tensor = torch::squeeze(in_tensor);
+    } else {
+        out_tensor = torch::squeeze(in_tensor, torch::IntArrayRef{dims.data(), dims.size()});
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

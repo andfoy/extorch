@@ -170,3 +170,7 @@ std::shared_ptr<CrossTensor> scatter_reduce(
 TensorList split(
     const std::shared_ptr<CrossTensor> &input, IntListOrInt indices_or_sections,
     int64_t dim);
+
+std::shared_ptr<CrossTensor> squeeze(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> dims);
