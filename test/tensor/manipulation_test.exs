@@ -803,4 +803,41 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out = ExTorch.squeeze(input, {0, 2})
     assert out.size == expected
   end
+
+  test "stack/1" do
+    input = ExTorch.rand({3, 4, 2})
+    exp_input = ExTorch.unsqueeze(input, 0)
+    expected = ExTorch.cat([exp_input, exp_input, exp_input])
+
+    out = ExTorch.stack([input, input, input])
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "stack/2" do
+    input = ExTorch.rand({3, 4, 2})
+    exp_input = ExTorch.unsqueeze(input, 2)
+    expected = ExTorch.cat([exp_input, exp_input, exp_input], 2)
+
+    out = ExTorch.stack([input, input, input], 2)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "stack/2 with kwargs" do
+    input = ExTorch.rand({3, 4, 2})
+    exp_input = ExTorch.unsqueeze(input, 3)
+    expected = ExTorch.cat([exp_input, exp_input, exp_input], dim: 3)
+
+    out = ExTorch.stack([input, input, input], dim: 3)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "stack/3" do
+    input = ExTorch.rand({3, 4, 2})
+    exp_input = ExTorch.unsqueeze(input, 1)
+    expected = ExTorch.cat([exp_input, exp_input, exp_input], 1)
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.stack([input, input, input], 1, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

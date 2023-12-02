@@ -174,3 +174,5 @@ TensorList split(
 std::shared_ptr<CrossTensor> squeeze(
     const std::shared_ptr<CrossTensor> &input,
     rust::Vec<int64_t> dims);
+
+std::shared_ptr<CrossTensor> stack(TensorList seq, int64_t dim, TensorOut opt_out);

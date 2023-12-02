@@ -1553,7 +1553,66 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
         iex> b.size
         {1, 3, 4, 5}
     """
-    @spec squeeze(ExTorch.Tensor.t(), integer() | tuple() | [integer()] | nil) :: ExTorch.Tensor.t()
+    @spec squeeze(ExTorch.Tensor.t(), integer() | tuple() | [integer()] | nil) ::
+            ExTorch.Tensor.t()
     defbinding(squeeze(input, dim \\ nil))
+
+    @doc """
+    Concatenates a sequence of tensors along a new dimension.
+
+    All tensors need to be of the same size. This function is analogous to `ExTorch.cat/3`
+
+    ## Arguments
+    - `tensors` (`[ExTorch.Tensor] | tuple()`) - A sequence of tensors of the same type. Non-empty
+    tensors provided must have the same shape.
+
+    ## Optional arguments
+    - `dim` (`integer()`) - the dimension over which the tensors are concatenated. Default: 0
+    - `out` (`ExTorch.Tensor | nil`) - an optional pre-allocated tensor used to store the
+    concatenation output. Default: nil
+
+    ## Examples
+        iex> a = ExTorch.rand({3, 4})
+        #Tensor<
+        [[0.7419, 0.4063, 0.0514, 0.4281],
+         [0.7350, 0.1977, 0.5593, 0.1701],
+         [0.4135, 0.7213, 0.9591, 0.2798]]
+        [size: {3, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Concatenate tensors into a new dimension at the beginning
+        iex> ExTorch.stack([a, a, a])
+        #Tensor<
+        [[[0.7419, 0.4063, 0.0514, 0.4281],
+          [0.7350, 0.1977, 0.5593, 0.1701],
+          [0.4135, 0.7213, 0.9591, 0.2798]],
+
+         [[0.7419, 0.4063, 0.0514, 0.4281],
+          [0.7350, 0.1977, 0.5593, 0.1701],
+          [0.4135, 0.7213, 0.9591, 0.2798]],
+
+         [[0.7419, 0.4063, 0.0514, 0.4281],
+          [0.7350, 0.1977, 0.5593, 0.1701],
+          [0.4135, 0.7213, 0.9591, 0.2798]]]
+        [size: {3, 3, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+
+        # Concatenate tensors into a new dimension at the first position
+        iex> ExTorch.stack([a, a, a], 1)
+        #Tensor<
+        [[[0.7419, 0.4063, 0.0514, 0.4281],
+          [0.7419, 0.4063, 0.0514, 0.4281],
+          [0.7419, 0.4063, 0.0514, 0.4281]],
+
+         [[0.7350, 0.1977, 0.5593, 0.1701],
+          [0.7350, 0.1977, 0.5593, 0.1701],
+          [0.7350, 0.1977, 0.5593, 0.1701]],
+
+         [[0.4135, 0.7213, 0.9591, 0.2798],
+          [0.4135, 0.7213, 0.9591, 0.2798],
+          [0.4135, 0.7213, 0.9591, 0.2798]]]
+        [size: {3, 3, 4}, dtype: :float, device: :cpu, requires_grad: false]>
+    """
+    @spec stack([ExTorch.Tensor.t()] | tuple(), integer(), ExTorch.Tensor.t() | nil) ::
+            ExTorch.Tensor.t()
+    defbinding(stack(input, dim \\ 0, out \\ nil))
   end
 end

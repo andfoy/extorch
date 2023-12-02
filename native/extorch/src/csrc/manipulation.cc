@@ -722,3 +722,16 @@ std::shared_ptr<CrossTensor> squeeze(
     }
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> stack(TensorList seq, int64_t dim, TensorOut opt_out) {
+    CrossTensor out_tensor;
+    std::vector<CrossTensor> tensor_seq = unpack_tensor_list(seq);
+
+    if(opt_out.used) {
+        out_tensor = *opt_out.tensor.get();
+        out_tensor = torch::stack_out(out_tensor, tensor_seq, dim);
+    } else {
+        out_tensor = torch::stack(tensor_seq, dim);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}
