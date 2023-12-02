@@ -227,3 +227,6 @@ fn split(
 
 /// Remove specified or all singleton dimensions from a input tensor.
 fn squeeze(input: &SharedPtr<CrossTensor>, dims: Vec<i64>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Concatenate a sequence of tensors across a new dimension.
+fn stack(seq: TensorList, dim: i64, out: TensorOut) -> Result<SharedPtr<CrossTensor>>;

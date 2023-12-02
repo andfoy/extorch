@@ -124,6 +124,7 @@ rustler::init!(
         scatter_reduce,
         split,
         squeeze,
+        stack,
 
         // Tensor comparing operations
         allclose,
