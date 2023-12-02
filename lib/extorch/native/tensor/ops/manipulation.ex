@@ -231,7 +231,7 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
         ]>
     """
     @spec transpose(ExTorch.Tensor.t(), integer(), integer()) :: ExTorch.Tensor.t()
-    defbinding(transpose(input, dim0, dim1))
+    defbinding(transpose(input, dim0, dim1), fn_aliases: [:swapdims, :swapaxes])
 
     @doc """
     Concatenates the given sequence of `seq` tensors in the given dimension.
