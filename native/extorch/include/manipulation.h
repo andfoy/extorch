@@ -182,3 +182,9 @@ std::shared_ptr<CrossTensor> t(const std::shared_ptr<CrossTensor> &input);
 std::shared_ptr<CrossTensor> take(
     const std::shared_ptr<CrossTensor> &input,
     const std::shared_ptr<CrossTensor> &indices);
+
+std::shared_ptr<CrossTensor> take_along_dim(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &indices,
+    OptionalInt dim,
+    TensorOut out);

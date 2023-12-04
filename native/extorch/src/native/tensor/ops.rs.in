@@ -239,3 +239,11 @@ fn take(
     input: &SharedPtr<CrossTensor>,
     indices: &SharedPtr<CrossTensor>,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Index a tensor alongside a dimension.
+fn take_along_dim(
+    input: &SharedPtr<CrossTensor>,
+    indices: &SharedPtr<CrossTensor>,
+    dim: OptionalInt,
+    out: TensorOut
+) -> Result<SharedPtr<CrossTensor>>;

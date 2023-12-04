@@ -296,3 +296,12 @@ nif_impl!(
     input: TensorStruct<'a>,
     indices: TensorStruct<'a>
 );
+
+nif_impl!(
+    take_along_dim,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    indices: TensorStruct<'a>,
+    dim: OptionalInt,
+    out: TensorOut
+);

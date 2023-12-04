@@ -127,6 +127,7 @@ rustler::init!(
         stack,
         t,
         take,
+        take_along_dim,
 
         // Tensor comparing operations
         allclose,
