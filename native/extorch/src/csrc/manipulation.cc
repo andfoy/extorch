@@ -742,3 +742,14 @@ std::shared_ptr<CrossTensor> t(const std::shared_ptr<CrossTensor> &input) {
     out_tensor = torch::t(in_tensor);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> take(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &indices) {
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor indices_tensor = *indices.get();
+
+    out_tensor = torch::take(in_tensor, indices_tensor);
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

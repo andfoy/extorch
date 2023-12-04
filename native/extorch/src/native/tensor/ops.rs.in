@@ -233,3 +233,9 @@ fn stack(seq: TensorList, dim: i64, out: TensorOut) -> Result<SharedPtr<CrossTen
 
 /// Transpose a 2D tensor.
 fn t(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+/// Index a tensor as if it were a 1D one.
+fn take(
+    input: &SharedPtr<CrossTensor>,
+    indices: &SharedPtr<CrossTensor>,
+) -> Result<SharedPtr<CrossTensor>>;

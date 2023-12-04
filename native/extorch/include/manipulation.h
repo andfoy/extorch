@@ -178,3 +178,7 @@ std::shared_ptr<CrossTensor> squeeze(
 std::shared_ptr<CrossTensor> stack(TensorList seq, int64_t dim, TensorOut opt_out);
 
 std::shared_ptr<CrossTensor> t(const std::shared_ptr<CrossTensor> &input);
+
+std::shared_ptr<CrossTensor> take(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &indices);

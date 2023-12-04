@@ -289,3 +289,10 @@ nif_impl!(
     TensorStruct<'a>,
     input: TensorStruct<'a>
 );
+
+nif_impl!(
+    take,
+    TensorStruct<'a>,
+    input: TensorStruct<'a>,
+    indices: TensorStruct<'a>
+);
