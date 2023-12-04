@@ -753,3 +753,27 @@ std::shared_ptr<CrossTensor> take(
     out_tensor = torch::take(in_tensor, indices_tensor);
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+std::shared_ptr<CrossTensor> take_along_dim(
+        const std::shared_ptr<CrossTensor> &input,
+        const std::shared_ptr<CrossTensor> &indices,
+        OptionalInt dim,
+        TensorOut out) {
+
+    CrossTensor out_tensor;
+    CrossTensor in_tensor = *input.get();
+    CrossTensor indices_tensor = *indices.get();
+
+    torch::optional<int64_t> opt_dim = torch::nullopt;
+    if(dim.used) {
+        opt_dim = dim.value;
+    }
+
+    if(out.used) {
+        out_tensor = *out.tensor.get();
+        out_tensor = torch::take_along_dim_out(out_tensor, in_tensor, indices_tensor, opt_dim);
+    } else {
+        out_tensor = torch::take_along_dim(in_tensor, indices_tensor, opt_dim);
+    }
+    return std::make_shared<CrossTensor>(std::move(out_tensor));
+}

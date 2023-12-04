@@ -854,4 +854,30 @@ defmodule ExTorchTest.Tensor.ManipulationTest do
     out = ExTorch.take(input, ExTorch.tensor([1, 5, 6], dtype: :int64))
     assert ExTorch.allclose(out, expected)
   end
+
+  test "take_along_dim/2" do
+    input = ExTorch.rand({3, 4})
+    expected = ExTorch.max(input)
+    indices = ExTorch.argmax(input)
+
+    out = ExTorch.take_along_dim(input, indices)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "take_along_dim/3" do
+    input = ExTorch.rand({3, 4})
+    {expected, indices} = ExTorch.sort(input, -1)
+
+    out = ExTorch.take_along_dim(input, indices, -1)
+    assert ExTorch.allclose(out, expected)
+  end
+
+  test "take_along_dim/4" do
+    input = ExTorch.rand({3, 4})
+    {expected, indices} = ExTorch.min(input, 0, keepdim: true)
+
+    out = ExTorch.empty_like(expected)
+    ExTorch.take_along_dim(input, indices, 0, out)
+    assert ExTorch.allclose(out, expected)
+  end
 end

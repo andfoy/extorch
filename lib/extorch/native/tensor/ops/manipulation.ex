@@ -1673,5 +1673,54 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     """
     @spec take(ExTorch.Tensor.t(), ExTorch.Tensor.t()) :: ExTorch.Tensor.t()
     defbinding(take(input, indices))
+
+    @doc """
+    Selects values from `input` at the 1-dimensional indices from `indices` along the given `dim`.
+
+    Functions that return indices along a dimension, like `ExTorch.argmax/3` and `ExTorch.argmin/3`,
+    are designed to work with this function. See the examples below.
+
+    ## Arguments
+    - `input` (`ExTorch.Tensor`) - the input tensor.
+    - `indices` (`ExTorch.Tensor`) - the indices into `input`. It must have either `:long` or `:int64` dtype.
+
+    ## Optional arguments
+    - `dim` (`integer`) - dimension to select along. If `nil`, then it will index all
+    the dimensions as a single one. Default: `nil`.
+    - `out` (`ExTorch.Tensor` or `nil`) - an optional pre-allocated tensor used to store the
+    output. Default: `nil`
+
+    ## Notes
+    This function is similar to NumPy’s `take_along_axis`. See also `ExTorch.gather/5`.
+
+    ## Examples
+        iex> t = ExTorch.tensor([[10, 30, 20], [60, 40, 50]], dtype: :long)
+        #Tensor<
+        [[10, 30, 20],
+         [60, 40, 50]]
+        [size: {2, 3}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> max_idx = ExTorch.argmax(t)
+        #Tensor< 3 [size: {}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> ExTorch.take_along_dim(t, max_idx)
+        #Tensor< [60] [size: {1}, dtype: :long, device: :cpu, requires_grad: false]>
+
+        iex> sorted_idx = ExTorch.argsort(t, dim: 1)
+        #Tensor<
+        [[0, 2, 1],
+         [1, 2, 0]]
+        [size: {2, 3}, dtype: :long, device: :cpu, requires_grad: false]>
+        iex> ExTorch.take_along_dim(t, sorted_idx, dim: 1)
+        #Tensor<
+        [[10, 20, 30],
+         [40, 50, 60]]
+        [size: {2, 3}, dtype: :long, device: :cpu, requires_grad: false]>
+    """
+    @spec take_along_dim(
+            ExTorch.Tensor.t(),
+            ExTorch.Tensor.t(),
+            integer() | nil,
+            ExTorch.Tensor.t() | nil
+          ) :: ExTorch.Tensor.t()
+    defbinding(take_along_dim(input, indices, dim \\ nil, out \\ nil))
   end
 end
