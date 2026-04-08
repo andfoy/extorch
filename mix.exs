@@ -80,7 +80,16 @@ defmodule ExTorch.MixProject do
 
   defp docs do
     [
-      main: "ExTorch",
+      main: "getting-started",
+      extras: [
+        "guides/getting-started.md",
+        "guides/serving-models.md",
+        "guides/neural-network-dsl.md",
+        "guides/observability.md"
+      ],
+      groups_for_extras: [
+        Guides: Path.wildcard("guides/*.md")
+      ],
       # You can specify a function for adding
       # custom content to the generated HTML.
       # This is useful for custom JS/CSS files you want to include.

@@ -31,6 +31,15 @@ jobs:
               uses: dtolnay/rust-toolchain@stable
               with:
                 components: rustfmt, clippy
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                python-version: '3.12'
+            - name: Cache pip packages
+              uses: actions/cache@v4
+              with:
+                path: ~/.cache/pip
+                key: pip-torch-cpu-${{ runner.os }}
             - name: Print Rust version
               shell: bash -l {0}
               run: rustc --version
