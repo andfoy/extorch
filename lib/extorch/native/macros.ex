@@ -768,7 +768,7 @@ defmodule ExTorch.Native.Macros do
               |> Enum.join(".")
               |> String.to_atom()
 
-            {_, default_struct_values} = Map.pop(struct_name.__struct__, :__struct__)
+            {_, default_struct_values} = Map.pop(struct_name.__struct__(), :__struct__)
             set_values = Enum.into(set_values, %{})
             default_struct_values = Map.merge(default_struct_values, set_values)
 

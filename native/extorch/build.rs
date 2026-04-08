@@ -1,6 +1,7 @@
 use cxx_build::CFG;
 use glob::glob;
 use glob::GlobError;
+use std::collections::HashSet;
 use std::env;
 use std::fs;
 use std::hash::Hasher;
@@ -10,6 +11,112 @@ use std::str;
 
 use rustc_hash::FxHasher;
 use tera::{Context, Tera};
+
+/// Extract function names from the rendered cxx bridge Rust source.
+/// Matches lines like `fn foo_bar(` inside the `unsafe extern "C++"` block.
+fn extract_bridge_fn_names(rendered_rs: &str) -> HashSet<String> {
+    let mut names = HashSet::new();
+    let mut in_extern_cpp = false;
+
+    for line in rendered_rs.lines() {
+        let trimmed = line.trim();
+        if trimmed.contains("unsafe extern \"C++\"") {
+            in_extern_cpp = true;
+            continue;
+        }
+        if in_extern_cpp {
+            // Track brace depth is overkill; the block ends at the module close.
+            // Just look for `fn name(` patterns.
+            if let Some(rest) = trimmed.strip_prefix("fn ") {
+                if let Some(paren_pos) = rest.find('(') {
+                    let name = rest[..paren_pos].trim().to_string();
+                    names.insert(name);
+                }
+            }
+        }
+    }
+    names
+}
+
+/// Extract function names declared in C++ header files.
+/// Matches lines where a function name is followed by `(` and the line
+/// doesn't start with common non-function patterns.
+fn extract_header_fn_names(include_dir: &Path) -> HashSet<String> {
+    let mut names = HashSet::new();
+    let pattern = include_dir.join("*.h").to_str().unwrap().to_string();
+
+    for entry in glob(&pattern).unwrap().flatten() {
+        let content = fs::read_to_string(&entry).unwrap_or_default();
+        for line in content.lines() {
+            let trimmed = line.trim();
+            // Skip preprocessor, includes, structs, using, extern, type aliases, comments
+            if trimmed.starts_with('#')
+                || trimmed.starts_with("//")
+                || trimmed.starts_with("struct ")
+                || trimmed.starts_with("using ")
+                || trimmed.starts_with("extern ")
+                || trimmed.starts_with("typedef ")
+                || trimmed.starts_with("template")
+                || trimmed.is_empty()
+            {
+                continue;
+            }
+            // Look for: `return_type name(` or `return_type name (` patterns
+            // Function declarations have a `(` and a return type before the name
+            if let Some(paren_pos) = trimmed.find('(') {
+                let before_paren = trimmed[..paren_pos].trim();
+                // The function name is the last word before `(`
+                if let Some(name) = before_paren.split_whitespace().last() {
+                    // Filter out obvious non-functions
+                    let name = name.trim_start_matches('*').trim_start_matches('&');
+                    if !name.is_empty()
+                        && !name.contains("::")
+                        && !name.contains('<')
+                        && !name.contains('>')
+                        && !name.starts_with('{')
+                    {
+                        names.insert(name.to_string());
+                    }
+                }
+            }
+        }
+    }
+    names
+}
+
+/// Check that every function declared in the cxx bridge has a matching
+/// declaration in the C++ headers, and vice versa. Emits cargo warnings
+/// for any mismatches.
+fn validate_bridge_header_sync(rendered_rs: &str, include_dir: &Path) {
+    let bridge_fns = extract_bridge_fn_names(rendered_rs);
+    let header_fns = extract_header_fn_names(include_dir);
+
+    // Functions in bridge but missing from headers
+    let mut missing_from_headers: Vec<&str> = bridge_fns
+        .iter()
+        .filter(|name| !header_fns.contains(name.as_str()))
+        .map(|s| s.as_str())
+        .collect();
+    missing_from_headers.sort();
+
+    // Only check bridge → header direction.
+    // Headers legitimately contain internal helpers not exposed through the bridge.
+    for name in &missing_from_headers {
+        println!(
+            "cargo:warning=Bridge/header mismatch: '{}' declared in .rs.in bridge but NOT found in include/*.h",
+            name
+        );
+    }
+
+    if missing_from_headers.is_empty() {
+        let matched = bridge_fns.intersection(&header_fns).count();
+        println!(
+            "cargo:warning=Bridge/header sync OK: all {} bridge functions found in headers ({} header-only helpers skipped)",
+            matched,
+            header_fns.len() - matched
+        );
+    }
+}
 
 fn command_ok(cmd: &mut Command) -> bool {
     cmd.status().ok().map_or(false, |s| s.success())
@@ -64,9 +171,13 @@ fn main() {
 
     if hash != cur_hash {
         let ref path = Path::new(&manifest_dir).join("src").join("native.rs");
-        fs::write(path, rendering).unwrap();
+        fs::write(path, &rendering).unwrap();
         fs::write(native_hash, cur_hash.to_string()).unwrap();
     }
+
+    // Validate that bridge declarations and C++ headers are in sync
+    let include_dir = Path::new(&manifest_dir).join("include");
+    validate_bridge_header_sync(&rendering, &include_dir);
 
     let mut link_gpu = false;
 
@@ -159,9 +270,11 @@ fn main() {
         .file("src/csrc/other.cc")
         .file("src/csrc/printing.cc")
         .file("src/csrc/info.cc")
+        .file("src/csrc/jit.cc")
+        .file("src/csrc/nn.cc")
         .flag_if_supported("-std=c++17")
         // .flag_if_supported("-std=gnu++14")
-        .define("_GLIBCXX_USE_CXX11_ABI", "0")
+        .define("_GLIBCXX_USE_CXX11_ABI", "1")
         .warnings(false)
         .extra_warnings(false)
         .compile("torch-wrapper");

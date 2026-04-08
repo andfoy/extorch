@@ -7,3 +7,5 @@
 #include "comparison.h"
 #include "reduction.h"
 #include "other.h"
+#include "jit.h"
+#include "nn.h"

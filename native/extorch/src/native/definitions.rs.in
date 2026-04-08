@@ -81,3 +81,52 @@ struct IntListOrInt {
     value: i64,
     is_list: bool
 }
+
+/// Shared interface to a JIT module pointer in memory.
+struct CrossModuleRef {
+    module: SharedPtr<CrossModule>,
+}
+
+/// Shared interface to an nn module pointer in memory.
+struct CrossNNModuleRef {
+    module: SharedPtr<CrossNNModule>,
+}
+
+/// A named tensor (name + tensor pointer), used for parameters/buffers.
+struct NamedTensor {
+    name: String,
+    tensor: SharedPtr<CrossTensor>,
+}
+
+/// A single node in a flattened IValue tree.
+/// Tags: 0=tensor, 1=int, 2=float, 3=bool, 4=string, 5=none, 6=tuple, 7=list, 8=dict
+struct IValueNode {
+    tag: i64,
+    tensor: SharedPtr<CrossTensor>,
+    int_val: i64,
+    float_val: f64,
+    bool_val: bool,
+    string_val: String,
+    parent_idx: i64,
+    child_count: i64,
+}
+
+/// A flattened IValue tree (pre-order traversal).
+struct IValueFlat {
+    nodes: Vec<IValueNode>,
+}
+
+/// Information about a single parameter.
+struct ParameterInfo {
+    name: String,
+    shape: Vec<i64>,
+    dtype: String,
+    requires_grad: bool,
+}
+
+/// Information about a submodule.
+struct SubmoduleInfo {
+    name: String,
+    type_name: String,
+    parameters: Vec<ParameterInfo>,
+}

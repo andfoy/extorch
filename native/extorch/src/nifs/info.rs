@@ -31,3 +31,25 @@ nif_impl!(
     copy: bool,
     i_memory_format: AtomString
 );
+
+// CUDA memory monitoring
+nif_impl!(cuda_is_available, bool);
+nif_impl!(cuda_device_count, i64);
+nif_impl!(cuda_memory_allocated, i64, device_index: i64);
+nif_impl!(cuda_memory_reserved, i64, device_index: i64);
+nif_impl!(cuda_max_memory_allocated, i64, device_index: i64);
+
+// Zero-copy tensor exchange
+nif_impl!(data_ptr, i64, tensor: TensorStruct<'a>);
+nif_impl!(strides, Vec<i64>, tensor: TensorStruct<'a>);
+nif_impl!(element_size, i64, tensor: TensorStruct<'a>);
+nif_impl!(is_contiguous, bool, tensor: TensorStruct<'a>);
+nif_impl!(
+    from_blob,
+    TensorStruct<'a>,
+    ptr: i64,
+    shape: Size,
+    blob_strides: Size,
+    s_dtype: AtomString,
+    s_device: Device
+);

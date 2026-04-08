@@ -47,3 +47,9 @@ target/
 /priv/native/libtorch/
 /priv/native/libtorch.zip
 
+# Python virtual environment
+/.venv/
+
+# Test fixtures (generated models)
+/test/fixtures/*.pt
+

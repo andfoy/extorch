@@ -24,34 +24,27 @@ defmodule ExTorchTest.RegistryTest do
     assert b.dtype == :double
   end
 
+  @tag :cuda
   test "set_default_device/1" do
-    nvcc = System.find_executable("nvcc")
+    {:ok, pid} = Agent.start(fn -> ExTorch.get_default_device() end)
+    assert ExTorch.get_default_device() == :cpu
 
-    case nvcc do
-      nil ->
-        nil
+    # Assert that default devices are independent across processes
+    proc_value =
+      Agent.get_and_update(pid, fn val -> {val, ExTorch.set_default_device(:cuda)} end)
 
-      _ ->
-        {:ok, pid} = Agent.start(fn -> ExTorch.get_default_device() end)
-        assert ExTorch.get_default_device() == :cpu
+    assert proc_value == :cpu
+    assert ExTorch.get_default_device() == :cpu
 
-        # Assert that default devices are independent across processes
-        proc_value =
-          Agent.get_and_update(pid, fn val -> {val, ExTorch.set_default_device(:cuda)} end)
+    proc_value = Agent.get(pid, fn val -> val end)
+    assert proc_value == :cuda
 
-        assert proc_value == :cpu
-        assert ExTorch.get_default_device() == :cpu
+    # Create a tensor with default value in both processes
+    a = ExTorch.empty({3, 4, 5})
+    assert a.device == :cpu
 
-        proc_value = Agent.get(pid, fn val -> val end)
-        assert proc_value == :cuda
-
-        # Create a tensor with default value in both processes
-        a = ExTorch.empty({3, 4, 5})
-        assert a.device == :cpu
-
-        Agent.update(pid, fn _ -> ExTorch.ones({3, 3}) end)
-        b = Agent.get(pid, fn t -> t end)
-        assert b.device == {:cuda, 0}
-    end
+    Agent.update(pid, fn _ -> ExTorch.ones({3, 3}) end)
+    b = Agent.get(pid, fn t -> t end)
+    assert b.device == {:cuda, 0}
   end
 end

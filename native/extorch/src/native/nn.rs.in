@@ -1,0 +1,148 @@
+// Neural network module creation and operations
+// ----------------------------------------------------------------
+
+// Layer factories
+
+/// Create a Linear (fully connected) layer.
+fn nn_linear(in_features: i64, out_features: i64, bias: bool) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a 1D convolution layer.
+fn nn_conv1d(
+    in_channels: i64, out_channels: i64, kernel_size: i64,
+    stride: i64, padding: i64, dilation: i64, groups: i64, bias: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a 2D convolution layer.
+fn nn_conv2d(
+    in_channels: i64, out_channels: i64, kernel_size: i64,
+    stride: i64, padding: i64, dilation: i64, groups: i64, bias: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a 1D batch normalization layer.
+fn nn_batch_norm1d(
+    num_features: i64, eps: f64, momentum: f64, affine: bool, track_running_stats: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a 2D batch normalization layer.
+fn nn_batch_norm2d(
+    num_features: i64, eps: f64, momentum: f64, affine: bool, track_running_stats: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a layer normalization layer.
+fn nn_layer_norm(
+    normalized_shape: Vec<i64>, eps: f64, elementwise_affine: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a dropout layer.
+fn nn_dropout(p: f64, inplace: bool) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create an embedding layer.
+fn nn_embedding(
+    num_embeddings: i64, embedding_dim: i64, padding_idx: i64, has_padding_idx: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+// Activation functions
+
+/// Create a ReLU activation module.
+fn nn_relu(inplace: bool) -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a GELU activation module.
+fn nn_gelu() -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a Sigmoid activation module.
+fn nn_sigmoid() -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a Tanh activation module.
+fn nn_tanh() -> Result<SharedPtr<CrossNNModule>>;
+
+/// Create a Softmax activation module.
+fn nn_softmax(dim: i64) -> Result<SharedPtr<CrossNNModule>>;
+
+// Additional convolutions
+
+fn nn_conv3d(
+    in_channels: i64, out_channels: i64, kernel_size: i64,
+    stride: i64, padding: i64, dilation: i64, groups: i64, bias: bool,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+fn nn_conv_transpose1d(
+    in_channels: i64, out_channels: i64, kernel_size: i64,
+    stride: i64, padding: i64, output_padding: i64, groups: i64, bias: bool, dilation: i64,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+fn nn_conv_transpose2d(
+    in_channels: i64, out_channels: i64, kernel_size: i64,
+    stride: i64, padding: i64, output_padding: i64, groups: i64, bias: bool, dilation: i64,
+) -> Result<SharedPtr<CrossNNModule>>;
+
+// Pooling
+
+fn nn_max_pool1d(kernel_size: i64, stride: i64, padding: i64, dilation: i64, ceil_mode: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_max_pool2d(kernel_size: i64, stride: i64, padding: i64, dilation: i64, ceil_mode: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_avg_pool1d(kernel_size: i64, stride: i64, padding: i64, ceil_mode: bool, count_include_pad: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_avg_pool2d(kernel_size: i64, stride: i64, padding: i64, ceil_mode: bool, count_include_pad: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_adaptive_avg_pool1d(output_size: i64) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_adaptive_avg_pool2d(output_h: i64, output_w: i64) -> Result<SharedPtr<CrossNNModule>>;
+
+// Additional normalization
+
+fn nn_group_norm(num_groups: i64, num_channels: i64, eps: f64, affine: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_instance_norm1d(num_features: i64, eps: f64, momentum: f64, affine: bool, track_running_stats: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_instance_norm2d(num_features: i64, eps: f64, momentum: f64, affine: bool, track_running_stats: bool) -> Result<SharedPtr<CrossNNModule>>;
+
+// Recurrent
+
+fn nn_lstm(input_size: i64, hidden_size: i64, num_layers: i64, bias: bool, batch_first: bool, dropout: f64, bidirectional: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_gru(input_size: i64, hidden_size: i64, num_layers: i64, bias: bool, batch_first: bool, dropout: f64, bidirectional: bool) -> Result<SharedPtr<CrossNNModule>>;
+
+// Transformer
+
+fn nn_multihead_attention(embed_dim: i64, num_heads: i64, dropout: f64, bias: bool) -> Result<SharedPtr<CrossNNModule>>;
+
+// Utility
+
+fn nn_flatten(start_dim: i64, end_dim: i64) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_unflatten(dim: i64, sizes: Vec<i64>) -> Result<SharedPtr<CrossNNModule>>;
+
+// Additional activations
+
+fn nn_leaky_relu(negative_slope: f64, inplace: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_elu(alpha: f64, inplace: bool) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_silu() -> Result<SharedPtr<CrossNNModule>>;
+fn nn_mish() -> Result<SharedPtr<CrossNNModule>>;
+fn nn_prelu(num_parameters: i64) -> Result<SharedPtr<CrossNNModule>>;
+fn nn_log_softmax(dim: i64) -> Result<SharedPtr<CrossNNModule>>;
+
+// Module operations
+
+/// Run forward pass on an nn module.
+fn nn_forward(
+    module: &SharedPtr<CrossNNModule>,
+    input: &SharedPtr<CrossTensor>,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Get named parameters of an nn module.
+fn nn_parameters(
+    module: &SharedPtr<CrossNNModule>,
+) -> Result<Vec<NamedTensor>>;
+
+/// Set an nn module to evaluation mode.
+fn nn_set_eval(module: &SharedPtr<CrossNNModule>) -> Result<()>;
+
+/// Set an nn module to training mode.
+fn nn_set_train(module: &SharedPtr<CrossNNModule>) -> Result<()>;
+
+/// Get the type name of an nn module.
+fn nn_type_name(module: &SharedPtr<CrossNNModule>) -> Result<String>;
+
+/// Copy parameter values from a list of named tensors into a module.
+fn nn_copy_parameters(
+    dst: &SharedPtr<CrossNNModule>,
+    params: Vec<NamedTensor>,
+) -> Result<()>;
+
+/// Move an nn module to a different device.
+fn nn_to_device(
+    module: &SharedPtr<CrossNNModule>,
+    s_device: Device,
+) -> Result<SharedPtr<CrossNNModule>>;

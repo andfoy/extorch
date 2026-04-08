@@ -21,17 +21,15 @@ jobs:
             fail-fast: false
             matrix:
                 PYTORCH_VERSION: ['latest']
-                OTP_VERSION: ['25']
-                ELIXIR_VERSION: ['1.15']
+                OTP_VERSION: ['27']
+                ELIXIR_VERSION: ['1.18']
                 DEVICE: ['cpu']
         steps:
             - name: Checkout branch
-              uses: actions/checkout@v1
-            - name: Install latest Rust nightly
-              uses: actions-rs/toolchain@v1
+              uses: actions/checkout@v4
+            - name: Install latest Rust stable
+              uses: dtolnay/rust-toolchain@stable
               with:
-                toolchain: stable
-                override: true
                 components: rustfmt, clippy
             - name: Print Rust version
               shell: bash -l {0}
@@ -50,7 +48,3 @@ jobs:
             - name: Run credo
               shell: bash -l {0}
               run: bash -l .github/scripts/lint_extorch.sh
-            # Enable this if SSH debugging is required
-            # - name: Setup tmate session
-            #   if: ${{ failure() }}
-            #   uses: mxschmitt/action-tmate@v3

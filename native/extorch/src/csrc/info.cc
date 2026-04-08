@@ -252,3 +252,99 @@ std::shared_ptr<CrossTensor> to(
 
     return std::make_shared<CrossTensor>(std::move(out_tensor));
 }
+
+// ============================================================================
+// CUDA memory monitoring
+// ============================================================================
+
+bool cuda_is_available() {
+    return torch::cuda::is_available();
+}
+
+int64_t cuda_device_count() {
+    return static_cast<int64_t>(torch::cuda::device_count());
+}
+
+int64_t cuda_memory_allocated(int64_t device_index) {
+#ifdef USE_CUDA
+    if (!torch::cuda::is_available()) return -1;
+    return static_cast<int64_t>(c10::cuda::CUDACachingAllocator::currentMemoryAllocated(device_index));
+#else
+    (void)device_index;
+    return -1;
+#endif
+}
+
+int64_t cuda_memory_reserved(int64_t device_index) {
+#ifdef USE_CUDA
+    if (!torch::cuda::is_available()) return -1;
+    return static_cast<int64_t>(c10::cuda::CUDACachingAllocator::currentMemoryCached(device_index));
+#else
+    (void)device_index;
+    return -1;
+#endif
+}
+
+int64_t cuda_max_memory_allocated(int64_t device_index) {
+#ifdef USE_CUDA
+    if (!torch::cuda::is_available()) return -1;
+    return static_cast<int64_t>(c10::cuda::CUDACachingAllocator::maxMemoryAllocated(device_index));
+#else
+    (void)device_index;
+    return -1;
+#endif
+}
+
+// ============================================================================
+// Zero-copy tensor exchange
+// ============================================================================
+
+int64_t data_ptr(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return reinterpret_cast<int64_t>(cross_tensor.data_ptr());
+}
+
+rust::Vec<int64_t> strides(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    auto s = cross_tensor.strides();
+    rust::Vec<int64_t> result;
+    for (auto v : s) {
+        result.push_back(v);
+    }
+    return result;
+}
+
+int64_t element_size(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.element_size();
+}
+
+bool is_contiguous(const std::shared_ptr<CrossTensor> &tensor) {
+    CrossTensor cross_tensor = *tensor.get();
+    return cross_tensor.is_contiguous();
+}
+
+std::shared_ptr<CrossTensor> from_blob(
+    int64_t ptr,
+    rust::Vec<int64_t> shape,
+    rust::Vec<int64_t> strides_vec,
+    rust::String s_dtype,
+    Device s_device)
+{
+    void *data = reinterpret_cast<void *>(ptr);
+    std::string dtype_str(s_dtype);
+    auto dtype = type_mapping[dtype_str];
+
+    const int64_t *shape_ptr = shape.data();
+    auto shape_ref = torch::IntArrayRef{shape_ptr, shape.size()};
+
+    const int64_t *strides_ptr = strides_vec.data();
+    auto strides_ref = torch::IntArrayRef{strides_ptr, strides_vec.size()};
+
+    // from_blob does NOT take ownership of the memory.
+    // The caller is responsible for keeping the source alive.
+    auto opts = torch::TensorOptions().dtype(dtype);
+    torch::Tensor tensor = torch::from_blob(data, shape_ref, strides_ref, opts);
+
+    return std::make_shared<CrossTensor>(tensor);
+}

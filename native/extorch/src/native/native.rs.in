@@ -15,6 +15,12 @@ pub mod torch {
         /// Reference to a torch tensor in memory
         type CrossTensor;
 
+        /// Reference to a JIT module in memory
+        type CrossModule;
+
+        /// Reference to an nn module in memory
+        type CrossNNModule;
+
         // Tensor attribute access
         // ----------------------------------------------------------------
         {% include "tensor/info.rs.in" %}
@@ -42,8 +48,22 @@ pub mod torch {
         // ----------------------------------------------------------------
         {% include "tensor/other.rs.in" %}
 
+        // JIT model loading and inference.
+        // ----------------------------------------------------------------
+        {% include "jit.rs.in" %}
+
+        // Neural network modules.
+        // ----------------------------------------------------------------
+        {% include "nn.rs.in" %}
+
     }
 }
 
 unsafe impl std::marker::Send for torch::CrossTensorRef {}
 unsafe impl std::marker::Sync for torch::CrossTensorRef {}
+
+unsafe impl std::marker::Send for torch::CrossModuleRef {}
+unsafe impl std::marker::Sync for torch::CrossModuleRef {}
+
+unsafe impl std::marker::Send for torch::CrossNNModuleRef {}
+unsafe impl std::marker::Sync for torch::CrossNNModuleRef {}

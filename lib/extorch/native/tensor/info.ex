@@ -323,5 +323,99 @@ defmodule ExTorch.Native.Tensor.Info do
       dtype: dtype || ExTorch.Tensor.dtype(input),
       device: device || ExTorch.Tensor.device(input)
     )
+
+    @doc """
+    Get the raw data pointer of a tensor as an integer.
+
+    This is intended for zero-copy tensor exchange with other frameworks
+    (e.g., Nx/Torchx) that share the same process address space.
+
+    The returned pointer is only valid as long as the source tensor is alive.
+    """
+    @spec data_ptr(ExTorch.Tensor.t()) :: integer()
+    defbinding(data_ptr(tensor))
+
+    @doc """
+    Get the strides of a tensor.
+
+    Returns a list of integers representing the step size in each dimension.
+    """
+    @spec strides(ExTorch.Tensor.t()) :: [integer()]
+    defbinding(strides(tensor))
+
+    @doc """
+    Get the element size in bytes for the tensor's dtype.
+    """
+    @spec element_size(ExTorch.Tensor.t()) :: integer()
+    defbinding(element_size(tensor))
+
+    @doc """
+    Check if a tensor is contiguous in memory.
+    """
+    @spec is_contiguous(ExTorch.Tensor.t()) :: boolean()
+    defbinding(is_contiguous(tensor))
+
+    @doc """
+    Check if CUDA is available.
+    """
+    @spec cuda_is_available() :: boolean()
+    defbinding(cuda_is_available())
+
+    @doc """
+    Get the number of available CUDA devices.
+    """
+    @spec cuda_device_count() :: integer()
+    defbinding(cuda_device_count())
+
+    @doc """
+    Get currently allocated CUDA memory in bytes for a device.
+    Returns -1 if CUDA is not available.
+    """
+    @spec cuda_memory_allocated(integer()) :: integer()
+    defbinding(cuda_memory_allocated(device_index))
+
+    @doc """
+    Get currently reserved CUDA memory in bytes for a device.
+    Returns -1 if CUDA is not available.
+    """
+    @spec cuda_memory_reserved(integer()) :: integer()
+    defbinding(cuda_memory_reserved(device_index))
+
+    @doc """
+    Get peak allocated CUDA memory in bytes for a device.
+    Returns -1 if CUDA is not available.
+    """
+    @spec cuda_max_memory_allocated(integer()) :: integer()
+    defbinding(cuda_max_memory_allocated(device_index))
+
+    @doc """
+    Create a tensor from a raw data pointer (zero-copy).
+
+    The created tensor shares the memory pointed to by `ptr`. The caller
+    **must** keep the source data alive for the lifetime of the returned tensor.
+
+    ## Arguments
+      - `ptr` - Raw memory address as an integer.
+      - `shape` - Tensor dimensions as a tuple.
+      - `strides` - Stride in each dimension as a tuple.
+      - `dtype` - Data type of the elements.
+      - `device` - Device where the memory lives (default: `:cpu`).
+    """
+    @spec from_blob(
+            integer(),
+            tuple(),
+            tuple(),
+            ExTorch.DType.dtype(),
+            ExTorch.Device.device()
+          ) :: ExTorch.Tensor.t()
+    defbinding(
+      from_blob(
+        ptr,
+        shape,
+        blob_strides,
+        dtype \\ :float32,
+        device \\ :cpu
+      )
+    )
   end
 end

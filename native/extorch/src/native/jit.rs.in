@@ -1,0 +1,86 @@
+// JIT model loading and inference
+// ----------------------------------------------------------------
+
+/// Load a TorchScript model from a file.
+fn jit_load(
+    path: String,
+    s_device: Device,
+) -> Result<SharedPtr<CrossModule>>;
+
+/// Save a TorchScript model to a file.
+fn jit_save(
+    module: &SharedPtr<CrossModule>,
+    path: String,
+) -> Result<()>;
+
+/// Run the forward method on a JIT model.
+fn jit_forward(
+    module: &SharedPtr<CrossModule>,
+    inputs: TensorList,
+) -> Result<IValueFlat>;
+
+/// Invoke a named method on a JIT model.
+fn jit_invoke_method(
+    module: &SharedPtr<CrossModule>,
+    method_name: String,
+    inputs: TensorList,
+) -> Result<IValueFlat>;
+
+/// Get the names of all methods on a JIT model.
+fn jit_get_method_names(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<String>>;
+
+/// Get named parameters of a JIT model.
+fn jit_named_parameters(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<NamedTensor>>;
+
+/// Get named buffers of a JIT model.
+fn jit_named_buffers(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<NamedTensor>>;
+
+/// Get names of submodules of a JIT model.
+fn jit_named_modules(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<String>>;
+
+/// Set a JIT model to evaluation mode.
+fn jit_set_eval(
+    module: &SharedPtr<CrossModule>,
+) -> Result<()>;
+
+/// Set a JIT model to training mode.
+fn jit_set_train(
+    module: &SharedPtr<CrossModule>,
+) -> Result<()>;
+
+/// Move a JIT model to a different device.
+fn jit_to_device(
+    module: &SharedPtr<CrossModule>,
+    s_device: Device,
+) -> Result<SharedPtr<CrossModule>>;
+
+// IR Introspection
+// ----------------------------------------------------------------
+
+/// Get the JIT graph IR as a string.
+fn jit_graph_str(
+    module: &SharedPtr<CrossModule>,
+) -> Result<String>;
+
+/// Get parameter info for a JIT module.
+fn jit_module_parameters_info(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<ParameterInfo>>;
+
+/// Get submodule info for a JIT module.
+fn jit_module_submodules_info(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<SubmoduleInfo>>;
+
+/// Get method names for a JIT module.
+fn jit_module_methods_info(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<String>>;

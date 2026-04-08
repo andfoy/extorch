@@ -1,6 +1,6 @@
 use rustler::{Decoder, Encoder, Env, NifResult, Term};
 
-use rustler_sys::enif_make_ref;
+use rustler::sys::enif_make_ref;
 
 use crate::shared_types::Reference;
 

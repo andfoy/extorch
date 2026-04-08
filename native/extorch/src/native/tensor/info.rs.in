@@ -52,3 +52,42 @@ fn to(
     copy: bool,
     memory_format: String,
 ) -> Result<SharedPtr<CrossTensor>>;
+
+/// Get the raw data pointer of a tensor as an integer.
+fn data_ptr(tensor: &SharedPtr<CrossTensor>) -> Result<i64>;
+
+/// Get the strides of a tensor.
+fn strides(tensor: &SharedPtr<CrossTensor>) -> Result<Vec<i64>>;
+
+/// Get the element size in bytes of a tensor's dtype.
+fn element_size(tensor: &SharedPtr<CrossTensor>) -> Result<i64>;
+
+/// Check if a tensor is contiguous in memory.
+fn is_contiguous(tensor: &SharedPtr<CrossTensor>) -> Result<bool>;
+
+// CUDA memory monitoring
+
+/// Check if CUDA is available.
+fn cuda_is_available() -> Result<bool>;
+
+/// Get the number of CUDA devices.
+fn cuda_device_count() -> Result<i64>;
+
+/// Get currently allocated CUDA memory in bytes (-1 if not available).
+fn cuda_memory_allocated(device_index: i64) -> Result<i64>;
+
+/// Get currently reserved CUDA memory in bytes (-1 if not available).
+fn cuda_memory_reserved(device_index: i64) -> Result<i64>;
+
+/// Get peak allocated CUDA memory in bytes (-1 if not available).
+fn cuda_max_memory_allocated(device_index: i64) -> Result<i64>;
+
+/// Create a tensor from a raw data pointer (zero-copy).
+/// The caller is responsible for keeping the source memory alive.
+fn from_blob(
+    ptr: i64,
+    shape: Vec<i64>,
+    strides: Vec<i64>,
+    s_dtype: String,
+    s_device: Device,
+) -> Result<SharedPtr<CrossTensor>>;

@@ -16,6 +16,8 @@ defmodule ExTorch.Native do
   use ExTorch.Native.Tensor.Ops.Comparison
   use ExTorch.Native.Tensor.Ops.Reduction
   use ExTorch.Native.Tensor.Ops.Other
+  use ExTorch.Native.JIT
+  use ExTorch.Native.NN
 
   use ExTorch.Utils.DownloadTorch
   use Rustler, otp_app: :extorch, crate: "extorch", env: [{"CARGO_TERM_VERBOSE", "true"}]

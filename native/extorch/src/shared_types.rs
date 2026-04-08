@@ -1,6 +1,6 @@
 extern crate rustler;
 
-use rustler::resource::ResourceArc;
+use rustler::ResourceArc;
 use rustler::NifStruct;
 use rustler::Term;
 
@@ -82,4 +82,20 @@ pub struct ExPrintOptions {
     pub edgeitems: i64,
     pub linewidth: i64,
     pub sci_mode: Option<bool>
+}
+
+#[derive(NifStruct)]
+#[module = "ExTorch.JIT.Model"]
+pub struct JitModuleStruct<'a> {
+    pub resource: ResourceArc<torch::CrossModuleRef>,
+    pub reference: Reference<'a>,
+    pub device: torch::Device,
+}
+
+#[derive(NifStruct)]
+#[module = "ExTorch.NN.Layer"]
+pub struct NNModuleStruct<'a> {
+    pub resource: ResourceArc<torch::CrossNNModuleRef>,
+    pub reference: Reference<'a>,
+    pub type_name: String,
 }

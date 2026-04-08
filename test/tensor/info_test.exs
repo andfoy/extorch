@@ -180,17 +180,10 @@ defmodule ExTorchTest.Tensor.InfoTest do
     assert ExTorch.equal(a, ExTorch.real(b))
   end
 
+  @tag :cuda
   test "to/2 with device" do
-    nvcc = System.find_executable("nvcc")
-
-    case nvcc do
-      nil ->
-        nil
-
-      _ ->
-        a = ExTorch.rand({3, 3})
-        b = ExTorch.Tensor.to(a, device: :cuda)
-        assert b.device == {:cuda, 0}
-    end
+    a = ExTorch.rand({3, 3})
+    b = ExTorch.Tensor.to(a, device: :cuda)
+    assert b.device == {:cuda, 0}
   end
 end

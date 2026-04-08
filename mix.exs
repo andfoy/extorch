@@ -5,7 +5,7 @@ defmodule ExTorch.MixProject do
     [
       app: :extorch,
       version: "0.1.0-pre0",
-      elixir: "~> 1.10",
+      elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       docs: docs(),
@@ -23,6 +23,9 @@ defmodule ExTorch.MixProject do
           ExTorch.Index.Slice,
           ExTorch.Utils.ListWrapper,
           Inspect.ExTorch.Tensor,
+          Inspect.ExTorch.JIT.Model,
+          Inspect.ExTorch.NN.Layer,
+          Inspect.ExTorch.Tensor.BlobView,
           Mix.Tasks.PullLibTorch
         ]
       ],
@@ -44,18 +47,17 @@ defmodule ExTorch.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:rustler, "~> 0.29.0"},
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
-      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.3", only: [:dev], runtime: false}
-      # {:delegate_with_docs, "~> 0.1.0"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:rustler, "~> 0.37.3"},
+      {:telemetry, "~> 1.2"},
+      {:ex_doc, "~> 0.35", only: :dev, runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
+      {:phoenix_live_dashboard, "~> 0.8", optional: true}
     ]
   end
 
   defp description do
-    "Elixir/Erlang bindings for libtorch."
+    "Production ML model serving on the BEAM. Load TorchScript models, define neural networks with an Elixir DSL, and monitor serving performance with telemetry."
   end
 
   defp package do
@@ -96,6 +98,27 @@ defmodule ExTorch.MixProject do
       ],
       groups_for_modules: [
         "General API": [ExTorch, ExTorch.Tensor],
+        "JIT Model Serving": [
+          ExTorch.JIT,
+          ExTorch.JIT.Model,
+          ExTorch.JIT.Server
+        ],
+        "Neural Network DSL": [
+          ExTorch.NN,
+          ExTorch.NN.Module,
+          ExTorch.NN.Layer,
+          ExTorch.NN.Introspect,
+          ExTorch.NN.Introspect.Schema,
+          ExTorch.NN.JITBackedModel
+        ],
+        "Tensor Exchange": [
+          ExTorch.Tensor.Blob,
+          ExTorch.Tensor.BlobView
+        ],
+        "Observability": [
+          ExTorch.Metrics,
+          ExTorch.Observer.Dashboard
+        ],
         "Exchange types": [
           ExTorch.Complex,
           ExTorch.Index,
