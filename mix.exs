@@ -4,7 +4,7 @@ defmodule ExTorch.MixProject do
   def project do
     [
       app: :extorch,
-      version: "0.2.1-pre0",
+      version: "0.3.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

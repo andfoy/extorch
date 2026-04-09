@@ -352,7 +352,7 @@ serving across multiple replicas.
 ExTorch is available on [Hex](https://hex.pm/packages/extorch):
 
 ```elixir
-{:extorch, "~> 0.2.0"}
+{:extorch, "~> 0.3.0"}
 ```
 
 The [documentation](https://hexdocs.pm/extorch) includes four guides covering

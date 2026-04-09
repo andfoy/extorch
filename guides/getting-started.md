@@ -9,7 +9,7 @@ Add `extorch` to your dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:extorch, "~> 0.2.0"}
+    {:extorch, "~> 0.3.0"}
   ]
 end
 ```
