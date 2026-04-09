@@ -756,7 +756,6 @@ defmodule ExTorch.Export do
   # ============================================================================
 
   defp generate_elixir_source(schema, module_name) do
-    # Map ATen ops to layer declarations
     layers = infer_layers(schema)
 
     layer_lines =
@@ -767,10 +766,7 @@ defmodule ExTorch.Export do
       end)
       |> Enum.join("\n")
 
-    forward_chain =
-      layers
-      |> Enum.map(fn {name, _, _} -> "    |> layer(model, :#{name})" end)
-      |> Enum.join("\n")
+    forward_body = generate_forward_body(schema)
 
     """
     defmodule #{module_name} do
@@ -779,11 +775,192 @@ defmodule ExTorch.Export do
     #{layer_lines}
 
       def forward(model, x) do
-        x
-    #{forward_chain}
+    #{forward_body}
       end
     end
     """
+  end
+
+  # Generate a forward body with proper variable assignments for branching data flow.
+  defp generate_forward_body(schema) do
+    graph = schema.graph
+    # Find the user input name (the non-parameter input)
+    user_inputs = schema.inputs |> Enum.reject(&(String.starts_with?(&1, "p_") or String.starts_with?(&1, "b_")))
+    user_input = List.first(user_inputs) || "x"
+
+    # Count how many times each value is referenced as an input
+    ref_counts = count_references(graph)
+
+    # Walk nodes and generate code lines
+    {lines, _} =
+      Enum.reduce(graph, {[], %{user_input => "x"}}, fn node, {lines_acc, var_map} ->
+        output_name = List.first(node.outputs) || "unknown"
+
+        # Get the primary tensor input (self or input)
+        primary_ref = get_primary_ref(node)
+        _primary_var = if primary_ref, do: Map.get(var_map, primary_ref, sanitize_var(primary_ref))
+
+        # Generate the expression for this node
+        expr = node_to_elixir(node, var_map, schema.weights)
+
+        # Decide if we need a named variable (value used more than once downstream)
+        needs_binding = Map.get(ref_counts, output_name, 0) > 1
+        var_name = sanitize_var(output_name)
+
+        {new_lines, new_var_map} =
+          if needs_binding do
+            {lines_acc ++ ["    #{var_name} = #{expr}"], Map.put(var_map, output_name, var_name)}
+          else
+            {lines_acc ++ ["    #{var_name} = #{expr}"], Map.put(var_map, output_name, var_name)}
+          end
+
+        {new_lines, new_var_map}
+      end)
+
+    # The last line's variable is the return value
+    case lines do
+      [] -> "    x"
+      _ -> Enum.join(lines, "\n")
+    end
+  end
+
+  defp count_references(graph) do
+    Enum.reduce(graph, %{}, fn node, acc ->
+      tensor_refs =
+        node.inputs
+        |> Enum.flat_map(fn
+          {_name, {:tensor, ref}} -> [ref]
+          _ -> []
+        end)
+
+      Enum.reduce(tensor_refs, acc, fn ref, inner_acc ->
+        Map.update(inner_acc, ref, 1, &(&1 + 1))
+      end)
+    end)
+  end
+
+  defp get_primary_ref(node) do
+    # The primary tensor input -- typically "self" or "input"
+    Enum.find_value(node.inputs, fn
+      {"self", {:tensor, ref}} -> ref
+      {"input", {:tensor, ref}} -> ref
+      _ -> nil
+    end)
+  end
+
+  defp node_to_elixir(node, var_map, weights) do
+    i = node.inputs
+
+    resolve_var = fn name ->
+      case List.keyfind(i, name, 0) do
+        {^name, {:tensor, ref}} -> Map.get(var_map, ref, sanitize_var(ref))
+        _ -> "nil"
+      end
+    end
+
+    case node.target do
+      "torch.ops.aten.linear.default" ->
+        input_v = resolve_var.("input")
+        "#{input_v} |> layer(model, :#{layer_name_from_weight(i, weights, "linear")})"
+
+      t when t in ["torch.ops.aten.relu.default", "torch.ops.aten.relu_.default"] ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "relu")})"
+
+      t when t in ["torch.ops.aten.add.Tensor", "torch.ops.aten.add_.Tensor"] ->
+        "ExTorch.add(#{resolve_var.("self")}, #{resolve_var.("other")})"
+
+      t when t in ["torch.ops.aten.conv2d.default", "torch.ops.aten.convolution.default"] ->
+        input_v = resolve_var.("input")
+        "#{input_v} |> layer(model, :#{layer_name_from_weight(i, weights, "conv")})"
+
+      "torch.ops.aten.batch_norm.default" ->
+        input_v = resolve_var.("input")
+        "#{input_v} |> layer(model, :#{layer_name_from_weight(i, weights, "bn")})"
+
+      "torch.ops.aten.adaptive_avg_pool2d.default" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "pool")})"
+
+      "torch.ops.aten.max_pool2d.default" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "maxpool")})"
+
+      "torch.ops.aten.flatten.using_ints" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "flatten")})"
+
+      "torch.ops.aten.gelu.default" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "gelu")})"
+
+      "torch.ops.aten.sigmoid.default" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "sigmoid")})"
+
+      "torch.ops.aten.tanh.default" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "tanh")})"
+
+      "torch.ops.aten.silu.default" ->
+        "#{resolve_var.("self")} |> layer(model, :#{sanitize_name(List.first(node.outputs) || "silu")})"
+
+      "torch.ops.aten.mul.Tensor" ->
+        "ExTorch.mul(#{resolve_var.("self")}, #{resolve_var.("other")})"
+
+      "torch.ops.aten.sub.Tensor" ->
+        "ExTorch.sub(#{resolve_var.("self")}, #{resolve_var.("other")})"
+
+      "torch.ops.aten.mean.dim" ->
+        "ExTorch.mean(#{resolve_var.("self")}, 1, true)"
+
+      "torch.ops.aten.view.default" ->
+        "ExTorch.view(#{resolve_var.("self")}, shape)"
+
+      "torch.ops.aten.transpose.int" ->
+        dim0 = case List.keyfind(i, "dim0", 0) do
+          {"dim0", {:int, v}} -> v
+          _ -> 0
+        end
+        dim1 = case List.keyfind(i, "dim1", 0) do
+          {"dim1", {:int, v}} -> v
+          _ -> 1
+        end
+        "ExTorch.transpose(#{resolve_var.("self")}, #{dim0}, #{dim1})"
+
+      _ ->
+        # Generic fallback -- just show the op name as a comment
+        self_v = resolve_var.("self")
+        if self_v != "nil" do
+          "#{self_v} # #{node.target}"
+        else
+          resolve_var.("input") <> " # #{node.target}"
+        end
+    end
+  end
+
+  # Extract the layer name from a weight reference in node inputs.
+  # e.g., "p_layer1_0_conv1_weight" → FQN "layer1.0.conv1.weight" → layer "layer1_0_conv1"
+  defp layer_name_from_weight(inputs, weights, fallback) do
+    case List.keyfind(inputs, "weight", 0) do
+      {"weight", {:tensor, wref}} ->
+        stripped = cond do
+          String.starts_with?(wref, "p_") -> String.trim_leading(wref, "p_")
+          String.starts_with?(wref, "b_") -> String.trim_leading(wref, "b_")
+          true -> wref
+        end
+        case find_matching_fqn(stripped, Map.keys(weights)) do
+          nil -> fallback
+          fqn ->
+            # "layer1.0.conv1.weight" → "layer1.0.conv1" → "layer1_0_conv1"
+            fqn
+            |> String.split(".")
+            |> Enum.drop(-1)
+            |> Enum.join(".")
+            |> sanitize_name()
+        end
+      _ -> fallback
+    end
+  end
+
+  defp sanitize_var(name) do
+    name
+    |> String.replace(".", "_")
+    |> String.replace("-", "_")
+    |> String.replace("~", "")
   end
 
   defp infer_layers(schema) do

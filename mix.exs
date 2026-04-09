@@ -170,7 +170,9 @@ defmodule ExTorch.MixProject do
           ExTorch.AOTI.Server
         ],
         "Export Reader": [
-          ExTorch.Export
+          ExTorch.Export,
+          ExTorch.Export.Model,
+          ExTorch.Export.Server
         ],
         "Observability": [
           ExTorch.Metrics,

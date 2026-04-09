@@ -177,9 +177,9 @@ output = MyModel.forward(model, input)
 ```
 
 Tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers,
-and autoencoders. The interpreter supports 60+ ATen operations covering
-linear algebra, convolutions, normalization, pooling, activations, reductions,
-shape ops, and more.
+and autoencoders. The interpreter supports 60+ ATen operations. The DSL
+generator performs data flow analysis to correctly emit skip connections and
+branching architectures (e.g., ResNet residual blocks).
 
 ### AOTI Compiled Models
 

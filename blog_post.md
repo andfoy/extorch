@@ -144,9 +144,25 @@ their Python counterparts.
 Beyond inference, `ExTorch.Export` also provides introspection: `read_schema`
 extracts the graph IR and weight metadata, `read_weights` loads the raw tensors,
 and `to_elixir` generates a complete `ExTorch.NN.Module` DSL definition from the
-ATen graph. The extracted weights can be loaded into DSL-defined modules via
-`load_weights_from_export`, giving a fully JIT-free workflow from Python
-training to Elixir serving.
+ATen graph. The code generator performs data flow analysis on the computation
+graph to correctly handle branching architectures. For a ResNet, the generated
+code includes explicit variable bindings for skip connections:
+
+```elixir
+# Generated from ResNet18 -- residual connections are automatic
+conv2d_1 = max_pool2d |> layer(model, :layer1_0_conv1)
+batch_norm_1 = conv2d_1 |> layer(model, :layer1_0_bn1)
+relu__1 = batch_norm_1 |> layer(model, :relu__1)
+conv2d_2 = relu__1 |> layer(model, :layer1_0_conv2)
+batch_norm_2 = conv2d_2 |> layer(model, :layer1_0_bn2)
+add_ = ExTorch.add(batch_norm_2, max_pool2d)    # skip connection
+```
+
+The generator tracks which values are consumed by multiple downstream nodes
+and emits proper variable bindings at branch points, rather than producing a
+flat pipe chain that loses the branching structure. The extracted weights can
+be loaded into DSL-defined modules via `load_weights_from_export`, giving a
+fully JIT-free workflow from Python training to Elixir serving.
 
 The second path uses AOTInductor to compile the exported model into an
 optimized `.pt2` package with fused kernels, which ExTorch loads via the
