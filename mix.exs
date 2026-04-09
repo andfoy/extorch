@@ -94,7 +94,7 @@ defmodule ExTorch.MixProject do
       # custom content to the generated HTML.
       # This is useful for custom JS/CSS files you want to include.
       before_closing_body_tag: &before_closing_body_tag/1,
-      groups_for_functions: [
+      groups_for_docs: [
         {:"Per-process settings", &(&1[:kind] == :process_values)},
         {:"Tensor information", &(&1[:kind] == :tensor_info)},
         {:"Tensor creation", &(&1[:kind] == :tensor_creation)},

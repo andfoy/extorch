@@ -514,7 +514,7 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     Stack tensors in sequence depthwise (along third axis).
 
     This is equivalent to concatenation along the third axis after 1-D and 2-D tensors have been reshaped
-    by `ExTorch.atleast_3d/1`.
+    by ensuring each tensor has at least 3 dimensions.
 
     ## Arguments
     - `tensors` (`[ExTorch.Tensor.t()] | tuple()`) - sequence of tensors to concatenate.
@@ -951,7 +951,7 @@ defmodule ExTorch.Native.Tensor.Ops.Manipulation do
     Stack tensors in sequence vertically (row wise).
 
     This is equivalent to concatenation along the first axis after all 1-D tensors
-    have been reshaped by `ExTorch.atleast_2d/1`.
+    have been reshaped to at least 2 dimensions.
 
     ## Arguments
     - `tensors` (`[ExTorch.Tensor.t()] | tuple()`) - sequence of tensors to concatenate.
