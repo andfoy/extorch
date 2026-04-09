@@ -6,6 +6,7 @@ export RUSTFLAGS="-C link-args=-Wl,-rpath,$(pwd)/priv/native/libtorch/lib"
 python -m venv .venv
 .venv/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu --quiet
 .venv/bin/python test/fixtures/generate_models.py
+.venv/bin/python test/fixtures/generate_export_models.py
 .venv/bin/python test/fixtures/generate_aoti_models.py
 
 mix test --trace

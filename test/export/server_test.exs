@@ -5,7 +5,7 @@ defmodule ExTorchTest.Export.ServerTest do
 
   setup_all do
     path = Path.join(@fixtures_dir, "simple_mlp_exported.pt2")
-    unless File.exists?(path), do: flunk("Run: .venv/bin/python test/fixtures/generate_models.py")
+    unless File.exists?(path), do: flunk("Run: .venv/bin/python test/fixtures/generate_export_models.py")
     :ok
   end
 
