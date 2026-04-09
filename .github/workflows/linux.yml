@@ -20,10 +20,23 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                PYTORCH_VERSION: ['2.11.0', 'latest']
+                PYTORCH_VERSION: ['2.11.0']
                 OTP_VERSION: ['27', '26']
-                ELIXIR_VERSION: ['1.18', '1.17']
+                ELIXIR_VERSION: ['1.18', '1.17', '1.16']
                 DEVICE: ['cpu']
+                exclude:
+                    # Elixir 1.18 requires OTP 27+
+                    - ELIXIR_VERSION: '1.18'
+                      OTP_VERSION: '26'
+                    # Elixir 1.16 doesn't support OTP 27
+                    - ELIXIR_VERSION: '1.16'
+                      OTP_VERSION: '27'
+                include:
+                    # Test nightly libtorch on a single combination
+                    - PYTORCH_VERSION: 'latest'
+                      OTP_VERSION: '27'
+                      ELIXIR_VERSION: '1.18'
+                      DEVICE: 'cpu'
         steps:
             - name: Checkout branch
               uses: actions/checkout@v4
