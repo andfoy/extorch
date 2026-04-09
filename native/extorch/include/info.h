@@ -37,6 +37,11 @@ int64_t cuda_memory_allocated(int64_t device_index);
 int64_t cuda_memory_reserved(int64_t device_index);
 int64_t cuda_max_memory_allocated(int64_t device_index);
 
+std::shared_ptr<CrossTensor> from_binary(
+    rust::Slice<const uint8_t> data,
+    rust::Vec<int64_t> shape,
+    rust::String s_dtype);
+
 std::shared_ptr<CrossTensor> from_blob(
     int64_t ptr,
     rust::Vec<int64_t> shape,

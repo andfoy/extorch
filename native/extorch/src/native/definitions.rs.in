@@ -87,6 +87,11 @@ struct CrossModuleRef {
     module: SharedPtr<CrossModule>,
 }
 
+/// Shared interface to an AOTI model loader in memory.
+struct CrossAOTILoaderRef {
+    loader: SharedPtr<CrossAOTILoader>,
+}
+
 /// Shared interface to an nn module pointer in memory.
 struct CrossNNModuleRef {
     module: SharedPtr<CrossNNModule>,

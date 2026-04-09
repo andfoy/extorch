@@ -75,3 +75,6 @@ rust::Vec<SubmoduleInfo> jit_module_submodules_info(
 
 rust::Vec<rust::String> jit_module_methods_info(
     const std::shared_ptr<CrossModule> &module);
+
+rust::Vec<SubmoduleInfo> jit_all_submodules_info(
+    const std::shared_ptr<CrossModule> &module);

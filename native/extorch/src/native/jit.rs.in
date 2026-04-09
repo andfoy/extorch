@@ -80,6 +80,11 @@ fn jit_module_submodules_info(
     module: &SharedPtr<CrossModule>,
 ) -> Result<Vec<SubmoduleInfo>>;
 
+/// Get all submodules recursively with full dotted paths.
+fn jit_all_submodules_info(
+    module: &SharedPtr<CrossModule>,
+) -> Result<Vec<SubmoduleInfo>>;
+
 /// Get method names for a JIT module.
 fn jit_module_methods_info(
     module: &SharedPtr<CrossModule>,

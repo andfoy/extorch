@@ -7,6 +7,8 @@ ExTorch lets you load TorchScript models, run inference with OTP fault tolerance
 ## Features
 
 - **JIT Model Serving** -- Load `.pt` models, run inference with full IValue support (tensors, tuples, dicts, scalars), and serve behind GenServer with process isolation.
+- **AOTI Compiled Models** -- Load AOTInductor `.pt2` packages for optimized inference with fused kernels.
+- **torch.export Reader & Interpreter** -- Pure Elixir reader for `torch.export.save` `.pt2` archives with a built-in ATen graph interpreter (60+ ops). Load and run inference on exported models directly -- tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, and transformers.
 - **Neural Network DSL** -- Define PyTorch-compatible layers declaratively in Elixir with `deflayer`, backed by libtorch's C++ nn modules.
 - **JIT IR Introspection** -- Extract model architecture, parameters, and computation graphs from any TorchScript model. Generate Elixir DSL source code from `.pt` files.
 - **Zero-Copy Tensor Exchange** -- Share tensor memory with Nx/Torchx via raw pointer exchange (`data_ptr`/`from_blob`), no copies.
@@ -146,6 +148,58 @@ IO.puts(ExTorch.NN.Introspect.graph(model))
 
 # Generate Elixir DSL source code from any .pt model
 IO.puts(ExTorch.NN.Introspect.to_elixir(model, "ResNet18"))
+```
+
+### torch.export Inference (JIT-free)
+
+ExTorch reads `.pt2` files from `torch.export.save` and runs inference
+through a built-in ATen graph interpreter -- no Python, no JIT, no C++
+ExportedProgram support needed:
+
+```python
+# Python: export and save
+exported = torch.export.export(model, (example_input,))
+torch.export.save(exported, "model.pt2")
+```
+
+```elixir
+# Elixir: load and run inference directly
+model = ExTorch.Export.load("model.pt2")
+output = ExTorch.Export.forward(model, [input])
+
+# Or read weights and generate DSL
+weights = ExTorch.Export.read_weights("model.pt2")
+IO.puts(ExTorch.Export.to_elixir("model.pt2", "MyModel"))
+
+# Or load weights into a DSL module
+model = MyModel.load_weights_from_export("model.pt2")
+output = MyModel.forward(model, input)
+```
+
+Tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers,
+and autoencoders. The interpreter supports 60+ ATen operations covering
+linear algebra, convolutions, normalization, pooling, activations, reductions,
+shape ops, and more.
+
+### AOTI Compiled Models
+
+For maximum inference throughput, load AOTInductor-compiled `.pt2` packages:
+
+```python
+# Python: compile and package
+from torch._inductor import aoti_compile_and_package
+exported = torch.export.export(model, (example_input,))
+aoti_compile_and_package(exported, package_path="model.pt2")
+```
+
+```elixir
+# Elixir: load and run
+model = ExTorch.AOTI.load("model.pt2")
+[output] = ExTorch.AOTI.forward(model, [input])
+
+# Inspect metadata
+ExTorch.AOTI.metadata(model)
+# => %{"AOTI_DEVICE_KEY" => "cpu", "AOTI_CPU_ISA" => "AVX2", ...}
 ```
 
 ### Zero-Copy Tensor Exchange with Nx

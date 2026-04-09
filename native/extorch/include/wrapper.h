@@ -9,3 +9,4 @@
 #include "other.h"
 #include "jit.h"
 #include "nn.h"
+#include "aoti.h"

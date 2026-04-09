@@ -93,6 +93,13 @@ pub struct JitModuleStruct<'a> {
 }
 
 #[derive(NifStruct)]
+#[module = "ExTorch.AOTI.Model"]
+pub struct AOTIModelStruct<'a> {
+    pub resource: ResourceArc<torch::CrossAOTILoaderRef>,
+    pub reference: Reference<'a>,
+}
+
+#[derive(NifStruct)]
 #[module = "ExTorch.NN.Layer"]
 pub struct NNModuleStruct<'a> {
     pub resource: ResourceArc<torch::CrossNNModuleRef>,

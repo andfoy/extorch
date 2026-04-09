@@ -6,5 +6,6 @@ cuda_available =
     _ -> false
   end
 
-exclude = if cuda_available, do: [], else: [:cuda]
+exclude = [:popular_models]
+exclude = if cuda_available, do: exclude, else: [:cuda | exclude]
 ExUnit.start(exclude: exclude)

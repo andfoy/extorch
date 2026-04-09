@@ -39,7 +39,7 @@ config :extorch, libtorch: [
 
 ## Your first inference
 
-The typical workflow is: train a model in Python, export it as TorchScript, then serve it from Elixir.
+The typical workflow is: train a model in Python, export it, then serve it from Elixir.
 
 ### Step 1: Export a model in Python
 
@@ -57,26 +57,38 @@ class SimpleNet(nn.Module):
 
 model = SimpleNet()
 model.eval()
+
+# Option A: TorchScript (works, but deprecated)
 scripted = torch.jit.script(model)
 scripted.save("simple_net.pt")
+
+# Option B: torch.export (recommended for new work)
+exported = torch.export.export(model, (torch.randn(1, 10),))
+torch.export.save(exported, "simple_net_exported.pt2")
+
+# Option C: AOTI compiled (best throughput)
+from torch._inductor import aoti_compile_and_package
+aoti_compile_and_package(exported, package_path="simple_net_compiled.pt2")
 ```
 
 ### Step 2: Load and run in Elixir
 
 ```elixir
-# Load the model
+# From torch.export (recommended -- JIT-free, pure Elixir reader)
+model = ExTorch.Export.load("simple_net_exported.pt2")
+output = ExTorch.Export.forward(model, [ExTorch.randn({1, 10})])
+
+# From AOTI compiled (best throughput)
+model = ExTorch.AOTI.load("simple_net_compiled.pt2")
+[output] = ExTorch.AOTI.forward(model, [ExTorch.randn({1, 10})])
+
+# From TorchScript (legacy, full introspection)
 model = ExTorch.JIT.load("simple_net.pt")
 ExTorch.JIT.eval(model)
-
-# Create an input tensor
-input = ExTorch.randn({1, 10})
-
-# Run inference
-output = ExTorch.JIT.forward(model, [input])
-# => %ExTorch.Tensor{size: {1, 3}, dtype: :float, ...}
+output = ExTorch.JIT.forward(model, [ExTorch.randn({1, 10})])
 ```
 
-That's it. The model runs entirely in the BEAM process via libtorch -- no Python, no HTTP, no serialization overhead.
+All three paths run entirely in the BEAM process via libtorch -- no Python, no HTTP, no serialization overhead.
 
 ## Inspecting a model
 

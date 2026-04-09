@@ -389,6 +389,20 @@ defmodule ExTorch.Native.Tensor.Info do
     defbinding(cuda_max_memory_allocated(device_index))
 
     @doc """
+    Create a tensor from raw binary data.
+
+    Copies the binary data into libtorch-managed memory. This is safe to use
+    with Erlang binaries since the data is copied immediately.
+
+    ## Args
+      - `data` - Raw binary data.
+      - `shape` - Tensor dimensions as a tuple.
+      - `dtype` - Data type of the elements.
+    """
+    @spec from_binary(binary(), tuple(), ExTorch.DType.dtype()) :: ExTorch.Tensor.t()
+    defbinding(from_binary(data, shape, dtype \\ :float32))
+
+    @doc """
     Create a tensor from a raw data pointer (zero-copy).
 
     The created tensor shares the memory pointed to by `ptr`. The caller

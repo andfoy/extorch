@@ -272,6 +272,7 @@ fn main() {
         .file("src/csrc/info.cc")
         .file("src/csrc/jit.cc")
         .file("src/csrc/nn.cc")
+        .file("src/csrc/aoti.cc")
         .flag_if_supported("-std=c++17")
         // .flag_if_supported("-std=gnu++14")
         .define("_GLIBCXX_USE_CXX11_ABI", "1")

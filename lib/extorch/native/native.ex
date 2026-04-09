@@ -18,10 +18,8 @@ defmodule ExTorch.Native do
   use ExTorch.Native.Tensor.Ops.Other
   use ExTorch.Native.JIT
   use ExTorch.Native.NN
+  use ExTorch.Native.AOTI
 
   use ExTorch.Utils.DownloadTorch
   use Rustler, otp_app: :extorch, crate: "extorch", env: [{"CARGO_TERM_VERBOSE", "true"}]
-
-  # When your NIF is loaded, it will override this function.
-  def add(_a, _b), do: :erlang.nif_error(:nif_not_loaded)
 end

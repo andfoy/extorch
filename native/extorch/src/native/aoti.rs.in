@@ -1,0 +1,34 @@
+// AOTI model loading and inference
+// ----------------------------------------------------------------
+
+/// Check if AOTI support is available in this libtorch build.
+fn aoti_is_available() -> Result<bool>;
+
+/// Load an AOTI .pt2 model package.
+fn aoti_load(
+    path: String,
+    model_name: String,
+    device_index: i64,
+) -> Result<SharedPtr<CrossAOTILoader>>;
+
+/// Run inference on an AOTI model.
+fn aoti_forward(
+    loader: &SharedPtr<CrossAOTILoader>,
+    inputs: TensorList,
+) -> Result<TensorList>;
+
+/// Get metadata keys from an AOTI model.
+fn aoti_get_metadata_keys(
+    loader: &SharedPtr<CrossAOTILoader>,
+) -> Result<Vec<String>>;
+
+/// Get a metadata value from an AOTI model.
+fn aoti_get_metadata_value(
+    loader: &SharedPtr<CrossAOTILoader>,
+    key: String,
+) -> Result<String>;
+
+/// Get constant fully-qualified names from an AOTI model.
+fn aoti_get_constant_fqns(
+    loader: &SharedPtr<CrossAOTILoader>,
+) -> Result<Vec<String>>;

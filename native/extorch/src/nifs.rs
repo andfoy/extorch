@@ -1,5 +1,7 @@
 mod creation;
 mod info;
+pub mod aoti;
+mod binary;
 pub mod jit;
 pub mod nn;
 mod other;

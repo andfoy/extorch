@@ -4,3 +4,45 @@ fn real(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
 
 /// Retrieve the imaginary part of a complex tensor.
 fn imag(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+// Arithmetic
+fn add(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>, alpha: Scalar) -> Result<SharedPtr<CrossTensor>>;
+fn sub(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>, alpha: Scalar) -> Result<SharedPtr<CrossTensor>>;
+fn mul(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn tensor_div(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn neg(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn tensor_abs(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn pow_tensor(input: &SharedPtr<CrossTensor>, exponent: Scalar) -> Result<SharedPtr<CrossTensor>>;
+
+fn clamp(input: &SharedPtr<CrossTensor>, min_val: Scalar, max_val: Scalar) -> Result<SharedPtr<CrossTensor>>;
+
+// Math
+fn tensor_exp(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn tensor_log(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn tensor_sqrt(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn tensor_sin(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn tensor_cos(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+// Linear algebra
+fn matmul(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn mm(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn bmm(input: &SharedPtr<CrossTensor>, other: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+// Conditional / masking
+fn tensor_where(condition: &SharedPtr<CrossTensor>, x: &SharedPtr<CrossTensor>, y: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn masked_fill(input: &SharedPtr<CrossTensor>, mask: &SharedPtr<CrossTensor>, value: Scalar) -> Result<SharedPtr<CrossTensor>>;
+
+// Tensor manipulation
+fn contiguous(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn clone(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn detach(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+fn view(input: &SharedPtr<CrossTensor>, shape: Vec<i64>) -> Result<SharedPtr<CrossTensor>>;
+fn expand(input: &SharedPtr<CrossTensor>, shape: Vec<i64>) -> Result<SharedPtr<CrossTensor>>;
+
+// Functional activations
+fn functional_softmax(input: &SharedPtr<CrossTensor>, dim: i64) -> Result<SharedPtr<CrossTensor>>;
+fn functional_log_softmax(input: &SharedPtr<CrossTensor>, dim: i64) -> Result<SharedPtr<CrossTensor>>;
+fn functional_relu(input: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+// Einsum
+fn einsum(equation: String, a: &SharedPtr<CrossTensor>, b: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;

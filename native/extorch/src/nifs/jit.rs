@@ -231,6 +231,54 @@ pub fn jit_module_submodules_info<'a>(env: Env<'a>, model: JitModuleStruct<'a>) 
     Ok(result.encode(env))
 }
 
+/// Get all submodules recursively with full dotted paths.
+#[rustler::nif]
+pub fn jit_all_submodules_info<'a>(env: Env<'a>, model: JitModuleStruct<'a>) -> NifResult<Term<'a>> {
+    let submodules = torch::jit_all_submodules_info(&model.resource.module).map_err(cxx_err_to_nif)?;
+
+    let result: Vec<Term<'a>> = submodules.iter().map(|s| {
+        let name: &str = s.name.as_str();
+        let type_name: &str = s.type_name.as_str();
+
+        let params: Vec<Term<'a>> = s.parameters.iter().map(|p| {
+            let pname: &str = p.name.as_str();
+            let shape: Vec<i64> = p.shape.iter().copied().collect();
+            let dtype_str: &str = p.dtype.as_str();
+            let dtype_atom = Atom::from_str(env, dtype_str).unwrap();
+
+            let keys = vec![
+                Atom::from_str(env, "name").unwrap().encode(env),
+                Atom::from_str(env, "shape").unwrap().encode(env),
+                Atom::from_str(env, "dtype").unwrap().encode(env),
+                Atom::from_str(env, "requires_grad").unwrap().encode(env),
+            ];
+            let values = vec![
+                pname.encode(env),
+                shape.encode(env),
+                dtype_atom.encode(env),
+                p.requires_grad.encode(env),
+            ];
+
+            Term::map_from_arrays(env, &keys, &values).unwrap()
+        }).collect();
+
+        let keys = vec![
+            Atom::from_str(env, "name").unwrap().encode(env),
+            Atom::from_str(env, "type_name").unwrap().encode(env),
+            Atom::from_str(env, "parameters").unwrap().encode(env),
+        ];
+        let values = vec![
+            name.encode(env),
+            type_name.encode(env),
+            params.encode(env),
+        ];
+
+        Term::map_from_arrays(env, &keys, &values).unwrap()
+    }).collect();
+
+    Ok(result.encode(env))
+}
+
 /// Get method names for a JIT module.
 #[rustler::nif]
 pub fn jit_module_methods_info(model: JitModuleStruct) -> NifResult<Vec<String>> {

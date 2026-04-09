@@ -60,6 +60,33 @@ defmodule ExTorch.NN.Introspect do
   end
 
   @doc """
+  Extract a fully expanded schema, recursively descending into Sequential
+  and other container modules.
+
+  Returns a `%Schema{}` where all container modules have been expanded
+  into their leaf layers with dotted path names (e.g., `layer1.0.conv1`).
+  """
+  @spec schema_expanded(Model.t()) :: Schema.t()
+  def schema_expanded(%Model{} = model) do
+    all_submodules = ExTorch.Native.jit_all_submodules_info(model)
+
+    # Filter to leaf modules (those whose name is not a prefix of any other)
+    all_names = Enum.map(all_submodules, & &1.name)
+
+    leaf_submodules =
+      Enum.filter(all_submodules, fn sub ->
+        prefix = sub.name <> "."
+        not Enum.any?(all_names, &String.starts_with?(&1, prefix))
+      end)
+
+    %Schema{
+      parameters: ExTorch.Native.jit_module_parameters_info(model),
+      submodules: leaf_submodules,
+      methods: ExTorch.Native.jit_module_methods_info(model)
+    }
+  end
+
+  @doc """
   Get the JIT computation graph IR as a string.
 
   Returns the TorchScript IR for the model's `forward` method,
@@ -81,10 +108,10 @@ defmodule ExTorch.NN.Introspect do
   ## Returns
   A string containing Elixir source code.
   """
-  @spec to_elixir(Model.t(), String.t()) :: String.t()
-  def to_elixir(%Model{} = model, module_name \\ "MyModel") do
-    schema = schema(model)
-    generate_elixir_source(schema, module_name)
+  @spec to_elixir(Model.t(), String.t(), keyword()) :: String.t()
+  def to_elixir(%Model{} = model, module_name \\ "MyModel", opts \\ []) do
+    s = if Keyword.get(opts, :expand, true), do: schema_expanded(model), else: schema(model)
+    generate_elixir_source(s, module_name)
   end
 
   defp generate_elixir_source(%Schema{} = schema, module_name) do
@@ -93,7 +120,9 @@ defmodule ExTorch.NN.Introspect do
       |> Enum.map(fn sub ->
         layer_type = map_type_to_elixir(sub.type_name)
         opts = infer_layer_opts(sub)
-        "  deflayer :#{sub.name}, #{layer_type}#{opts}"
+        # Sanitize dotted paths into valid atom names: "layer1.0.conv1" -> "layer1_0_conv1"
+        atom_name = sub.name |> String.replace(".", "_")
+        "  deflayer :#{atom_name}, #{layer_type}#{opts}"
       end)
       |> Enum.join("\n")
 
@@ -130,7 +159,31 @@ defmodule ExTorch.NN.Introspect do
       "Sigmoid" -> "ExTorch.NN.Sigmoid"
       "Tanh" -> "ExTorch.NN.Tanh"
       "Softmax" -> "ExTorch.NN.Softmax"
+      "LogSoftmax" -> "ExTorch.NN.LogSoftmax"
       "Embedding" -> "ExTorch.NN.Embedding"
+      "Conv3d" -> "ExTorch.NN.Conv3d"
+      "ConvTranspose1d" -> "ExTorch.NN.ConvTranspose1d"
+      "ConvTranspose2d" -> "ExTorch.NN.ConvTranspose2d"
+      "MaxPool1d" -> "ExTorch.NN.MaxPool1d"
+      "MaxPool2d" -> "ExTorch.NN.MaxPool2d"
+      "AvgPool1d" -> "ExTorch.NN.AvgPool1d"
+      "AvgPool2d" -> "ExTorch.NN.AvgPool2d"
+      "AdaptiveAvgPool1d" -> "ExTorch.NN.AdaptiveAvgPool1d"
+      "AdaptiveAvgPool2d" -> "ExTorch.NN.AdaptiveAvgPool2d"
+      "GroupNorm" -> "ExTorch.NN.GroupNorm"
+      "InstanceNorm1d" -> "ExTorch.NN.InstanceNorm1d"
+      "InstanceNorm2d" -> "ExTorch.NN.InstanceNorm2d"
+      "LSTM" -> "ExTorch.NN.LSTM"
+      "GRU" -> "ExTorch.NN.GRU"
+      "MultiheadAttention" -> "ExTorch.NN.MultiheadAttention"
+      "Flatten" -> "ExTorch.NN.Flatten"
+      "Unflatten" -> "ExTorch.NN.Unflatten"
+      "LeakyReLU" -> "ExTorch.NN.LeakyReLU"
+      "ELU" -> "ExTorch.NN.ELU"
+      "SiLU" -> "ExTorch.NN.SiLU"
+      "Mish" -> "ExTorch.NN.Mish"
+      "PReLU" -> "ExTorch.NN.PReLU"
+      "Sequential" -> "ExTorch.NN.Sequential"
       other -> "ExTorch.NN.Unknown(\"#{other}\")"
     end
   end
@@ -155,7 +208,10 @@ defmodule ExTorch.NN.Introspect do
 
   defp generate_forward_chain(submodules) do
     submodules
-    |> Enum.map(fn sub -> "    |> layer(:#{sub.name})" end)
+    |> Enum.map(fn sub ->
+      atom_name = sub.name |> String.replace(".", "_")
+      "    |> layer(:#{atom_name})"
+    end)
     |> case do
       [] -> "    x"
       [first | rest] -> "    x\n" <> Enum.join([first | rest], "\n")

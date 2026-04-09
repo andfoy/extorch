@@ -296,6 +296,47 @@ rust::Vec<SubmoduleInfo> jit_module_submodules_info(
     return result;
 }
 
+rust::Vec<SubmoduleInfo> jit_all_submodules_info(
+    const std::shared_ptr<CrossModule> &module)
+{
+    rust::Vec<SubmoduleInfo> result;
+    // named_modules() returns ALL modules recursively with dotted paths
+    for (const auto &submod : module->module.named_modules()) {
+        // Skip the root module (empty name)
+        if (submod.name.empty()) continue;
+
+        // Check if this is a leaf module (has no children)
+        bool has_children = false;
+        for (const auto &_ : submod.value.named_children()) {
+            has_children = true;
+            (void)_;
+            break;
+        }
+
+        SubmoduleInfo info;
+        info.name = rust::String(submod.name);
+        info.type_name = rust::String(
+            submod.value.type()->name().value_or(
+                c10::QualifiedName("Unknown")).qualifiedName());
+
+        // Get parameter info for this specific module (non-recursive)
+        for (const auto &param : submod.value.named_parameters(false)) {
+            ParameterInfo pinfo;
+            pinfo.name = rust::String(param.name);
+            auto tensor = param.value;
+            for (auto s : tensor.sizes()) {
+                pinfo.shape.push_back(s);
+            }
+            pinfo.dtype = rust::String(inv_type_mapping[tensor.dtype().toScalarType()]);
+            pinfo.requires_grad = tensor.requires_grad();
+            info.parameters.push_back(std::move(pinfo));
+        }
+
+        result.push_back(std::move(info));
+    }
+    return result;
+}
+
 rust::Vec<rust::String> jit_module_methods_info(
     const std::shared_ptr<CrossModule> &module)
 {

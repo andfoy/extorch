@@ -21,6 +21,9 @@ pub mod torch {
         /// Reference to an nn module in memory
         type CrossNNModule;
 
+        /// Reference to an AOTI model loader in memory
+        type CrossAOTILoader;
+
         // Tensor attribute access
         // ----------------------------------------------------------------
         {% include "tensor/info.rs.in" %}
@@ -56,6 +59,10 @@ pub mod torch {
         // ----------------------------------------------------------------
         {% include "nn.rs.in" %}
 
+        // AOTI model loading and inference.
+        // ----------------------------------------------------------------
+        {% include "aoti.rs.in" %}
+
     }
 }
 
@@ -67,3 +74,6 @@ unsafe impl std::marker::Sync for torch::CrossModuleRef {}
 
 unsafe impl std::marker::Send for torch::CrossNNModuleRef {}
 unsafe impl std::marker::Sync for torch::CrossNNModuleRef {}
+
+unsafe impl std::marker::Send for torch::CrossAOTILoaderRef {}
+unsafe impl std::marker::Sync for torch::CrossAOTILoaderRef {}

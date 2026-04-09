@@ -84,6 +84,87 @@ output = ExTorch.JIT.Server.predict(MyModel, [input])
 {head1, head2} = ExTorch.JIT.Server.predict(MultiHead, [input])
 ```
 
+## Using models from torch.export
+
+PyTorch 2.x encourages `torch.export` over the deprecated `torch.jit.script`
+for new models. ExTorch supports three paths from `torch.export`, depending on
+your needs.
+
+### Path 1: Load and run exported .pt2 directly (recommended)
+
+`torch.export.save` produces a `.pt2` archive containing the model graph as
+JSON and weight tensors as raw binaries. ExTorch reads these archives in pure
+Elixir and interprets the ATen computation graph directly -- no Python, no JIT,
+no C++ ExportedProgram support needed:
+
+```python
+# Python: export and save
+exported = torch.export.export(model, (example_input,))
+torch.export.save(exported, "model.pt2")
+```
+
+```elixir
+# Elixir: load and run inference directly
+model = ExTorch.Export.load("model.pt2")
+output = ExTorch.Export.forward(model, [input])
+```
+
+The interpreter supports 60+ ATen operations and has been tested with AlexNet,
+ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers, and autoencoders.
+
+You can also introspect the model, extract weights, or generate DSL code:
+
+```elixir
+# Read architecture
+schema = ExTorch.Export.read_schema("model.pt2")
+
+# Load weights into a DSL module
+model = MyModel.load_weights_from_export("model.pt2")
+output = MyModel.forward(model, input)
+
+# Generate DSL source from the graph
+IO.puts(ExTorch.Export.to_elixir("model.pt2", "MyModel"))
+```
+
+See `ExTorch.Export` for the full API.
+
+### Path 2: AOTI compiled models (best throughput)
+
+AOTInductor compiles the exported model into an optimized `.pt2` package with
+fused kernels. ExTorch loads these via `AOTIModelPackageLoader` in libtorch:
+
+```python
+# Python: compile and package
+from torch._inductor import aoti_compile_and_package
+exported = torch.export.export(model, (example_input,))
+aoti_compile_and_package(exported, package_path="model_compiled.pt2")
+```
+
+```elixir
+# Elixir: load and run
+model = ExTorch.AOTI.load("model_compiled.pt2")
+[output] = ExTorch.AOTI.forward(model, [input])
+```
+
+AOTI models trade flexibility for throughput -- no introspection or weight
+extraction, but benefit from kernel fusion optimizations. Use
+`ExTorch.AOTI.Server` for production serving with telemetry.
+
+Check availability: `ExTorch.AOTI.available?()`.
+
+### Path 3: Convert to TorchScript (legacy)
+
+For full JIT introspection, DSL generation, and `from_jit`/`load_weights`
+support, you can convert an ExportedProgram to TorchScript:
+
+```python
+exported = torch.export.export(model, (example_input,))
+jit_model = torch.jit.trace(exported.module(), (example_input,))
+torch.jit.save(jit_model, "model.pt")
+```
+
+Note that `torch.jit` is in maintenance mode. Prefer Path 1 or 2 for new work.
+
 ## CUDA serving
 
 ```elixir

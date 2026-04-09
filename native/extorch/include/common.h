@@ -25,3 +25,5 @@ struct CrossModuleImpl;
 using CrossModule = CrossModuleImpl;
 struct CrossNNModuleImpl;
 using CrossNNModule = CrossNNModuleImpl;
+struct CrossAOTILoaderImpl;
+using CrossAOTILoader = CrossAOTILoaderImpl;

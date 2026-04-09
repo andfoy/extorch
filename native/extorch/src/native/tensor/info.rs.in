@@ -82,6 +82,13 @@ fn cuda_memory_reserved(device_index: i64) -> Result<i64>;
 /// Get peak allocated CUDA memory in bytes (-1 if not available).
 fn cuda_max_memory_allocated(device_index: i64) -> Result<i64>;
 
+/// Create a tensor from raw binary data (copies the data).
+fn from_binary(
+    data: &[u8],
+    shape: Vec<i64>,
+    s_dtype: String,
+) -> Result<SharedPtr<CrossTensor>>;
+
 /// Create a tensor from a raw data pointer (zero-copy).
 /// The caller is responsible for keeping the source memory alive.
 fn from_blob(

@@ -324,6 +324,25 @@ bool is_contiguous(const std::shared_ptr<CrossTensor> &tensor) {
     return cross_tensor.is_contiguous();
 }
 
+std::shared_ptr<CrossTensor> from_binary(
+    rust::Slice<const uint8_t> data,
+    rust::Vec<int64_t> shape,
+    rust::String s_dtype)
+{
+    std::string dtype_str(s_dtype);
+    auto dtype = type_mapping[dtype_str];
+    auto opts = torch::TensorOptions().dtype(dtype);
+
+    const int64_t *shape_ptr = shape.data();
+    auto shape_ref = torch::IntArrayRef{shape_ptr, shape.size()};
+
+    // Create tensor and COPY the data (Erlang binary may be GC'd)
+    auto tensor = torch::empty(shape_ref, opts);
+    memcpy(tensor.data_ptr(), data.data(), data.size());
+
+    return std::make_shared<CrossTensor>(std::move(tensor));
+}
+
 std::shared_ptr<CrossTensor> from_blob(
     int64_t ptr,
     rust::Vec<int64_t> shape,

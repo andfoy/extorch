@@ -48,6 +48,7 @@ defmodule ExTorch.NN.Module do
 
   defmacro __using__(_opts) do
     quote do
+      @behaviour ExTorch.NN.Module
       import ExTorch.NN.Module, only: [deflayer: 2, deflayer: 3]
       Module.register_attribute(__MODULE__, :nn_layers, accumulate: true)
       @before_compile ExTorch.NN.Module
@@ -94,8 +95,23 @@ defmodule ExTorch.NN.Module do
         _device = Keyword.get(opts, :device, :cpu)
 
         for {name, mod, layer_opts} <- __layers__(), into: %{} do
-          {name, mod.create(layer_opts)}
+          instance = mod.create(layer_opts)
+
+          # If the create/1 returned a map, this is a nested DSL module.
+          # Wrap it as {module, model_map} so layer/3 knows how to forward.
+          case instance do
+            %ExTorch.NN.Layer{} -> {name, instance}
+            model_map when is_map(model_map) -> {name, {mod, model_map}}
+            other -> {name, other}
+          end
         end
+      end
+
+      # Implement the create/1 callback so this module can be nested
+      # inside another DSL module as a sub-module.
+      @impl ExTorch.NN.Module
+      def create(opts \\ []) do
+        new(opts)
       end
 
       @doc """
@@ -156,8 +172,15 @@ defmodule ExTorch.NN.Module do
       end
 
       def layer(input, model, name) when is_map(model) and is_atom(name) do
-        layer_instance = Map.fetch!(model, name)
-        ExTorch.NN.forward(input, layer_instance)
+        case Map.fetch!(model, name) do
+          # A C++ nn layer -- run forward directly
+          %ExTorch.NN.Layer{} = layer_instance ->
+            ExTorch.NN.forward(input, layer_instance)
+
+          # A nested DSL module -- call its forward/2
+          {sub_module, sub_model} when is_atom(sub_module) and is_map(sub_model) ->
+            sub_module.forward(sub_model, input)
+        end
       end
 
       @doc """
@@ -237,15 +260,77 @@ defmodule ExTorch.NN.Module do
         end
       end
 
+      @doc """
+      Load pre-trained weights from a `torch.export.save` `.pt2` archive
+      into a DSL model.
+
+      Creates the DSL model via `new/0`, reads the weights from the `.pt2`
+      archive using `ExTorch.Export.read_weights/1`, then copies matching
+      parameters into the DSL layers.
+
+      This is the JIT-free path for loading pre-trained weights.
+
+      ## Arguments
+        - `path` - Path to the `.pt2` archive from `torch.export.save`.
+        - `opts` - Keyword options:
+          - `:device` - Device (default: `:cpu`).
+
+      ## Returns
+      The DSL model map with pre-trained weights.
+
+      ## Example
+
+          model = MyMLP.load_weights_from_export("trained.pt2")
+          output = MyMLP.forward(model, input)
+      """
+      def load_weights_from_export(path, opts \\ []) do
+        weights = ExTorch.Export.read_weights(path)
+        model = new(opts)
+
+        grouped =
+          Enum.group_by(
+            weights,
+            fn {name, _tensor} -> name |> String.split(".") |> hd() end,
+            fn {name, tensor} ->
+              param_name = name |> String.split(".") |> tl() |> Enum.join(".")
+              {param_name, tensor}
+            end
+          )
+
+        for {layer_name, layer_instance} <- model, into: %{} do
+          layer_key = Atom.to_string(layer_name)
+
+          case Map.get(grouped, layer_key) do
+            nil ->
+              {layer_name, layer_instance}
+
+            layer_params ->
+              case layer_instance do
+                %ExTorch.NN.Layer{} ->
+                  ExTorch.NN.copy_parameters(layer_instance, layer_params)
+                _ -> :ok
+              end
+              {layer_name, layer_instance}
+          end
+        end
+      end
+
       def parameters(%ExTorch.NN.JITBackedModel{jit_model: jit_model}) do
         ExTorch.JIT.parameters(jit_model)
       end
 
       def parameters(model) when is_map(model) do
-        for {layer_name, layer_instance} <- model,
-            {param_name, tensor} <- ExTorch.NN.parameters(layer_instance) do
-          {"#{layer_name}.#{param_name}", tensor}
-        end
+        Enum.flat_map(model, fn
+          {layer_name, %ExTorch.NN.Layer{} = layer_instance} ->
+            for {param_name, tensor} <- ExTorch.NN.parameters(layer_instance) do
+              {"#{layer_name}.#{param_name}", tensor}
+            end
+
+          {layer_name, {sub_module, sub_model}} when is_atom(sub_module) and is_map(sub_model) ->
+            for {param_name, tensor} <- sub_module.parameters(sub_model) do
+              {"#{layer_name}.#{param_name}", tensor}
+            end
+        end)
       end
     end
   end

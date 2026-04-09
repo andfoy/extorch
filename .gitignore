@@ -52,4 +52,5 @@ target/
 
 # Test fixtures (generated models)
 /test/fixtures/*.pt
+/test/fixtures/*.pt2
 

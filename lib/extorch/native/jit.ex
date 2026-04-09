@@ -44,6 +44,8 @@ defmodule ExTorch.Native.JIT do
       @doc false
       def jit_module_submodules_info(_model), do: :erlang.nif_error(:nif_not_loaded)
       @doc false
+      def jit_all_submodules_info(_model), do: :erlang.nif_error(:nif_not_loaded)
+      @doc false
       def jit_module_methods_info(_model), do: :erlang.nif_error(:nif_not_loaded)
     end
   end
