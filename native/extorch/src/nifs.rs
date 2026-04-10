@@ -9,3 +9,4 @@ mod pointwise;
 mod comparison;
 mod tensor_ops;
 mod reduction;
+pub mod dispatcher;

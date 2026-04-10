@@ -19,6 +19,7 @@ defmodule ExTorch.Native do
   use ExTorch.Native.JIT
   use ExTorch.Native.NN
   use ExTorch.Native.AOTI
+  use ExTorch.Native.Dispatcher
 
   use ExTorch.Utils.DownloadTorch
   use Rustler, otp_app: :extorch, crate: "extorch", env: [{"CARGO_TERM_VERBOSE", "true"}]

@@ -1,0 +1,15 @@
+// Generic c10::Dispatcher bridge
+// ----------------------------------------------------------------
+
+/// Load a shared library that registers PyTorch ops.
+fn load_torch_library(path: String) -> Result<bool>;
+
+/// Call an op by name through the c10::Dispatcher.
+fn dispatch_op(
+    op_name: String,
+    overload: String,
+    args: IValueFlat,
+) -> Result<IValueFlat>;
+
+/// List ops registered with the dispatcher matching a namespace prefix.
+fn list_registered_ops(ns_prefix: String) -> Result<Vec<String>>;

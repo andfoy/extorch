@@ -10,3 +10,5 @@
 #include "jit.h"
 #include "nn.h"
 #include "aoti.h"
+#include "ivalue_utils.h"
+#include "dispatcher.h"
