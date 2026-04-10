@@ -265,6 +265,45 @@ fn main() {
         }
     }
 
+    // When linking against a CUDA-enabled libtorch, the c10/cuda headers
+    // transitively include <cuda_runtime.h> which lives in the CUDA SDK
+    // (not inside libtorch). We need to add $CUDA_HOME/include (or a
+    // standard fallback) to the C++ include path so those transitive
+    // includes resolve during the cxx_build compile.
+    //
+    // Declared at the top level so the PathBuf outlives the cxx_build
+    // call below — CFG.exported_header_dirs stores raw &Path pointers.
+    let cuda_include_path: Option<PathBuf> = if link_gpu {
+        let candidates: Vec<Option<PathBuf>> = vec![
+            env::var("CUDA_HOME").ok().map(PathBuf::from),
+            env::var("CUDA_PATH").ok().map(PathBuf::from),
+            env::var("CUDA_ROOT").ok().map(PathBuf::from),
+            Some(PathBuf::from("/usr/local/cuda")),
+            Some(PathBuf::from("/opt/cuda")),
+            Some(PathBuf::from("/usr/local/cuda-12")),
+            Some(PathBuf::from("/usr/local/cuda-12.1")),
+            Some(PathBuf::from("/usr/local/cuda-12.4")),
+            Some(PathBuf::from("/usr/local/cuda-12.6")),
+        ];
+        candidates
+            .into_iter()
+            .flatten()
+            .map(|p| p.join("include"))
+            .find(|p| p.join("cuda_runtime.h").exists())
+    } else {
+        None
+    };
+
+    if let Some(ref inc) = cuda_include_path {
+        println!("cargo:warning=extorch: using CUDA include path {}", inc.display());
+        CFG.exported_header_dirs.push(inc.as_path());
+    } else if link_gpu {
+        println!("cargo:warning=extorch: libtorch is CUDA-enabled but CUDA_HOME \
+                  is not set and no standard CUDA SDK directory was found. \
+                  Rust binary may fail to link c10::cuda::* symbols. Set \
+                  CUDA_HOME to your CUDA SDK root (e.g. /usr/local/cuda).");
+    }
+
     cxx_build::bridge("src/native.rs")
         .file("src/csrc/wrapper.cc")
         .file("src/csrc/utils.cc")
