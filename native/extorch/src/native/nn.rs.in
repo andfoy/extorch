@@ -344,6 +344,10 @@ fn aten_is_grad_enabled() -> Result<bool>;
 fn aten_set_grad_enabled(enabled: bool) -> Result<()>;
 fn aten_clear_cpu_affinity() -> Result<bool>;
 
+// Block until all queued CUDA kernels have completed on the current
+// device. No-op on CPU-only libtorch builds.
+fn aten_cuda_synchronize() -> Result<()>;
+
 // MKLDNN weight pre-packing
 fn aten_mkldnn_reorder_conv2d_weight(
     weight: &SharedPtr<CrossTensor>,

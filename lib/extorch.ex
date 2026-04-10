@@ -33,7 +33,8 @@ defmodule ExTorch do
   """
   @spec set_grad_enabled(boolean()) :: :ok
   def set_grad_enabled(enabled) when is_boolean(enabled) do
-    ExTorch.Native.aten_set_grad_enabled(enabled)
+    _ = ExTorch.Native.aten_set_grad_enabled(enabled)
+    :ok
   end
 
   @doc """
@@ -81,5 +82,22 @@ defmodule ExTorch do
   @spec clear_cpu_affinity() :: boolean()
   def clear_cpu_affinity() do
     ExTorch.Native.aten_clear_cpu_affinity()
+  end
+
+  @doc """
+  Block until all queued CUDA kernels on the current device have finished.
+
+  CUDA operations are asynchronous — `at::conv2d` on a CUDA tensor queues
+  the kernel and returns immediately. `:timer.tc` / `:erlang.monotonic_time`
+  measurements around CUDA work will undercount unless they're bracketed
+  by a sync. Call this once before starting a benchmark interval (to drain
+  the queue) and once after (to wait for the measured work).
+
+  No-op on CPU-only libtorch builds.
+  """
+  @spec cuda_synchronize() :: :ok
+  def cuda_synchronize() do
+    _ = ExTorch.Native.aten_cuda_synchronize()
+    :ok
   end
 end

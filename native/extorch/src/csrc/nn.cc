@@ -7,6 +7,15 @@
 #include <thread>
 #endif
 
+// Conditionally include the c10 CUDA runtime wrapper so we can sync
+// queued CUDA kernels when the libtorch build has CUDA support. On
+// CPU-only builds, cuda_cmake_macros.h is absent (it's generated only
+// for CUDA-enabled builds) so we compile the sync NIF as a no-op.
+#if __has_include(<c10/cuda/impl/cuda_cmake_macros.h>)
+#include <c10/cuda/CUDAFunctions.h>
+#define EXTORCH_HAS_CUDA_RUNTIME 1
+#endif
+
 
 // Helper: convert Device struct to torch::Device
 static torch::Device make_device(const Device &s_device) {
@@ -831,6 +840,14 @@ bool aten_clear_cpu_affinity() {
     return sched_setaffinity(0, sizeof(mask), &mask) == 0;
 #else
     return false;
+#endif
+}
+
+void aten_cuda_synchronize() {
+#ifdef EXTORCH_HAS_CUDA_RUNTIME
+    if (at::hasCUDA()) {
+        c10::cuda::device_synchronize();
+    }
 #endif
 }
 

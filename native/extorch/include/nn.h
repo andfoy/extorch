@@ -341,6 +341,12 @@ void aten_set_grad_enabled(bool enabled);
 // that mask — causing oversubscription on one core.
 bool aten_clear_cpu_affinity();
 
+// Block until all queued CUDA kernels have completed on the current
+// stream (and optionally all streams on the current device). Required
+// before `:timer.tc` measurements of GPU work, since CUDA launches are
+// asynchronous and return before the kernel runs.
+void aten_cuda_synchronize();
+
 // MKLDNN weight pre-packing: reorder an NCHW conv weight into the
 // MKLDNN blocked format that oneDNN prefers, once at load time, so
 // the per-call reorder cost disappears from every forward pass.

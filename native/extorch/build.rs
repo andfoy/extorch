@@ -180,6 +180,10 @@ fn main() {
     validate_bridge_header_sync(&rendering, &include_dir);
 
     let mut link_gpu = false;
+    // Hoisted so the link-directives block below can check for individual
+    // CUDA library presence (torch_cuda is required, c10_cuda and
+    // torch_cuda_linalg may or may not exist depending on the build).
+    let mut torch_lib_path: Option<PathBuf> = None;
 
     let ref libtorch_path = Path::new(&manifest_dir)
         .parent()
@@ -219,6 +223,7 @@ fn main() {
 
         CFG.exported_header_dirs.push(&torch_include_path);
         CFG.exported_header_dirs.push(&inner_torch_include_path);
+        torch_lib_path = Some(torch_lib);
     } else {
         if command_ok(Command::new("python").arg("--version")) {
             let torch_location = command_output(
@@ -256,6 +261,7 @@ fn main() {
 
             CFG.exported_header_dirs.push(&torch_include_path);
             CFG.exported_header_dirs.push(&inner_torch_include_path);
+            torch_lib_path = Some(torch_lib);
         }
     }
 
@@ -286,6 +292,24 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=c10");
 
     if link_gpu {
+        // libtorch_cuda.so — CUDA aten ops (at::cuda::*, most conv/bn CUDA kernels)
         println!("cargo:rustc-link-lib=dylib=torch_cuda");
+
+        // Extra CUDA support libs — only link them when the .so actually
+        // exists in the libtorch lib directory. Older or stripped CUDA
+        // builds may omit one or both.
+        if let Some(ref lib_dir) = torch_lib_path {
+            // libc10_cuda.so — low-level CUDA device / stream / allocator
+            // utilities. Required for symbols declared in
+            // <c10/cuda/CUDAFunctions.h> (e.g. c10::cuda::device_synchronize).
+            if lib_dir.join("libc10_cuda.so").exists() {
+                println!("cargo:rustc-link-lib=dylib=c10_cuda");
+            }
+            // libtorch_cuda_linalg.so — CUDA linear algebra kernels.
+            // Optional; not present on every CUDA build.
+            if lib_dir.join("libtorch_cuda_linalg.so").exists() {
+                println!("cargo:rustc-link-lib=dylib=torch_cuda_linalg");
+            }
+        }
     }
 }

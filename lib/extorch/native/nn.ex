@@ -191,6 +191,8 @@ defmodule ExTorch.Native.NN do
       @doc false
       def aten_clear_cpu_affinity(), do: :erlang.nif_error(:nif_not_loaded)
       @doc false
+      def aten_cuda_synchronize(), do: :erlang.nif_error(:nif_not_loaded)
+      @doc false
       def aten_mkldnn_reorder_conv2d_weight(_w, _pad, _stride, _dil, _groups),
         do: :erlang.nif_error(:nif_not_loaded)
       @doc false

@@ -793,6 +793,11 @@ pub fn aten_clear_cpu_affinity() -> NifResult<bool> {
 }
 
 #[rustler::nif]
+pub fn aten_cuda_synchronize() -> NifResult<()> {
+    torch::aten_cuda_synchronize().map_err(cxx_err)
+}
+
+#[rustler::nif]
 pub fn aten_mkldnn_reorder_conv2d_weight<'a>(
     weight: TensorStruct<'a>,
     padding: Vec<i64>,

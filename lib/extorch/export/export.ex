@@ -68,19 +68,37 @@ defmodule ExTorch.Export do
 
   ## Args
     * `path` (`String`) - path to the `.pt2` file from `torch.export.save`.
+    * `opts` (`keyword`) - optional:
+      * `:device` (`:cpu | :cuda | {:cuda, index}`) - device to place all
+        weight tensors on. Defaults to `:cpu`. When set to `:cuda`, every
+        loaded parameter/buffer is moved to the GPU at load time, so
+        subsequent `forward/2` calls run entirely on the GPU (as long as
+        the user input is also on the GPU).
 
   ## Returns
   An `%ExTorch.Export.Model{}` struct.
 
   ## Example
 
+      # CPU (default)
       model = ExTorch.Export.load("model.pt2")
       output = ExTorch.Export.forward(model, [input_tensor])
+
+      # GPU
+      model = ExTorch.Export.load("model.pt2", device: :cuda)
+      input = ExTorch.Tensor.to(cpu_input, device: :cuda)
+      output = ExTorch.Export.forward(model, [input])
   """
-  @spec load(String.t()) :: Model.t()
-  def load(path) do
+  @spec load(String.t(), keyword()) :: Model.t()
+  def load(path, opts \\ []) do
+    device = Keyword.get(opts, :device, :cpu)
     schema = read_schema(path)
     weights = read_weights(path)
+
+    # Move all weights to the target device once at load time. Forward
+    # ops dispatch on tensor device, so every at::* call will run on GPU
+    # when the weights (and user input) live on GPU.
+    weights = maybe_move_weights(weights, device)
 
     # Separate parameter/buffer inputs (p_* and b_*) from user inputs
     {param_inputs, user_inputs} =
@@ -600,6 +618,15 @@ defmodule ExTorch.Export do
           op.(s, ExTorch.full(s.size, val))
         end
       _ -> raise "Missing 'other' input for binary op"
+    end
+  end
+
+  # Move all weight tensors to `device` in one pass. No-op when the target
+  # is CPU (the default). Called from `load/2` with the :device option.
+  defp maybe_move_weights(weights, :cpu), do: weights
+  defp maybe_move_weights(weights, device) do
+    for {fqn, tensor} <- weights, into: %{} do
+      {fqn, ExTorch.Tensor.to(tensor, device: device)}
     end
   end
 
