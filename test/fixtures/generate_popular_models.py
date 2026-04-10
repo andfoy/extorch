@@ -84,6 +84,12 @@ if __name__ == "__main__":
     from torchvision.models import vgg11
     export_model("vgg11", vgg11(weights=None), torch.randn(1, 3, 224, 224))
 
+    print("\n=== Vision Transformers ===")
+
+    # ViT-B/16
+    from torchvision.models import vit_b_16, ViT_B_16_Weights
+    export_model("vit_b_16", vit_b_16(weights=ViT_B_16_Weights.DEFAULT), torch.randn(1, 3, 224, 224))
+
     print("\n=== Simple custom models ===")
 
     # Simple transformer encoder
