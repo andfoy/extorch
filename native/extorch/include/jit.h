@@ -56,8 +56,7 @@ std::shared_ptr<CrossModule> jit_to_device(
     const std::shared_ptr<CrossModule> &module,
     struct Device s_device);
 
-// IValue flattening helper
-IValueFlat flatten_ivalue(const torch::jit::IValue &ivalue);
+// IValue flattening — see ivalue_utils.h for the shared implementation.
 
 // IR introspection
 struct ParameterInfo;
