@@ -137,6 +137,14 @@ defmodule ExTorch.Metrics do
   end
 
   defp update_metrics(path, update_fn) do
+    # Guard against the ETS table not existing. The table is created by
+    # setup/0 and owned by its caller; if that process exits the table is
+    # destroyed, but the telemetry handler persists. Silently skip the
+    # update rather than crashing the handler with :badarg.
+    if :ets.whereis(@table) == :undefined, do: :ok, else: do_update_metrics(path, update_fn)
+  end
+
+  defp do_update_metrics(path, update_fn) do
     default = %{
       inference_count: 0,
       error_count: 0,
