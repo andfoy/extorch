@@ -19,18 +19,23 @@ FIXTURES_DIR = os.path.join(os.path.dirname(__file__), "..", "test", "fixtures")
 WARMUP = 3
 ITERS = 30
 
+# Tags: "production" — real-world architectures used in production serving
+#        "synthetic"  — small custom models for micro-benchmarking dispatch overhead
 MODELS = [
-    ("alexnet",            (1, 3, 224, 224),  (1, 1000)),
-    ("vgg11",              (1, 3, 224, 224),  (1, 1000)),
-    ("squeezenet",         (1, 3, 224, 224),  (1, 1000)),
-    ("mobilenetv2",        (1, 3, 224, 224),  (1, 1000)),
-    ("resnet18",           (1, 3, 224, 224),  (1, 1000)),
-    ("resnet50",           (1, 3, 224, 224),  (1, 1000)),
-    ("simple_transformer", (1, 16, 32),       (1, 10)),
-    ("mini_bert",          (1, 16, 32),       (1, 10)),
-    ("autoencoder",        (1, 784),          (1, 784)),
-    ("conv_autoencoder",   (1, 3, 32, 32),    (1, 3, 32, 32)),
-    ("simple_lstm",        (1, 16, 32),       (1, 10)),
+    # Production vision models
+    ("alexnet",            (1, 3, 224, 224),  (1, 1000),       ["production", "cnn"]),
+    ("vgg11",              (1, 3, 224, 224),  (1, 1000),       ["production", "cnn"]),
+    ("squeezenet",         (1, 3, 224, 224),  (1, 1000),       ["production", "cnn"]),
+    ("mobilenetv2",        (1, 3, 224, 224),  (1, 1000),       ["production", "cnn"]),
+    ("resnet18",           (1, 3, 224, 224),  (1, 1000),       ["production", "cnn"]),
+    ("resnet50",           (1, 3, 224, 224),  (1, 1000),       ["production", "cnn"]),
+    ("vit_b_16",           (1, 3, 224, 224),  (1, 1000),       ["production", "transformer"]),
+    # Synthetic / micro-benchmark models
+    ("simple_transformer", (1, 16, 32),       (1, 10),         ["synthetic", "transformer"]),
+    ("mini_bert",          (1, 16, 32),       (1, 10),         ["synthetic", "transformer"]),
+    ("autoencoder",        (1, 784),          (1, 784),        ["synthetic", "mlp"]),
+    ("conv_autoencoder",   (1, 3, 32, 32),    (1, 3, 32, 32),  ["synthetic", "cnn"]),
+    ("simple_lstm",        (1, 16, 32),       (1, 10),         ["synthetic", "rnn"]),
 ]
 
 
@@ -46,7 +51,7 @@ def main():
     print(f"{'model':<22} {'min(ms)':>10} {'median(ms)':>10} {'mean(ms)':>10}")
     print("-" * 56)
 
-    for name, in_shape, _out_shape in MODELS:
+    for name, in_shape, _out_shape, _tags in MODELS:
         pt2 = os.path.join(FIXTURES_DIR, f"{name}.pt2")
         bin_path = os.path.join(FIXTURES_DIR, f"{name}_input.bin")
         if not os.path.exists(pt2) or not os.path.exists(bin_path):
