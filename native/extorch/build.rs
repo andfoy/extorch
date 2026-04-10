@@ -331,23 +331,38 @@ fn main() {
     println!("cargo:rustc-link-lib=dylib=c10");
 
     if link_gpu {
-        // libtorch_cuda.so — CUDA aten ops (at::cuda::*, most conv/bn CUDA kernels)
-        println!("cargo:rustc-link-lib=dylib=torch_cuda");
+        // libtorch_cuda.so registers all CUDA kernels with the libtorch
+        // dispatcher via static initializers in TORCH_LIBRARY_IMPL blocks.
+        // Our wrapper code never references any symbol from torch_cuda
+        // directly (we only touch c10::cuda::* helpers, which live in
+        // libc10_cuda.so), so the default GNU ld --as-needed behavior
+        // silently drops the DT_NEEDED entry for libtorch_cuda.so. With no
+        // kernel registrations, at::hasCUDA() returns false at runtime and
+        // ExTorch.Native.cuda_is_available() incorrectly reports false on
+        // CUDA-enabled libtorch builds. Force-link with --no-as-needed and
+        // restore --as-needed immediately after so other auto-pulled deps
+        // are still pruned. This is the same workaround PyTorch's CMake
+        // applies to its own CUDA link line.
+        println!("cargo:rustc-link-arg=-Wl,--no-as-needed,-ltorch_cuda,--as-needed");
 
         // Extra CUDA support libs — only link them when the .so actually
         // exists in the libtorch lib directory. Older or stripped CUDA
         // builds may omit one or both.
         if let Some(ref lib_dir) = torch_lib_path {
             // libc10_cuda.so — low-level CUDA device / stream / allocator
-            // utilities. Required for symbols declared in
-            // <c10/cuda/CUDAFunctions.h> (e.g. c10::cuda::device_synchronize).
+            // utilities. Wrapper code references these symbols directly
+            // (c10::cuda::device_synchronize, CUDACachingAllocator::*), so
+            // the default --as-needed handling keeps it.
             if lib_dir.join("libc10_cuda.so").exists() {
                 println!("cargo:rustc-link-lib=dylib=c10_cuda");
             }
             // libtorch_cuda_linalg.so — CUDA linear algebra kernels.
-            // Optional; not present on every CUDA build.
+            // Same static-initializer-only registration story as
+            // torch_cuda; needs --no-as-needed too.
             if lib_dir.join("libtorch_cuda_linalg.so").exists() {
-                println!("cargo:rustc-link-lib=dylib=torch_cuda_linalg");
+                println!(
+                    "cargo:rustc-link-arg=-Wl,--no-as-needed,-ltorch_cuda_linalg,--as-needed"
+                );
             }
         }
     }
