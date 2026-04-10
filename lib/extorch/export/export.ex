@@ -595,10 +595,18 @@ defmodule ExTorch.Export do
           )
         end
 
-      # ======== Everything else: fall back to legacy dynamic dispatch ========
-      _ ->
-        _ = initial_values
-        fallback_runner(node, device)
+      # ======== Custom op handlers (ExTorch.Export.OpRegistry) ========
+      target when is_binary(target) ->
+        case ExTorch.Export.OpRegistry.lookup(target) do
+          {:ok, handler} ->
+            _ = initial_values
+            handler.compile(node, initial_values, device)
+          :error ->
+            # Fall back to legacy dynamic dispatch for built-in ops
+            # not yet in the compiled path.
+            _ = initial_values
+            fallback_runner(node, device)
+        end
     end
   end
 
@@ -896,7 +904,15 @@ defmodule ExTorch.Export do
         execute_native_multi_head_attention(i, values)
 
       other ->
-        raise "Unsupported ATen op: #{other}. Consider using ExTorch.AOTI for compiled inference."
+        # Check the custom op registry before giving up.
+        case ExTorch.Export.OpRegistry.lookup(other) do
+          {:ok, handler} ->
+            runner = handler.compile(node, values, device)
+            runner.(values)
+          :error ->
+            raise "Unsupported op: #{other}. Register a handler via ExTorch.Export.OpRegistry " <>
+                  "or use ExTorch.AOTI for compiled inference."
+        end
     end
   end
 
