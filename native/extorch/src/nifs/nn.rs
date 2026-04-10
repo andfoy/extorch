@@ -2,7 +2,7 @@ use crate::encoding::jit::named_tensors_to_term;
 use crate::native::torch;
 use crate::shared_types::{NNModuleStruct, Reference, TensorStruct};
 
-use rustler::{Env, Error, NifResult, ResourceArc, Term};
+use rustler::{Encoder, Env, Error, NifResult, ResourceArc, Term};
 
 fn cxx_err(err: cxx::Exception) -> Error {
     let msg = err.what().to_owned();
@@ -290,4 +290,547 @@ pub fn nn_copy_parameters<'a>(dst: NNModuleStruct<'a>, params: Vec<(String, Tens
 pub fn nn_to_device<'a>(module: NNModuleStruct<'a>, device: torch::Device) -> NifResult<NNModuleStruct<'a>> {
     let result = torch::nn_to_device(&module.resource.module, device).map_err(cxx_err)?;
     wrap_nn_module(result)
+}
+
+// ============================================================================
+// Direct ATen functional ops (Phase A)
+// ============================================================================
+
+fn pack_inputs<'a>(tensors: &[TensorStruct<'a>]) -> torch::TensorList {
+    let values: Vec<torch::TensorOut> = tensors
+        .iter()
+        .map(|t| torch::TensorOut {
+            tensor: t.resource.tensor.clone(),
+            used: true,
+        })
+        .collect();
+    torch::TensorList { values, used: true }
+}
+
+fn unpack_outputs<'a>(env: Env<'a>, list: torch::TensorList) -> Term<'a> {
+    let out: Vec<Term<'a>> = list
+        .values
+        .iter()
+        .filter(|t| t.used)
+        .map(|t| {
+            let ts: TensorStruct<'a> = t.tensor.clone().into();
+            ts.encode(env)
+        })
+        .collect();
+    out.encode(env)
+}
+
+#[rustler::nif]
+pub fn aten_lstm<'a>(
+    env: Env<'a>,
+    input: TensorStruct<'a>,
+    hx: Vec<TensorStruct<'a>>,
+    params: Vec<TensorStruct<'a>>,
+    has_biases: bool,
+    num_layers: i64,
+    dropout: f64,
+    train: bool,
+    bidirectional: bool,
+    batch_first: bool,
+) -> NifResult<Term<'a>> {
+    let hx_list = pack_inputs(&hx);
+    let params_list = pack_inputs(&params);
+    let result = torch::aten_lstm(
+        &input.resource.tensor,
+        hx_list,
+        params_list,
+        has_biases,
+        num_layers,
+        dropout,
+        train,
+        bidirectional,
+        batch_first,
+    )
+    .map_err(cxx_err)?;
+    Ok(unpack_outputs(env, result))
+}
+
+#[rustler::nif]
+pub fn aten_gru<'a>(
+    env: Env<'a>,
+    input: TensorStruct<'a>,
+    hx: TensorStruct<'a>,
+    params: Vec<TensorStruct<'a>>,
+    has_biases: bool,
+    num_layers: i64,
+    dropout: f64,
+    train: bool,
+    bidirectional: bool,
+    batch_first: bool,
+) -> NifResult<Term<'a>> {
+    let params_list = pack_inputs(&params);
+    let result = torch::aten_gru(
+        &input.resource.tensor,
+        &hx.resource.tensor,
+        params_list,
+        has_biases,
+        num_layers,
+        dropout,
+        train,
+        bidirectional,
+        batch_first,
+    )
+    .map_err(cxx_err)?;
+    Ok(unpack_outputs(env, result))
+}
+
+#[rustler::nif]
+pub fn aten_transformer_encoder_layer_fwd<'a>(
+    src: TensorStruct<'a>,
+    embed_dim: i64,
+    num_heads: i64,
+    qkv_weight: TensorStruct<'a>,
+    qkv_bias: TensorStruct<'a>,
+    proj_weight: TensorStruct<'a>,
+    proj_bias: TensorStruct<'a>,
+    use_gelu: bool,
+    norm_first: bool,
+    eps: f64,
+    norm_weight_1: TensorStruct<'a>,
+    norm_bias_1: TensorStruct<'a>,
+    norm_weight_2: TensorStruct<'a>,
+    norm_bias_2: TensorStruct<'a>,
+    ffn_weight_1: TensorStruct<'a>,
+    ffn_bias_1: TensorStruct<'a>,
+    ffn_weight_2: TensorStruct<'a>,
+    ffn_bias_2: TensorStruct<'a>,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_transformer_encoder_layer_fwd(
+        &src.resource.tensor,
+        embed_dim,
+        num_heads,
+        &qkv_weight.resource.tensor,
+        &qkv_bias.resource.tensor,
+        &proj_weight.resource.tensor,
+        &proj_bias.resource.tensor,
+        use_gelu,
+        norm_first,
+        eps,
+        &norm_weight_1.resource.tensor,
+        &norm_bias_1.resource.tensor,
+        &norm_weight_2.resource.tensor,
+        &norm_bias_2.resource.tensor,
+        &ffn_weight_1.resource.tensor,
+        &ffn_bias_1.resource.tensor,
+        &ffn_weight_2.resource.tensor,
+        &ffn_bias_2.resource.tensor,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_scaled_dot_product_attention<'a>(
+    query: TensorStruct<'a>,
+    key: TensorStruct<'a>,
+    value: TensorStruct<'a>,
+    dropout_p: f64,
+    is_causal: bool,
+    scale: f64,
+    has_scale: bool,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_scaled_dot_product_attention(
+        &query.resource.tensor,
+        &key.resource.tensor,
+        &value.resource.tensor,
+        dropout_p,
+        is_causal,
+        scale,
+        has_scale,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_native_multi_head_attention<'a>(
+    env: Env<'a>,
+    query: TensorStruct<'a>,
+    key: TensorStruct<'a>,
+    value: TensorStruct<'a>,
+    embed_dim: i64,
+    num_head: i64,
+    qkv_weight: TensorStruct<'a>,
+    qkv_bias: TensorStruct<'a>,
+    proj_weight: TensorStruct<'a>,
+    proj_bias: TensorStruct<'a>,
+    need_weights: bool,
+    average_attn_weights: bool,
+) -> NifResult<Term<'a>> {
+    let result = torch::aten_native_multi_head_attention(
+        &query.resource.tensor,
+        &key.resource.tensor,
+        &value.resource.tensor,
+        embed_dim,
+        num_head,
+        &qkv_weight.resource.tensor,
+        &qkv_bias.resource.tensor,
+        &proj_weight.resource.tensor,
+        &proj_bias.resource.tensor,
+        need_weights,
+        average_attn_weights,
+    )
+    .map_err(cxx_err)?;
+    Ok(unpack_outputs(env, result))
+}
+
+// ============================================================================
+// Direct ATen functional ops (Phase B): conv, norm, pool
+// ============================================================================
+
+// Pack a 0-or-1-element optional tensor into a TensorList for the cxx bridge.
+fn pack_optional<'a>(opt: &Option<TensorStruct<'a>>) -> torch::TensorList {
+    let values: Vec<torch::TensorOut> = opt
+        .iter()
+        .map(|t| torch::TensorOut {
+            tensor: t.resource.tensor.clone(),
+            used: true,
+        })
+        .collect();
+    torch::TensorList { values, used: true }
+}
+
+#[rustler::nif]
+pub fn aten_conv2d<'a>(
+    input: TensorStruct<'a>,
+    weight: TensorStruct<'a>,
+    bias_opt: Option<TensorStruct<'a>>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> NifResult<TensorStruct<'a>> {
+    let bias_list = pack_optional(&bias_opt);
+    let result = torch::aten_conv2d(
+        &input.resource.tensor,
+        &weight.resource.tensor,
+        bias_list,
+        stride,
+        padding,
+        dilation,
+        groups,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_conv1d<'a>(
+    input: TensorStruct<'a>,
+    weight: TensorStruct<'a>,
+    bias_opt: Option<TensorStruct<'a>>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> NifResult<TensorStruct<'a>> {
+    let bias_list = pack_optional(&bias_opt);
+    let result = torch::aten_conv1d(
+        &input.resource.tensor,
+        &weight.resource.tensor,
+        bias_list,
+        stride,
+        padding,
+        dilation,
+        groups,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_conv3d<'a>(
+    input: TensorStruct<'a>,
+    weight: TensorStruct<'a>,
+    bias_opt: Option<TensorStruct<'a>>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> NifResult<TensorStruct<'a>> {
+    let bias_list = pack_optional(&bias_opt);
+    let result = torch::aten_conv3d(
+        &input.resource.tensor,
+        &weight.resource.tensor,
+        bias_list,
+        stride,
+        padding,
+        dilation,
+        groups,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_convolution<'a>(
+    input: TensorStruct<'a>,
+    weight: TensorStruct<'a>,
+    bias_opt: Option<TensorStruct<'a>>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    transposed: bool,
+    output_padding: Vec<i64>,
+    groups: i64,
+) -> NifResult<TensorStruct<'a>> {
+    let bias_list = pack_optional(&bias_opt);
+    let result = torch::aten_convolution(
+        &input.resource.tensor,
+        &weight.resource.tensor,
+        bias_list,
+        stride,
+        padding,
+        dilation,
+        transposed,
+        output_padding,
+        groups,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_conv_transpose2d<'a>(
+    input: TensorStruct<'a>,
+    weight: TensorStruct<'a>,
+    bias_opt: Option<TensorStruct<'a>>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    output_padding: Vec<i64>,
+    groups: i64,
+    dilation: Vec<i64>,
+) -> NifResult<TensorStruct<'a>> {
+    let bias_list = pack_optional(&bias_opt);
+    let result = torch::aten_conv_transpose2d(
+        &input.resource.tensor,
+        &weight.resource.tensor,
+        bias_list,
+        stride,
+        padding,
+        output_padding,
+        groups,
+        dilation,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_batch_norm<'a>(
+    input: TensorStruct<'a>,
+    weight_opt: Option<TensorStruct<'a>>,
+    bias_opt: Option<TensorStruct<'a>>,
+    running_mean_opt: Option<TensorStruct<'a>>,
+    running_var_opt: Option<TensorStruct<'a>>,
+    training: bool,
+    momentum: f64,
+    eps: f64,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_batch_norm(
+        &input.resource.tensor,
+        pack_optional(&weight_opt),
+        pack_optional(&bias_opt),
+        pack_optional(&running_mean_opt),
+        pack_optional(&running_var_opt),
+        training,
+        momentum,
+        eps,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_layer_norm<'a>(
+    input: TensorStruct<'a>,
+    normalized_shape: Vec<i64>,
+    weight_opt: Option<TensorStruct<'a>>,
+    bias_opt: Option<TensorStruct<'a>>,
+    eps: f64,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_layer_norm(
+        &input.resource.tensor,
+        normalized_shape,
+        pack_optional(&weight_opt),
+        pack_optional(&bias_opt),
+        eps,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_group_norm<'a>(
+    input: TensorStruct<'a>,
+    num_groups: i64,
+    weight_opt: Option<TensorStruct<'a>>,
+    bias_opt: Option<TensorStruct<'a>>,
+    eps: f64,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_group_norm(
+        &input.resource.tensor,
+        num_groups,
+        pack_optional(&weight_opt),
+        pack_optional(&bias_opt),
+        eps,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_max_pool2d<'a>(
+    input: TensorStruct<'a>,
+    kernel_size: Vec<i64>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    ceil_mode: bool,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_max_pool2d(
+        &input.resource.tensor,
+        kernel_size,
+        stride,
+        padding,
+        dilation,
+        ceil_mode,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_avg_pool2d<'a>(
+    input: TensorStruct<'a>,
+    kernel_size: Vec<i64>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    ceil_mode: bool,
+    count_include_pad: bool,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_avg_pool2d(
+        &input.resource.tensor,
+        kernel_size,
+        stride,
+        padding,
+        ceil_mode,
+        count_include_pad,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_adaptive_avg_pool2d<'a>(
+    input: TensorStruct<'a>,
+    output_size: Vec<i64>,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_adaptive_avg_pool2d(
+        &input.resource.tensor,
+        output_size,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+// Thread pool / backend inspection
+
+#[rustler::nif]
+pub fn aten_get_num_threads() -> NifResult<i64> {
+    torch::aten_get_num_threads().map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_set_num_threads(n: i64) -> NifResult<()> {
+    torch::aten_set_num_threads(n).map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_get_num_interop_threads() -> NifResult<i64> {
+    torch::aten_get_num_interop_threads().map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_set_num_interop_threads(n: i64) -> NifResult<()> {
+    torch::aten_set_num_interop_threads(n).map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_mkldnn_is_available() -> NifResult<bool> {
+    torch::aten_mkldnn_is_available().map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_noop<'a>(t: TensorStruct<'a>) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_noop(&t.resource.tensor).map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_backend_info() -> NifResult<String> {
+    Ok(torch::aten_backend_info().map_err(cxx_err)?.to_string())
+}
+
+#[rustler::nif]
+pub fn aten_is_grad_enabled() -> NifResult<bool> {
+    torch::aten_is_grad_enabled().map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_set_grad_enabled(enabled: bool) -> NifResult<()> {
+    torch::aten_set_grad_enabled(enabled).map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_clear_cpu_affinity() -> NifResult<bool> {
+    torch::aten_clear_cpu_affinity().map_err(cxx_err)
+}
+
+#[rustler::nif]
+pub fn aten_mkldnn_reorder_conv2d_weight<'a>(
+    weight: TensorStruct<'a>,
+    padding: Vec<i64>,
+    stride: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> NifResult<TensorStruct<'a>> {
+    let result = torch::aten_mkldnn_reorder_conv2d_weight(
+        &weight.resource.tensor,
+        padding,
+        stride,
+        dilation,
+        groups,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
+}
+
+#[rustler::nif]
+pub fn aten_mkldnn_convolution<'a>(
+    input: TensorStruct<'a>,
+    packed_weight: TensorStruct<'a>,
+    bias_opt: Option<TensorStruct<'a>>,
+    padding: Vec<i64>,
+    stride: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> NifResult<TensorStruct<'a>> {
+    let bias_list = pack_optional(&bias_opt);
+    let result = torch::aten_mkldnn_convolution(
+        &input.resource.tensor,
+        &packed_weight.resource.tensor,
+        bias_list,
+        padding,
+        stride,
+        dilation,
+        groups,
+    )
+    .map_err(cxx_err)?;
+    Ok(result.into())
 }

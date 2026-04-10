@@ -40,16 +40,25 @@ defmodule ExTorch.Export do
     A loaded ExportedProgram model ready for inference.
 
     Contains the computation graph, weight tensors, and input/output mappings.
+
+    The `compiled_graph` field holds per-node closures built at `load/1` time
+    that capture pre-resolved scalar args and tensor input refs, so `forward/2`
+    is a tight loop over closures instead of re-parsing the graph each call.
+    `initial_values` holds the pre-built parameter value map so forward
+    doesn't re-resolve p_*/b_* names on every inference.
     """
 
     @type t :: %__MODULE__{
             schema: map(),
             weights: %{String.t() => ExTorch.Tensor.t()},
             param_inputs: [String.t()],
-            user_inputs: [String.t()]
+            user_inputs: [String.t()],
+            compiled_graph: [{[String.t()], (map() -> any())}],
+            initial_values: map()
           }
 
-    defstruct [:schema, :weights, :param_inputs, :user_inputs]
+    defstruct [:schema, :weights, :param_inputs, :user_inputs,
+               :compiled_graph, :initial_values]
   end
 
   @doc """
@@ -79,11 +88,33 @@ defmodule ExTorch.Export do
         String.starts_with?(name, "p_") or String.starts_with?(name, "b_")
       end)
 
+    # Pre-build the initial parameter value map once, so forward/2 doesn't
+    # re-resolve param_name -> FQN -> tensor on every inference.
+    weight_fqns = Map.keys(weights)
+    initial_values =
+      Enum.reduce(param_inputs, %{}, fn param_name, acc ->
+        case find_matching_fqn(param_name, weight_fqns) do
+          nil -> acc
+          fqn -> Map.put(acc, param_name, Map.fetch!(weights, fqn))
+        end
+      end)
+
+    # Pre-compile each graph node into {outputs, run_closure} where the
+    # closure captures scalar args and tensor input refs resolved from
+    # node.inputs once. The weights are passed in so conv branches can
+    # pre-pack them into MKLDNN blocked format at load time (see
+    # `build_runner/2` on the "torch.ops.aten.conv2d.default" branch).
+    # Non-hot ops fall through to a generic closure that
+    # dispatches via the legacy execute_node/2 path.
+    compiled_graph = Enum.map(schema.graph, &compile_node(&1, initial_values))
+
     %Model{
       schema: schema,
       weights: weights,
       param_inputs: param_inputs,
-      user_inputs: user_inputs
+      user_inputs: user_inputs,
+      compiled_graph: compiled_graph,
+      initial_values: initial_values
     }
   end
 
@@ -108,42 +139,467 @@ defmodule ExTorch.Export do
   """
   @spec forward(Model.t(), [ExTorch.Tensor.t()]) :: ExTorch.Tensor.t() | [ExTorch.Tensor.t()]
   def forward(%Model{} = model, inputs) when is_list(inputs) do
-    # Build a lookup from graph ref names to weight FQNs
-    weight_fqns = Map.keys(model.weights)
-
-    # Build initial value map: parameters + user inputs
-    values =
-      model.param_inputs
-      |> Enum.reduce(%{}, fn param_name, acc ->
-        fqn = find_matching_fqn(param_name, weight_fqns)
-        case fqn do
-          nil -> acc  # Buffer not in weights (e.g., num_batches_tracked)
-          fqn -> Map.put(acc, param_name, Map.fetch!(model.weights, fqn))
-        end
-      end)
-
+    # Start from the pre-built parameter value map and splice in the user inputs.
     values =
       model.user_inputs
       |> Enum.zip(inputs)
-      |> Enum.reduce(values, fn {name, tensor}, acc ->
+      |> Enum.reduce(model.initial_values, fn {name, tensor}, acc ->
         Map.put(acc, name, tensor)
       end)
 
-    # Execute graph nodes in order
+    # Tight loop over pre-compiled closures. Each closure already knows
+    # which tensor inputs to look up and what scalar config to use.
     values =
-      Enum.reduce(model.schema.graph, values, fn node, acc ->
-        output_tensor = execute_node(node, acc)
-        output_name = List.first(node.outputs) || "unknown"
-        Map.put(acc, output_name, output_tensor)
+      Enum.reduce(model.compiled_graph, values, fn {out_names, run}, acc ->
+        case run.(acc) do
+          tensors when is_list(tensors) ->
+            Enum.zip(out_names, tensors)
+            |> Enum.reduce(acc, fn {name, t}, m -> Map.put(m, name, t) end)
+          tensor ->
+            Map.put(acc, hd(out_names), tensor)
+        end
       end)
 
-    # Return output(s)
-    output_names = model.schema.outputs
-    outputs = Enum.map(output_names, &Map.fetch!(values, &1))
+    outputs = Enum.map(model.schema.outputs, &Map.fetch!(values, &1))
 
     case outputs do
       [single] -> single
       multiple -> multiple
+    end
+  end
+
+  @doc """
+  Run `forward/2` with per-node timing instrumentation. Returns
+  `{output, %{op_target => %{count: N, total_us: T}}}`, aggregated by op
+  target so you can see which ops dominate inference time.
+
+  Only meant for diagnostics. Adds ~1μs of measurement overhead per node
+  from `:erlang.monotonic_time/1`.
+  """
+  @spec forward_profiled(Model.t(), [ExTorch.Tensor.t()]) ::
+          {ExTorch.Tensor.t() | [ExTorch.Tensor.t()], map()}
+  def forward_profiled(%Model{} = model, inputs) when is_list(inputs) do
+    values =
+      model.user_inputs
+      |> Enum.zip(inputs)
+      |> Enum.reduce(model.initial_values, fn {name, tensor}, acc ->
+        Map.put(acc, name, tensor)
+      end)
+
+    # Zip compiled_graph with the original schema graph so we can read
+    # node.target for aggregation (compiled_graph itself only stores the
+    # closure, not the op name).
+    graph_pairs = Enum.zip(model.compiled_graph, model.schema.graph)
+
+    {values, stats} =
+      Enum.reduce(graph_pairs, {values, %{}}, fn {{out_names, run}, node}, {acc, stats} ->
+        t0 = :erlang.monotonic_time(:nanosecond)
+        result = run.(acc)
+        elapsed_ns = :erlang.monotonic_time(:nanosecond) - t0
+
+        new_acc =
+          case result do
+            tensors when is_list(tensors) ->
+              Enum.zip(out_names, tensors)
+              |> Enum.reduce(acc, fn {name, t}, m -> Map.put(m, name, t) end)
+            tensor ->
+              Map.put(acc, hd(out_names), tensor)
+          end
+
+        new_stats =
+          Map.update(stats, node.target, %{count: 1, total_ns: elapsed_ns}, fn e ->
+            %{count: e.count + 1, total_ns: e.total_ns + elapsed_ns}
+          end)
+
+        {new_acc, new_stats}
+      end)
+
+    outputs = Enum.map(model.schema.outputs, &Map.fetch!(values, &1))
+    output =
+      case outputs do
+        [single] -> single
+        multiple -> multiple
+      end
+
+    {output, stats}
+  end
+
+  # ============================================================================
+  # Graph pre-compilation (Phase C)
+  #
+  # At load time we walk the schema graph once and turn each node into a
+  # {outputs, run_closure} pair where the closure captures:
+  #   - Pre-resolved scalar args (stride, padding, eps, etc.)
+  #   - Pre-resolved tensor input refs (string keys to look up in `values`)
+  #
+  # At forward time, the closure just does `Map.fetch!` lookups and calls the
+  # right NIF. No more List.keyfind walking, no more case-dispatch on target
+  # string per call. Falls through to `execute_node/2` for ops we haven't
+  # specialized.
+  # ============================================================================
+
+  defp compile_node(node, initial_values) do
+    {node.outputs, build_runner(node, initial_values)}
+  end
+
+  # Helpers used at compile time to extract tensor refs from node.inputs
+  # without looking them up in the (not-yet-existing) values map.
+  defp tensor_ref!(inputs, name) do
+    case List.keyfind(inputs, name, 0) do
+      {^name, {:tensor, ref}} -> ref
+      _ -> raise "Missing tensor input '#{name}'"
+    end
+  end
+
+  defp tensor_ref_opt(inputs, name) do
+    case List.keyfind(inputs, name, 0) do
+      {^name, {:tensor, ref}} -> ref
+      _ -> nil
+    end
+  end
+
+  defp tensor_ref_any(inputs, names) do
+    Enum.find_value(names, fn name ->
+      case List.keyfind(inputs, name, 0) do
+        {^name, {:tensor, ref}} -> ref
+        _ -> nil
+      end
+    end) || raise "Missing tensor input (tried #{inspect(names)})"
+  end
+
+  defp tensor_refs_list(inputs, name) do
+    case List.keyfind(inputs, name, 0) do
+      {^name, {:raw, list}} when is_list(list) ->
+        Enum.map(list, fn
+          %{"as_tensor" => %{"name" => ref}} -> ref
+          {:tensor, ref} -> ref
+        end)
+      {^name, {:raw, %{"as_tensors" => list}}} when is_list(list) ->
+        Enum.map(list, fn %{"name" => ref} -> ref end)
+      _ -> []
+    end
+  end
+
+  # Close over a fallback that invokes the legacy dynamic dispatch.
+  defp fallback_runner(node) do
+    fn values -> execute_node(node, values) end
+  end
+
+  defp build_runner(node, initial_values) do
+    i = node.inputs
+    case node.target do
+      # ======== Convolution ========
+      "torch.ops.aten.conv2d.default" ->
+        input_ref = tensor_ref!(i, "input")
+        weight_ref = tensor_ref!(i, "weight")
+        bias_ref = tensor_ref_opt(i, "bias")
+        stride = resolve_int_list_flex(i, "stride", [1, 1])
+        padding = resolve_int_list_flex(i, "padding", [0, 0])
+        dilation = resolve_int_list_flex(i, "dilation", [1, 1])
+        groups = resolve_int(i, "groups", 1)
+
+        # MKLDNN weight pre-packing was explored here but regressed
+        # measurably on every model in end-to-end benchmarks. at::conv2d's
+        # dispatcher already picks the optimal backend and caches reorder
+        # primitives after one warm call; forcing at::mkldnn_convolution
+        # with a pre-packed weight skipped only negligible warm-cache
+        # cost while losing at::conv2d's fast path. The pre-pack NIFs
+        # (aten_mkldnn_reorder_conv2d_weight, aten_mkldnn_convolution)
+        # remain available for future use (e.g. cold-start optimization,
+        # per-process model warmup services).
+        _ = initial_values
+        fn v ->
+          bias = if bias_ref, do: Map.get(v, bias_ref), else: nil
+          ExTorch.Native.aten_conv2d(
+            Map.fetch!(v, input_ref),
+            Map.fetch!(v, weight_ref),
+            bias, stride, padding, dilation, groups
+          )
+        end
+
+      "torch.ops.aten.convolution.default" ->
+        weight_ref = tensor_ref!(i, "weight")
+        input_ref = tensor_ref!(i, "input")
+        bias_ref = tensor_ref_opt(i, "bias")
+        stride = resolve_int_list_flex(i, "stride", [1])
+        padding = resolve_int_list_flex(i, "padding", [0])
+        dilation = resolve_int_list_flex(i, "dilation", [1])
+        groups = resolve_int(i, "groups", 1)
+        transposed = resolve_bool(i, "transposed", false)
+        # The number of spatial dims is encoded by the weight rank. We can't
+        # read it from the tensor at compile time (weights are loaded), so we
+        # derive it from the length of the stride/padding arg. Default 2.
+        ndim = length(stride)
+        output_padding = resolve_int_list_flex(i, "output_padding", List.duplicate(0, ndim))
+        fn v ->
+          input = Map.fetch!(v, input_ref)
+          weight = Map.fetch!(v, weight_ref)
+          bias = if bias_ref, do: Map.get(v, bias_ref), else: nil
+          if transposed do
+            ExTorch.Native.aten_convolution(
+              input, weight, bias, stride, padding, dilation, true, output_padding, groups
+            )
+          else
+            case ndim do
+              1 -> ExTorch.Native.aten_conv1d(input, weight, bias, stride, padding, dilation, groups)
+              2 -> ExTorch.Native.aten_conv2d(input, weight, bias, stride, padding, dilation, groups)
+              3 -> ExTorch.Native.aten_conv3d(input, weight, bias, stride, padding, dilation, groups)
+            end
+          end
+        end
+
+      "torch.ops.aten.conv_transpose2d.input" ->
+        input_ref = tensor_ref!(i, "input")
+        weight_ref = tensor_ref!(i, "weight")
+        bias_ref = tensor_ref_opt(i, "bias")
+        stride = resolve_int_list_flex(i, "stride", [1, 1])
+        padding = resolve_int_list_flex(i, "padding", [0, 0])
+        output_padding = resolve_int_list_flex(i, "output_padding", [0, 0])
+        dilation = resolve_int_list_flex(i, "dilation", [1, 1])
+        groups = resolve_int(i, "groups", 1)
+        fn v ->
+          bias = if bias_ref, do: Map.get(v, bias_ref), else: nil
+          ExTorch.Native.aten_conv_transpose2d(
+            Map.fetch!(v, input_ref),
+            Map.fetch!(v, weight_ref),
+            bias, stride, padding, output_padding, groups, dilation
+          )
+        end
+
+      # ======== Normalization ========
+      t when t in ["torch.ops.aten.batch_norm.default",
+                   "torch.ops.aten._native_batch_norm_legit_no_training.default"] ->
+        input_ref = tensor_ref!(i, "input")
+        weight_ref = tensor_ref_opt(i, "weight")
+        bias_ref = tensor_ref_opt(i, "bias")
+        rm_ref = tensor_ref_opt(i, "running_mean")
+        rv_ref = tensor_ref_opt(i, "running_var")
+        training = resolve_bool(i, "training", false)
+        momentum = resolve_float(i, "momentum", 0.1)
+        eps = resolve_float(i, "eps", 1.0e-5)
+        fn v ->
+          ExTorch.Native.aten_batch_norm(
+            Map.fetch!(v, input_ref),
+            if(weight_ref, do: Map.get(v, weight_ref), else: nil),
+            if(bias_ref, do: Map.get(v, bias_ref), else: nil),
+            if(rm_ref, do: Map.get(v, rm_ref), else: nil),
+            if(rv_ref, do: Map.get(v, rv_ref), else: nil),
+            training, momentum, eps
+          )
+        end
+
+      t when t in ["torch.ops.aten.layer_norm.default",
+                   "torch.ops.aten.native_layer_norm.default"] ->
+        input_ref = tensor_ref_any(i, ["input", "self"])
+        weight_ref = tensor_ref_opt(i, "weight")
+        bias_ref = tensor_ref_opt(i, "bias")
+        eps = resolve_float(i, "eps", 1.0e-5)
+        normalized_shape = resolve_int_list_flex(i, "normalized_shape", [])
+        fn v ->
+          input = Map.fetch!(v, input_ref)
+          shape = if normalized_shape == [],
+            do: [elem(input.size, tuple_size(input.size) - 1)],
+            else: normalized_shape
+          ExTorch.Native.aten_layer_norm(
+            input, shape,
+            if(weight_ref, do: Map.get(v, weight_ref), else: nil),
+            if(bias_ref, do: Map.get(v, bias_ref), else: nil),
+            eps
+          )
+        end
+
+      "torch.ops.aten.native_group_norm.default" ->
+        input_ref = tensor_ref!(i, "input")
+        weight_ref = tensor_ref_opt(i, "weight")
+        bias_ref = tensor_ref_opt(i, "bias")
+        num_groups = resolve_int(i, "group", resolve_int(i, "num_groups", 1))
+        eps = resolve_float(i, "eps", 1.0e-5)
+        fn v ->
+          ExTorch.Native.aten_group_norm(
+            Map.fetch!(v, input_ref),
+            num_groups,
+            if(weight_ref, do: Map.get(v, weight_ref), else: nil),
+            if(bias_ref, do: Map.get(v, bias_ref), else: nil),
+            eps
+          )
+        end
+
+      # ======== Pooling ========
+      t when t in ["torch.ops.aten.max_pool2d.default",
+                   "torch.ops.aten.max_pool2d_with_indices.default"] ->
+        self_ref = tensor_ref!(i, "self")
+        kernel_size = resolve_int_list_flex(i, "kernel_size", [2, 2])
+        stride = resolve_int_list_flex(i, "stride", kernel_size)
+        padding = resolve_int_list_flex(i, "padding", [0, 0])
+        dilation = resolve_int_list_flex(i, "dilation", [1, 1])
+        ceil_mode = resolve_bool(i, "ceil_mode", false)
+        fn v ->
+          ExTorch.Native.aten_max_pool2d(
+            Map.fetch!(v, self_ref),
+            kernel_size, stride, padding, dilation, ceil_mode
+          )
+        end
+
+      "torch.ops.aten.avg_pool2d.default" ->
+        self_ref = tensor_ref!(i, "self")
+        kernel_size = resolve_int_list_flex(i, "kernel_size", [2, 2])
+        stride = resolve_int_list_flex(i, "stride", kernel_size)
+        padding = resolve_int_list_flex(i, "padding", [0, 0])
+        ceil_mode = resolve_bool(i, "ceil_mode", false)
+        count_include_pad = resolve_bool(i, "count_include_pad", true)
+        fn v ->
+          ExTorch.Native.aten_avg_pool2d(
+            Map.fetch!(v, self_ref),
+            kernel_size, stride, padding, ceil_mode, count_include_pad
+          )
+        end
+
+      t when t in ["torch.ops.aten.adaptive_avg_pool2d.default",
+                   "torch.ops.aten._adaptive_avg_pool2d.default"] ->
+        self_ref = tensor_ref!(i, "self")
+        output_size = resolve_int_list_flex(i, "output_size", [1, 1])
+        fn v ->
+          ExTorch.Native.aten_adaptive_avg_pool2d(
+            Map.fetch!(v, self_ref), output_size
+          )
+        end
+
+      # ======== Activations ========
+      t when t in ["torch.ops.aten.relu.default", "torch.ops.aten.relu_.default"] ->
+        self_ref = tensor_ref!(i, "self")
+        fn v -> ExTorch.functional_relu(Map.fetch!(v, self_ref)) end
+
+      t when t in ["torch.ops.aten.hardtanh.default", "torch.ops.aten.hardtanh_.default"] ->
+        self_ref = tensor_ref!(i, "self")
+        min_val = resolve_float(i, "min_val", -1.0)
+        max_val = resolve_float(i, "max_val", 1.0)
+        fn v -> ExTorch.clamp(Map.fetch!(v, self_ref), min_val, max_val) end
+
+      "torch.ops.aten.clamp.default" ->
+        self_ref = tensor_ref!(i, "self")
+        min_v = resolve_float(i, "min", -1.0e30)
+        max_v = resolve_float(i, "max", 1.0e30)
+        fn v -> ExTorch.clamp(Map.fetch!(v, self_ref), min_v, max_v) end
+
+      # ======== Linear ========
+      "torch.ops.aten.linear.default" ->
+        input_ref = tensor_ref!(i, "input")
+        weight_ref = tensor_ref!(i, "weight")
+        bias_ref = tensor_ref_opt(i, "bias")
+        fn v ->
+          result = ExTorch.matmul(
+            Map.fetch!(v, input_ref),
+            ExTorch.transpose(Map.fetch!(v, weight_ref), 0, 1)
+          )
+          if bias_ref do
+            case Map.get(v, bias_ref) do
+              nil -> result
+              bias -> ExTorch.add(result, bias)
+            end
+          else
+            result
+          end
+        end
+
+      # ======== Binary arithmetic (tensor/tensor) ========
+      t when t in ["torch.ops.aten.add.Tensor", "torch.ops.aten.add_.Tensor"] ->
+        compile_binary(i, &ExTorch.add/2)
+      t when t in ["torch.ops.aten.mul.Tensor", "torch.ops.aten.mul_.Tensor"] ->
+        compile_binary(i, &ExTorch.mul/2)
+      "torch.ops.aten.sub.Tensor" ->
+        compile_binary(i, &ExTorch.sub/2)
+      "torch.ops.aten.div.Tensor" ->
+        compile_binary(i, &ExTorch.tensor_div/2)
+
+      # ======== Shape / passthrough ========
+      "torch.ops.aten.flatten.using_ints" ->
+        self_ref = tensor_ref!(i, "self")
+        start_dim = resolve_int(i, "start_dim", 1)
+        end_dim = resolve_int(i, "end_dim", -1)
+        layer = ExTorch.NN.flatten(start_dim: start_dim, end_dim: end_dim)
+        fn v -> ExTorch.NN.forward(Map.fetch!(v, self_ref), layer) end
+
+      t when t in ["torch.ops.aten.native_dropout.default", "torch.ops.aten.dropout.default"] ->
+        input_ref = tensor_ref!(i, "input")
+        fn v -> Map.fetch!(v, input_ref) end
+
+      # ======== Phase A: recurrent / transformer ========
+      "torch.ops.aten.lstm.input" ->
+        input_ref = tensor_ref!(i, "input")
+        hx_refs = tensor_refs_list(i, "hx")
+        params_refs = tensor_refs_list(i, "params")
+        has_biases = resolve_bool(i, "has_biases", true)
+        num_layers = resolve_int(i, "num_layers", 1)
+        dropout = resolve_float(i, "dropout", 0.0)
+        train = resolve_bool(i, "train", false)
+        bidirectional = resolve_bool(i, "bidirectional", false)
+        batch_first = resolve_bool(i, "batch_first", false)
+        fn v ->
+          hx = Enum.map(hx_refs, &Map.fetch!(v, &1))
+          params = Enum.map(params_refs, &Map.fetch!(v, &1))
+          ExTorch.Native.aten_lstm(
+            Map.fetch!(v, input_ref), hx, params,
+            has_biases, num_layers, dropout, train, bidirectional, batch_first
+          )
+        end
+
+      "torch.ops.aten._transformer_encoder_layer_fwd.default" ->
+        src_ref = tensor_ref!(i, "src")
+        embed_dim = resolve_int(i, "embed_dim", 0)
+        num_heads = resolve_int(i, "num_heads", 1)
+        qkv_w = tensor_ref!(i, "qkv_weight")
+        qkv_b = tensor_ref!(i, "qkv_bias")
+        proj_w = tensor_ref!(i, "proj_weight")
+        proj_b = tensor_ref!(i, "proj_bias")
+        use_gelu = resolve_bool(i, "use_gelu", false)
+        norm_first = resolve_bool(i, "norm_first", false)
+        eps = resolve_float(i, "eps", 1.0e-5)
+        n1w = tensor_ref!(i, "norm_weight_1")
+        n1b = tensor_ref!(i, "norm_bias_1")
+        n2w = tensor_ref!(i, "norm_weight_2")
+        n2b = tensor_ref!(i, "norm_bias_2")
+        ff1w = tensor_ref!(i, "ffn_weight_1")
+        ff1b = tensor_ref!(i, "ffn_bias_1")
+        ff2w = tensor_ref!(i, "ffn_weight_2")
+        ff2b = tensor_ref!(i, "ffn_bias_2")
+        fn v ->
+          ExTorch.Native.aten_transformer_encoder_layer_fwd(
+            Map.fetch!(v, src_ref), embed_dim, num_heads,
+            Map.fetch!(v, qkv_w), Map.fetch!(v, qkv_b),
+            Map.fetch!(v, proj_w), Map.fetch!(v, proj_b),
+            use_gelu, norm_first, eps,
+            Map.fetch!(v, n1w), Map.fetch!(v, n1b),
+            Map.fetch!(v, n2w), Map.fetch!(v, n2b),
+            Map.fetch!(v, ff1w), Map.fetch!(v, ff1b),
+            Map.fetch!(v, ff2w), Map.fetch!(v, ff2b)
+          )
+        end
+
+      # ======== Everything else: fall back to legacy dynamic dispatch ========
+      _ ->
+        _ = initial_values
+        fallback_runner(node)
+    end
+  end
+
+  # Binary Tensor-op compile helper. Handles (tensor, tensor) and
+  # (tensor, scalar) by pre-deciding the branch at compile time.
+  defp compile_binary(inputs, op) do
+    self_ref = tensor_ref!(inputs, "self")
+    case List.keyfind(inputs, "other", 0) do
+      {"other", {:tensor, other_ref}} ->
+        fn v -> op.(Map.fetch!(v, self_ref), Map.fetch!(v, other_ref)) end
+      {"other", {:float, val}} ->
+        fn v ->
+          s = Map.fetch!(v, self_ref)
+          op.(s, ExTorch.full(s.size, val))
+        end
+      {"other", {:int, val}} ->
+        fn v ->
+          s = Map.fetch!(v, self_ref)
+          op.(s, ExTorch.full(s.size, val))
+        end
+      _ -> raise "Missing 'other' input for binary op"
     end
   end
 
@@ -312,6 +768,9 @@ defmodule ExTorch.Export do
           ExTorch.NN.flatten(start_dim: resolve_int(i, "start_dim", 1), end_dim: resolve_int(i, "end_dim", -1)))
 
       # ==== Tensor creation / manipulation ====
+      "torch.ops.aten.zeros.default" ->
+        size = resolve_int_list_flex(i, "size", [1])
+        ExTorch.zeros(List.to_tuple(size))
       "torch.ops.aten.clone.default" -> ExTorch.clone(resolve(i, "self", values))
       "torch.ops.aten._to_copy.default" -> ExTorch.clone(resolve(i, "self", values))
       "torch.ops.aten.alias.default" -> resolve(i, "self", values)
@@ -323,6 +782,8 @@ defmodule ExTorch.Export do
         execute_convolution(i, values)
       "torch.ops.aten.conv2d.default" ->
         execute_conv2d(i, values)
+      "torch.ops.aten.conv_transpose2d.input" ->
+        execute_conv_transpose2d(i, values)
 
       # ==== Normalization ====
       "torch.ops.aten.batch_norm.default" ->
@@ -336,25 +797,27 @@ defmodule ExTorch.Export do
       "torch.ops.aten.native_group_norm.default" ->
         execute_group_norm(i, values)
 
-      # ==== Pooling ====
+      # ==== Pooling (direct at:: dispatch) ====
       "torch.ops.aten._adaptive_avg_pool2d.default" ->
-        output_size = resolve_int_list_flex(i, "output_size", [1, 1])
-        ExTorch.NN.forward(resolve(i, "self", values), ExTorch.NN.adaptive_avg_pool2d(Enum.at(output_size, 0), Enum.at(output_size, 1)))
+        ExTorch.Native.aten_adaptive_avg_pool2d(
+          resolve(i, "self", values),
+          resolve_int_list_flex(i, "output_size", [1, 1]))
       "torch.ops.aten.adaptive_avg_pool2d.default" ->
-        output_size = resolve_int_list_flex(i, "output_size", [1, 1])
-        ExTorch.NN.forward(resolve(i, "self", values), ExTorch.NN.adaptive_avg_pool2d(Enum.at(output_size, 0), Enum.at(output_size, 1)))
+        ExTorch.Native.aten_adaptive_avg_pool2d(
+          resolve(i, "self", values),
+          resolve_int_list_flex(i, "output_size", [1, 1]))
       "torch.ops.aten.max_pool2d.default" ->
-        ExTorch.NN.forward(resolve(i, "self", values),
-          ExTorch.NN.max_pool2d(hd(resolve_int_list_flex(i, "kernel_size", [2])),
-            stride: hd(resolve_int_list_flex(i, "stride", [2])), padding: hd(resolve_int_list_flex(i, "padding", [0]))))
-      "torch.ops.aten.avg_pool2d.default" ->
-        ExTorch.NN.forward(resolve(i, "self", values),
-          ExTorch.NN.avg_pool2d(hd(resolve_int_list_flex(i, "kernel_size", [2])),
-            stride: hd(resolve_int_list_flex(i, "stride", [2])), padding: hd(resolve_int_list_flex(i, "padding", [0]))))
+        execute_max_pool2d(i, values)
       "torch.ops.aten.max_pool2d_with_indices.default" ->
-        ExTorch.NN.forward(resolve(i, "self", values),
-          ExTorch.NN.max_pool2d(hd(resolve_int_list_flex(i, "kernel_size", [2])),
-            stride: hd(resolve_int_list_flex(i, "stride", [2])), padding: hd(resolve_int_list_flex(i, "padding", [0]))))
+        execute_max_pool2d(i, values)
+      "torch.ops.aten.avg_pool2d.default" ->
+        ExTorch.Native.aten_avg_pool2d(
+          resolve(i, "self", values),
+          resolve_int_list_flex(i, "kernel_size", [2, 2]),
+          resolve_int_list_flex(i, "stride", resolve_int_list_flex(i, "kernel_size", [2, 2])),
+          resolve_int_list_flex(i, "padding", [0, 0]),
+          resolve_bool(i, "ceil_mode", false),
+          resolve_bool(i, "count_include_pad", true))
 
       # ==== Dropout (identity in eval mode) ====
       "torch.ops.aten.native_dropout.default" -> resolve(i, "input", values)
@@ -381,95 +844,226 @@ defmodule ExTorch.Export do
       "torch.ops.aten.topk.default" ->
         ExTorch.topk(resolve(i, "self", values), resolve_int(i, "k", 1))
 
+      # ==== Recurrent (LSTM, GRU) ====
+      "torch.ops.aten.lstm.input" ->
+        execute_lstm(i, values)
+      "torch.ops.aten.gru.input" ->
+        execute_gru(i, values)
+
+      # ==== Fused transformer encoder layer ====
+      "torch.ops.aten._transformer_encoder_layer_fwd.default" ->
+        execute_transformer_encoder_layer(i, values)
+
+      # ==== Scaled dot-product attention ====
+      "torch.ops.aten.scaled_dot_product_attention.default" ->
+        execute_scaled_dot_product_attention(i, values)
+
+      # ==== Native multi-head attention (legacy) ====
+      "torch.ops.aten._native_multi_head_attention.default" ->
+        execute_native_multi_head_attention(i, values)
+
       other ->
         raise "Unsupported ATen op: #{other}. Consider using ExTorch.AOTI for compiled inference."
     end
   end
 
-  # Complex op helpers
+  # Complex op helpers — Phase B: direct at:: dispatch via NIFs.
+  # The previous versions allocated a torch::nn::Module, copied parameters
+  # in, ran forward, then discarded the layer on every call. The new versions
+  # call at::conv2d / at::batch_norm / etc. functionally — no per-call layer
+  # construction, no parameter copy, ~5x faster on deep CNNs.
 
   defp execute_conv2d(i, values) do
-    input = resolve(i, "input", values)
-    weight = resolve(i, "weight", values)
-    bias = resolve_optional(i, "bias", values)
-    stride = resolve_int_list_flex(i, "stride", [1, 1])
-    padding = resolve_int_list_flex(i, "padding", [0, 0])
-    dilation = resolve_int_list_flex(i, "dilation", [1, 1])
-    groups = resolve_int(i, "groups", 1)
-    [out_ch, in_ch, kh, _kw] = Tuple.to_list(weight.size)
-    layer = ExTorch.NN.conv2d(in_ch * groups, out_ch, kh,
-      stride: hd(stride), padding: hd(padding), dilation: hd(dilation), groups: groups)
-    params = [{"weight", weight}] ++ if(bias, do: [{"bias", bias}], else: [])
-    ExTorch.NN.copy_parameters(layer, params)
-    ExTorch.NN.forward(input, layer)
+    ExTorch.Native.aten_conv2d(
+      resolve(i, "input", values),
+      resolve(i, "weight", values),
+      resolve_optional(i, "bias", values),
+      resolve_int_list_flex(i, "stride", [1, 1]),
+      resolve_int_list_flex(i, "padding", [0, 0]),
+      resolve_int_list_flex(i, "dilation", [1, 1]),
+      resolve_int(i, "groups", 1)
+    )
   end
 
   defp execute_convolution(i, values) do
-    input = resolve(i, "input", values)
     weight = resolve(i, "weight", values)
+    ndim = tuple_size(weight.size) - 2
     bias = resolve_optional(i, "bias", values)
+    input = resolve(i, "input", values)
     stride = resolve_int_list_flex(i, "stride", [1])
     padding = resolve_int_list_flex(i, "padding", [0])
     dilation = resolve_int_list_flex(i, "dilation", [1])
     groups = resolve_int(i, "groups", 1)
-    ndim = tuple_size(weight.size) - 2
-    weight_dims = Tuple.to_list(weight.size)
-    out_ch = hd(weight_dims)
-    in_ch = Enum.at(weight_dims, 1)
-    k = Enum.at(weight_dims, 2)
-    layer = case ndim do
-      1 -> ExTorch.NN.conv1d(in_ch * groups, out_ch, k, stride: hd(stride), padding: hd(padding), dilation: hd(dilation), groups: groups)
-      2 -> ExTorch.NN.conv2d(in_ch * groups, out_ch, k, stride: hd(stride), padding: hd(padding), dilation: hd(dilation), groups: groups)
-      3 -> ExTorch.NN.conv3d(in_ch * groups, out_ch, k, stride: hd(stride), padding: hd(padding), dilation: hd(dilation), groups: groups)
+    transposed = resolve_bool(i, "transposed", false)
+    output_padding = resolve_int_list_flex(i, "output_padding", List.duplicate(0, ndim))
+
+    if transposed do
+      ExTorch.Native.aten_convolution(
+        input, weight, bias, stride, padding, dilation, true, output_padding, groups
+      )
+    else
+      case ndim do
+        1 -> ExTorch.Native.aten_conv1d(input, weight, bias, stride, padding, dilation, groups)
+        2 -> ExTorch.Native.aten_conv2d(input, weight, bias, stride, padding, dilation, groups)
+        3 -> ExTorch.Native.aten_conv3d(input, weight, bias, stride, padding, dilation, groups)
+      end
     end
-    params = [{"weight", weight}] ++ if(bias, do: [{"bias", bias}], else: [])
-    ExTorch.NN.copy_parameters(layer, params)
-    ExTorch.NN.forward(input, layer)
+  end
+
+  defp execute_conv_transpose2d(i, values) do
+    ExTorch.Native.aten_conv_transpose2d(
+      resolve(i, "input", values),
+      resolve(i, "weight", values),
+      resolve_optional(i, "bias", values),
+      resolve_int_list_flex(i, "stride", [1, 1]),
+      resolve_int_list_flex(i, "padding", [0, 0]),
+      resolve_int_list_flex(i, "output_padding", [0, 0]),
+      resolve_int(i, "groups", 1),
+      resolve_int_list_flex(i, "dilation", [1, 1])
+    )
+  end
+
+  defp execute_max_pool2d(i, values) do
+    ExTorch.Native.aten_max_pool2d(
+      resolve(i, "self", values),
+      resolve_int_list_flex(i, "kernel_size", [2, 2]),
+      resolve_int_list_flex(i, "stride", resolve_int_list_flex(i, "kernel_size", [2, 2])),
+      resolve_int_list_flex(i, "padding", [0, 0]),
+      resolve_int_list_flex(i, "dilation", [1, 1]),
+      resolve_bool(i, "ceil_mode", false)
+    )
   end
 
   defp execute_batch_norm(i, values) do
-    input = resolve(i, "input", values)
-    weight = resolve_optional(i, "weight", values)
-    bias = resolve_optional(i, "bias", values)
-    running_mean = resolve_optional(i, "running_mean", values)
-    running_var = resolve_optional(i, "running_var", values)
-    num_features = elem(input.size, 1)
-    layer = ExTorch.NN.batch_norm2d(num_features)
-    ExTorch.NN.eval(layer)
-    params = []
-    params = if weight, do: params ++ [{"weight", weight}], else: params
-    params = if bias, do: params ++ [{"bias", bias}], else: params
-    params = if running_mean, do: params ++ [{"running_mean", running_mean}], else: params
-    params = if running_var, do: params ++ [{"running_var", running_var}], else: params
-    if params != [], do: ExTorch.NN.copy_parameters(layer, params)
-    ExTorch.NN.forward(input, layer)
+    ExTorch.Native.aten_batch_norm(
+      resolve(i, "input", values),
+      resolve_optional(i, "weight", values),
+      resolve_optional(i, "bias", values),
+      resolve_optional(i, "running_mean", values),
+      resolve_optional(i, "running_var", values),
+      resolve_bool(i, "training", false),
+      resolve_float(i, "momentum", 0.1),
+      resolve_float(i, "eps", 1.0e-5)
+    )
   end
 
   defp execute_layer_norm(i, values) do
     input = resolve_any(i, ["input", "self"], values)
-    weight = resolve_optional(i, "weight", values)
-    bias = resolve_optional(i, "bias", values)
-    normalized_shape = resolve_int_list_flex(i, "normalized_shape", [elem(input.size, tuple_size(input.size) - 1)])
-    layer = ExTorch.NN.layer_norm(normalized_shape)
-    params = []
-    params = if weight, do: params ++ [{"weight", weight}], else: params
-    params = if bias, do: params ++ [{"bias", bias}], else: params
-    if params != [], do: ExTorch.NN.copy_parameters(layer, params)
-    ExTorch.NN.forward(input, layer)
+    normalized_shape = resolve_int_list_flex(i, "normalized_shape",
+      [elem(input.size, tuple_size(input.size) - 1)])
+    ExTorch.Native.aten_layer_norm(
+      input,
+      normalized_shape,
+      resolve_optional(i, "weight", values),
+      resolve_optional(i, "bias", values),
+      resolve_float(i, "eps", 1.0e-5)
+    )
   end
 
   defp execute_group_norm(i, values) do
+    ExTorch.Native.aten_group_norm(
+      resolve(i, "input", values),
+      resolve_int(i, "group", resolve_int(i, "num_groups", 1)),
+      resolve_optional(i, "weight", values),
+      resolve_optional(i, "bias", values),
+      resolve_float(i, "eps", 1.0e-5)
+    )
+  end
+
+  # Direct dispatch to at::lstm via NIF. Replaces the previous Elixir-side
+  # cell loop, which paid one ExTorch call per gate per timestep. The exported
+  # aten op returns (output, h_n, c_n); we return them as a list so the main
+  # forward loop binds them to the node's three output names.
+  defp execute_lstm(i, values) do
     input = resolve(i, "input", values)
-    weight = resolve_optional(i, "weight", values)
-    bias = resolve_optional(i, "bias", values)
-    num_groups = resolve_int(i, "group", 1)
-    num_channels = elem(input.size, 1)
-    layer = ExTorch.NN.group_norm(num_groups, num_channels)
-    params = []
-    params = if weight, do: params ++ [{"weight", weight}], else: params
-    params = if bias, do: params ++ [{"bias", bias}], else: params
-    if params != [], do: ExTorch.NN.copy_parameters(layer, params)
-    ExTorch.NN.forward(input, layer)
+    hx = resolve_tensor_list(i, "hx", values)
+    params = resolve_tensor_list(i, "params", values)
+    has_biases = resolve_bool(i, "has_biases", true)
+    num_layers = resolve_int(i, "num_layers", 1)
+    dropout = resolve_float(i, "dropout", 0.0)
+    train = resolve_bool(i, "train", false)
+    bidirectional = resolve_bool(i, "bidirectional", false)
+    batch_first = resolve_bool(i, "batch_first", false)
+
+    ExTorch.Native.aten_lstm(
+      input, hx, params, has_biases, num_layers, dropout, train, bidirectional, batch_first
+    )
+  end
+
+  defp execute_gru(i, values) do
+    input = resolve(i, "input", values)
+    hx = resolve(i, "hx", values)
+    params = resolve_tensor_list(i, "params", values)
+    has_biases = resolve_bool(i, "has_biases", true)
+    num_layers = resolve_int(i, "num_layers", 1)
+    dropout = resolve_float(i, "dropout", 0.0)
+    train = resolve_bool(i, "train", false)
+    bidirectional = resolve_bool(i, "bidirectional", false)
+    batch_first = resolve_bool(i, "batch_first", false)
+
+    ExTorch.Native.aten_gru(
+      input, hx, params, has_biases, num_layers, dropout, train, bidirectional, batch_first
+    )
+  end
+
+  # Direct dispatch to at::_transformer_encoder_layer_fwd. Replaces the
+  # previous Elixir-side unroll, which spent ~30 NIF calls per layer
+  # constructing intermediate tensors.
+  defp execute_transformer_encoder_layer(i, values) do
+    ExTorch.Native.aten_transformer_encoder_layer_fwd(
+      resolve(i, "src", values),
+      resolve_int(i, "embed_dim", 0),
+      resolve_int(i, "num_heads", 1),
+      resolve(i, "qkv_weight", values),
+      resolve(i, "qkv_bias", values),
+      resolve(i, "proj_weight", values),
+      resolve(i, "proj_bias", values),
+      resolve_bool(i, "use_gelu", false),
+      resolve_bool(i, "norm_first", false),
+      resolve_float(i, "eps", 1.0e-5),
+      resolve(i, "norm_weight_1", values),
+      resolve(i, "norm_bias_1", values),
+      resolve(i, "norm_weight_2", values),
+      resolve(i, "norm_bias_2", values),
+      resolve(i, "ffn_weight_1", values),
+      resolve(i, "ffn_bias_1", values),
+      resolve(i, "ffn_weight_2", values),
+      resolve(i, "ffn_bias_2", values)
+    )
+  end
+
+  defp execute_scaled_dot_product_attention(i, values) do
+    {scale, has_scale} = case List.keyfind(i, "scale", 0) do
+      {"scale", {:float, v}} -> {v, true}
+      {"scale", {:int, v}} -> {v / 1, true}
+      _ -> {0.0, false}
+    end
+
+    ExTorch.Native.aten_scaled_dot_product_attention(
+      resolve(i, "query", values),
+      resolve(i, "key", values),
+      resolve(i, "value", values),
+      resolve_float(i, "dropout_p", 0.0),
+      resolve_bool(i, "is_causal", false),
+      scale,
+      has_scale
+    )
+  end
+
+  defp execute_native_multi_head_attention(i, values) do
+    ExTorch.Native.aten_native_multi_head_attention(
+      resolve(i, "query", values),
+      resolve(i, "key", values),
+      resolve(i, "value", values),
+      resolve_int(i, "embed_dim", 0),
+      resolve_int(i, "num_head", 1),
+      resolve(i, "qkv_weight", values),
+      resolve(i, "qkv_bias", values),
+      resolve(i, "proj_weight", values),
+      resolve(i, "proj_bias", values),
+      resolve_bool(i, "need_weights", false),
+      resolve_bool(i, "average_attn_weights", true)
+    )
   end
 
   defp resolve(inputs, name, values) do
@@ -553,6 +1147,13 @@ defmodule ExTorch.Export do
   defp resolve_int(inputs, name, default) do
     case List.keyfind(inputs, name, 0) do
       {^name, {:int, val}} -> val
+      _ -> default
+    end
+  end
+
+  defp resolve_bool(inputs, name, default) do
+    case List.keyfind(inputs, name, 0) do
+      {^name, {:bool, val}} -> val
       _ -> default
     end
   end
@@ -788,36 +1389,38 @@ defmodule ExTorch.Export do
     user_inputs = schema.inputs |> Enum.reject(&(String.starts_with?(&1, "p_") or String.starts_with?(&1, "b_")))
     user_input = List.first(user_inputs) || "x"
 
-    # Count how many times each value is referenced as an input
+    # Count how many times each value is referenced as an input downstream
     ref_counts = count_references(graph)
+    last_index = length(graph) - 1
 
     # Walk nodes and generate code lines
     {lines, _} =
-      Enum.reduce(graph, {[], %{user_input => "x"}}, fn node, {lines_acc, var_map} ->
+      graph
+      |> Enum.with_index()
+      |> Enum.reduce({[], %{user_input => "x"}}, fn {node, idx}, {lines_acc, var_map} ->
         output_name = List.first(node.outputs) || "unknown"
-
-        # Get the primary tensor input (self or input)
-        primary_ref = get_primary_ref(node)
-        _primary_var = if primary_ref, do: Map.get(var_map, primary_ref, sanitize_var(primary_ref))
-
-        # Generate the expression for this node
         expr = node_to_elixir(node, var_map, schema.weights)
-
-        # Decide if we need a named variable (value used more than once downstream)
-        needs_binding = Map.get(ref_counts, output_name, 0) > 1
         var_name = sanitize_var(output_name)
+        used_count = Map.get(ref_counts, output_name, 0)
+        is_last = idx == last_index
 
-        {new_lines, new_var_map} =
-          if needs_binding do
-            {lines_acc ++ ["    #{var_name} = #{expr}"], Map.put(var_map, output_name, var_name)}
-          else
-            {lines_acc ++ ["    #{var_name} = #{expr}"], Map.put(var_map, output_name, var_name)}
+        # - Final node with no downstream use: emit a bare expression so it
+        #   becomes the function's return value with no dead binding.
+        # - Intermediate node with no downstream use (rare; effectively dead
+        #   code in the graph): keep the binding but underscore-prefix it to
+        #   suppress the unused-variable warning.
+        # - Otherwise: regular binding so branching consumers (e.g. skip
+        #   connections) can refer back to it.
+        line =
+          cond do
+            is_last and used_count == 0 -> "    #{expr}"
+            used_count == 0 -> "    _#{var_name} = #{expr}"
+            true -> "    #{var_name} = #{expr}"
           end
 
-        {new_lines, new_var_map}
+        {lines_acc ++ [line], Map.put(var_map, output_name, var_name)}
       end)
 
-    # The last line's variable is the return value
     case lines do
       [] -> "    x"
       _ -> Enum.join(lines, "\n")
@@ -836,15 +1439,6 @@ defmodule ExTorch.Export do
       Enum.reduce(tensor_refs, acc, fn ref, inner_acc ->
         Map.update(inner_acc, ref, 1, &(&1 + 1))
       end)
-    end)
-  end
-
-  defp get_primary_ref(node) do
-    # The primary tensor input -- typically "self" or "input"
-    Enum.find_value(node.inputs, fn
-      {"self", {:tensor, ref}} -> ref
-      {"input", {:tensor, ref}} -> ref
-      _ -> nil
     end)
   end
 

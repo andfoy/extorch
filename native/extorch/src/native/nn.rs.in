@@ -146,3 +146,219 @@ fn nn_to_device(
     module: &SharedPtr<CrossNNModule>,
     s_device: Device,
 ) -> Result<SharedPtr<CrossNNModule>>;
+
+// Direct ATen functional ops (Phase A)
+
+/// Functional at::lstm. Returns [output, h_n, c_n].
+fn aten_lstm(
+    input: &SharedPtr<CrossTensor>,
+    hx: TensorList,
+    params: TensorList,
+    has_biases: bool,
+    num_layers: i64,
+    dropout: f64,
+    train: bool,
+    bidirectional: bool,
+    batch_first: bool,
+) -> Result<TensorList>;
+
+/// Functional at::gru. Returns [output, h_n].
+fn aten_gru(
+    input: &SharedPtr<CrossTensor>,
+    hx: &SharedPtr<CrossTensor>,
+    params: TensorList,
+    has_biases: bool,
+    num_layers: i64,
+    dropout: f64,
+    train: bool,
+    bidirectional: bool,
+    batch_first: bool,
+) -> Result<TensorList>;
+
+/// Functional at::_transformer_encoder_layer_fwd. Returns the layer output.
+fn aten_transformer_encoder_layer_fwd(
+    src: &SharedPtr<CrossTensor>,
+    embed_dim: i64,
+    num_heads: i64,
+    qkv_weight: &SharedPtr<CrossTensor>,
+    qkv_bias: &SharedPtr<CrossTensor>,
+    proj_weight: &SharedPtr<CrossTensor>,
+    proj_bias: &SharedPtr<CrossTensor>,
+    use_gelu: bool,
+    norm_first: bool,
+    eps: f64,
+    norm_weight_1: &SharedPtr<CrossTensor>,
+    norm_bias_1: &SharedPtr<CrossTensor>,
+    norm_weight_2: &SharedPtr<CrossTensor>,
+    norm_bias_2: &SharedPtr<CrossTensor>,
+    ffn_weight_1: &SharedPtr<CrossTensor>,
+    ffn_bias_1: &SharedPtr<CrossTensor>,
+    ffn_weight_2: &SharedPtr<CrossTensor>,
+    ffn_bias_2: &SharedPtr<CrossTensor>,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Functional at::scaled_dot_product_attention.
+fn aten_scaled_dot_product_attention(
+    query: &SharedPtr<CrossTensor>,
+    key: &SharedPtr<CrossTensor>,
+    value: &SharedPtr<CrossTensor>,
+    dropout_p: f64,
+    is_causal: bool,
+    scale: f64,
+    has_scale: bool,
+) -> Result<SharedPtr<CrossTensor>>;
+
+/// Functional at::_native_multi_head_attention. Returns [attn_output, attn_weights].
+fn aten_native_multi_head_attention(
+    query: &SharedPtr<CrossTensor>,
+    key: &SharedPtr<CrossTensor>,
+    value: &SharedPtr<CrossTensor>,
+    embed_dim: i64,
+    num_head: i64,
+    qkv_weight: &SharedPtr<CrossTensor>,
+    qkv_bias: &SharedPtr<CrossTensor>,
+    proj_weight: &SharedPtr<CrossTensor>,
+    proj_bias: &SharedPtr<CrossTensor>,
+    need_weights: bool,
+    average_attn_weights: bool,
+) -> Result<TensorList>;
+
+// Direct ATen functional ops (Phase B): conv, norm, pool
+
+fn aten_conv2d(
+    input: &SharedPtr<CrossTensor>,
+    weight: &SharedPtr<CrossTensor>,
+    bias_opt: TensorList,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_conv1d(
+    input: &SharedPtr<CrossTensor>,
+    weight: &SharedPtr<CrossTensor>,
+    bias_opt: TensorList,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_conv3d(
+    input: &SharedPtr<CrossTensor>,
+    weight: &SharedPtr<CrossTensor>,
+    bias_opt: TensorList,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_convolution(
+    input: &SharedPtr<CrossTensor>,
+    weight: &SharedPtr<CrossTensor>,
+    bias_opt: TensorList,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    transposed: bool,
+    output_padding: Vec<i64>,
+    groups: i64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_conv_transpose2d(
+    input: &SharedPtr<CrossTensor>,
+    weight: &SharedPtr<CrossTensor>,
+    bias_opt: TensorList,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    output_padding: Vec<i64>,
+    groups: i64,
+    dilation: Vec<i64>,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_batch_norm(
+    input: &SharedPtr<CrossTensor>,
+    weight_opt: TensorList,
+    bias_opt: TensorList,
+    running_mean_opt: TensorList,
+    running_var_opt: TensorList,
+    training: bool,
+    momentum: f64,
+    eps: f64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_layer_norm(
+    input: &SharedPtr<CrossTensor>,
+    normalized_shape: Vec<i64>,
+    weight_opt: TensorList,
+    bias_opt: TensorList,
+    eps: f64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_group_norm(
+    input: &SharedPtr<CrossTensor>,
+    num_groups: i64,
+    weight_opt: TensorList,
+    bias_opt: TensorList,
+    eps: f64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_max_pool2d(
+    input: &SharedPtr<CrossTensor>,
+    kernel_size: Vec<i64>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    dilation: Vec<i64>,
+    ceil_mode: bool,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_avg_pool2d(
+    input: &SharedPtr<CrossTensor>,
+    kernel_size: Vec<i64>,
+    stride: Vec<i64>,
+    padding: Vec<i64>,
+    ceil_mode: bool,
+    count_include_pad: bool,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_adaptive_avg_pool2d(
+    input: &SharedPtr<CrossTensor>,
+    output_size: Vec<i64>,
+) -> Result<SharedPtr<CrossTensor>>;
+
+// Thread pool / backend inspection
+fn aten_get_num_threads() -> Result<i64>;
+fn aten_set_num_threads(n: i64) -> Result<()>;
+fn aten_get_num_interop_threads() -> Result<i64>;
+fn aten_set_num_interop_threads(n: i64) -> Result<()>;
+fn aten_mkldnn_is_available() -> Result<bool>;
+
+// Identity (for marshaling overhead measurement)
+fn aten_noop(t: &SharedPtr<CrossTensor>) -> Result<SharedPtr<CrossTensor>>;
+
+// Backend / context introspection
+fn aten_backend_info() -> Result<String>;
+fn aten_is_grad_enabled() -> Result<bool>;
+fn aten_set_grad_enabled(enabled: bool) -> Result<()>;
+fn aten_clear_cpu_affinity() -> Result<bool>;
+
+// MKLDNN weight pre-packing
+fn aten_mkldnn_reorder_conv2d_weight(
+    weight: &SharedPtr<CrossTensor>,
+    padding: Vec<i64>,
+    stride: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> Result<SharedPtr<CrossTensor>>;
+
+fn aten_mkldnn_convolution(
+    input: &SharedPtr<CrossTensor>,
+    packed_weight: &SharedPtr<CrossTensor>,
+    bias_opt: TensorList,
+    padding: Vec<i64>,
+    stride: Vec<i64>,
+    dilation: Vec<i64>,
+    groups: i64,
+) -> Result<SharedPtr<CrossTensor>>;

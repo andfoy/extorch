@@ -1,4 +1,9 @@
-"""Generate torch.export.save .pt2 test models for ExTorch.Export."""
+"""Generate torch.export.save .pt2 test models for ExTorch.Export.
+
+Also writes reference (input, output) pairs as raw float32 bytes alongside
+each archive so the Elixir test suite can verify numerical correctness against
+PyTorch, not just shapes.
+"""
 
 import torch
 import torch.nn as nn
@@ -33,14 +38,27 @@ class ConvNet(nn.Module):
         return self.fc(x)
 
 
+def save_tensor_bin(name, tensor):
+    """Save a tensor as raw contiguous float32 bytes (native endian)."""
+    path = os.path.join(FIXTURES_DIR, f"{name}.bin")
+    arr = tensor.detach().cpu().contiguous().float().numpy()
+    with open(path, "wb") as f:
+        f.write(arr.tobytes())
+    print(f"Saved {path} (shape={tuple(arr.shape)})")
+
+
 def export_model(name, model, example_input):
-    """Export a model via torch.export.save and return the output path."""
+    """Export a model via torch.export.save and write reference IO."""
     path = os.path.join(FIXTURES_DIR, f"{name}.pt2")
     model.eval()
     with torch.no_grad():
         exported = torch.export.export(model, (example_input,))
+        reference_output = model(example_input)
     torch.export.save(exported, path)
     print(f"Saved {path}")
+
+    save_tensor_bin(f"{name}_input", example_input)
+    save_tensor_bin(f"{name}_output", reference_output)
 
 
 if __name__ == "__main__":

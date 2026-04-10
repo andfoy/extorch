@@ -44,6 +44,7 @@ target/
 /native/extorch/src/native.rs
 /native/extorch/src/native/native.rs.sum
 
+/priv/native/libtorch*
 /priv/native/libtorch/
 /priv/native/libtorch.zip
 
@@ -53,4 +54,5 @@ target/
 # Test fixtures (generated models)
 /test/fixtures/*.pt
 /test/fixtures/*.pt2
+/test/fixtures/*.bin
 

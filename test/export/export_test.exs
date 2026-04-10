@@ -3,15 +3,32 @@ defmodule ExTorchTest.ExportTest do
 
   @fixtures_dir Path.join([__DIR__, "..", "fixtures"])
 
+  @simple_mlp_path Path.join(@fixtures_dir, "simple_mlp_exported.pt2")
+  @simple_mlp_input_shape {1, 10}
+  @simple_mlp_output_shape {1, 5}
+
+  @convnet_path Path.join(@fixtures_dir, "convnet_exported.pt2")
+  @convnet_input_shape {1, 1, 8, 8}
+  @convnet_output_shape {1, 3}
+
   setup_all do
-    path = Path.join(@fixtures_dir, "simple_mlp_exported.pt2")
-    unless File.exists?(path), do: flunk("Run: .venv/bin/python test/fixtures/generate_export_models.py")
+    unless File.exists?(@simple_mlp_path),
+      do: flunk("Run: .venv/bin/python test/fixtures/generate_export_models.py")
+
+    # Generated DSL tests recompile a fixed module name across runs.
+    Code.put_compiler_option(:ignore_module_conflict, true)
     :ok
+  end
+
+  defp load_reference(name, shape) do
+    path = Path.join(@fixtures_dir, "#{name}.bin")
+    binary = File.read!(path)
+    ExTorch.Native.from_binary(binary, shape, :float32)
   end
 
   describe "read_schema/1" do
     test "reads graph and weights metadata" do
-      schema = ExTorch.Export.read_schema(Path.join(@fixtures_dir, "simple_mlp_exported.pt2"))
+      schema = ExTorch.Export.read_schema(@simple_mlp_path)
 
       assert is_list(schema.graph)
       assert length(schema.graph) == 3
@@ -25,7 +42,7 @@ defmodule ExTorchTest.ExportTest do
     end
 
     test "reads weight metadata" do
-      schema = ExTorch.Export.read_schema(Path.join(@fixtures_dir, "simple_mlp_exported.pt2"))
+      schema = ExTorch.Export.read_schema(@simple_mlp_path)
 
       assert map_size(schema.weights) == 4
       assert Map.has_key?(schema.weights, "fc1.weight")
@@ -36,7 +53,7 @@ defmodule ExTorchTest.ExportTest do
 
   describe "read_weights/1" do
     test "loads weight tensors" do
-      weights = ExTorch.Export.read_weights(Path.join(@fixtures_dir, "simple_mlp_exported.pt2"))
+      weights = ExTorch.Export.read_weights(@simple_mlp_path)
 
       assert map_size(weights) == 4
       assert %ExTorch.Tensor{} = weights["fc1.weight"]
@@ -48,20 +65,38 @@ defmodule ExTorchTest.ExportTest do
   end
 
   describe "load/1 and forward/2" do
-    test "loads and runs inference on an exported model" do
-      model = ExTorch.Export.load(Path.join(@fixtures_dir, "simple_mlp_exported.pt2"))
+    test "MLP interpreter output matches PyTorch reference" do
+      model = ExTorch.Export.load(@simple_mlp_path)
       assert %ExTorch.Export.Model{} = model
       assert length(model.user_inputs) == 1
       assert length(model.param_inputs) == 4
 
-      input = ExTorch.randn({1, 10})
+      input = load_reference("simple_mlp_exported_input", @simple_mlp_input_shape)
+      expected = load_reference("simple_mlp_exported_output", @simple_mlp_output_shape)
+
       output = ExTorch.Export.forward(model, [input])
       assert %ExTorch.Tensor{} = output
-      assert output.size == {1, 5}
+      assert output.size == @simple_mlp_output_shape
+
+      assert ExTorch.allclose(output, expected, 1.0e-5, 1.0e-6),
+             "MLP interpreter output diverged from PyTorch reference"
+    end
+
+    test "ConvNet interpreter output matches PyTorch reference" do
+      model = ExTorch.Export.load(@convnet_path)
+
+      input = load_reference("convnet_exported_input", @convnet_input_shape)
+      expected = load_reference("convnet_exported_output", @convnet_output_shape)
+
+      output = ExTorch.Export.forward(model, [input])
+      assert output.size == @convnet_output_shape
+
+      assert ExTorch.allclose(output, expected, 1.0e-5, 1.0e-6),
+             "ConvNet interpreter output diverged from PyTorch reference"
     end
 
     test "handles batch inputs" do
-      model = ExTorch.Export.load(Path.join(@fixtures_dir, "simple_mlp_exported.pt2"))
+      model = ExTorch.Export.load(@simple_mlp_path)
       input = ExTorch.randn({8, 10})
       output = ExTorch.Export.forward(model, [input])
       assert output.size == {8, 5}
@@ -70,10 +105,7 @@ defmodule ExTorchTest.ExportTest do
 
   describe "to_elixir/2" do
     test "generates valid DSL source" do
-      source = ExTorch.Export.to_elixir(
-        Path.join(@fixtures_dir, "simple_mlp_exported.pt2"),
-        "GeneratedMLP"
-      )
+      source = ExTorch.Export.to_elixir(@simple_mlp_path, "GeneratedMLP")
 
       assert String.contains?(source, "defmodule GeneratedMLP do")
       assert String.contains?(source, "use ExTorch.NN.Module")
@@ -82,6 +114,23 @@ defmodule ExTorchTest.ExportTest do
       assert String.contains?(source, "out_features: 20")
       assert String.contains?(source, "deflayer :relu, ExTorch.NN.ReLU")
       assert String.contains?(source, "deflayer :fc2, ExTorch.NN.Linear")
+    end
+
+    test "generated DSL compiles, loads weights, and matches PyTorch reference" do
+      source = ExTorch.Export.to_elixir(@simple_mlp_path, "GeneratedMLPNumeric")
+      [{module, _bytecode} | _] = Code.compile_string(source)
+      assert module == GeneratedMLPNumeric
+
+      model = module.load_weights_from_export(@simple_mlp_path)
+
+      input = load_reference("simple_mlp_exported_input", @simple_mlp_input_shape)
+      expected = load_reference("simple_mlp_exported_output", @simple_mlp_output_shape)
+
+      output = module.forward(model, input)
+      assert output.size == @simple_mlp_output_shape
+
+      assert ExTorch.allclose(output, expected, 1.0e-5, 1.0e-6),
+             "Generated DSL output diverged from PyTorch reference"
     end
   end
 end

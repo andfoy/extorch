@@ -139,3 +139,225 @@ void nn_copy_parameters(
 std::shared_ptr<CrossNNModule> nn_to_device(
     const std::shared_ptr<CrossNNModule> &module,
     Device s_device);
+
+// ============================================================================
+// Direct ATen functional ops (Phase A)
+//
+// These bypass the torch::nn::Module wrapping and call libtorch's at::
+// functional API directly. They are stateless: parameters are passed in by
+// value rather than copied into a layer object every call. Used by
+// ExTorch.Export's interpreter for high-overhead ops where the per-call
+// Module construction was the bottleneck.
+// ============================================================================
+
+TensorList aten_lstm(
+    const std::shared_ptr<CrossTensor> &input,
+    TensorList hx,
+    TensorList params,
+    bool has_biases,
+    int64_t num_layers,
+    double dropout,
+    bool train,
+    bool bidirectional,
+    bool batch_first);
+
+TensorList aten_gru(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &hx,
+    TensorList params,
+    bool has_biases,
+    int64_t num_layers,
+    double dropout,
+    bool train,
+    bool bidirectional,
+    bool batch_first);
+
+std::shared_ptr<CrossTensor> aten_transformer_encoder_layer_fwd(
+    const std::shared_ptr<CrossTensor> &src,
+    int64_t embed_dim,
+    int64_t num_heads,
+    const std::shared_ptr<CrossTensor> &qkv_weight,
+    const std::shared_ptr<CrossTensor> &qkv_bias,
+    const std::shared_ptr<CrossTensor> &proj_weight,
+    const std::shared_ptr<CrossTensor> &proj_bias,
+    bool use_gelu,
+    bool norm_first,
+    double eps,
+    const std::shared_ptr<CrossTensor> &norm_weight_1,
+    const std::shared_ptr<CrossTensor> &norm_bias_1,
+    const std::shared_ptr<CrossTensor> &norm_weight_2,
+    const std::shared_ptr<CrossTensor> &norm_bias_2,
+    const std::shared_ptr<CrossTensor> &ffn_weight_1,
+    const std::shared_ptr<CrossTensor> &ffn_bias_1,
+    const std::shared_ptr<CrossTensor> &ffn_weight_2,
+    const std::shared_ptr<CrossTensor> &ffn_bias_2);
+
+std::shared_ptr<CrossTensor> aten_scaled_dot_product_attention(
+    const std::shared_ptr<CrossTensor> &query,
+    const std::shared_ptr<CrossTensor> &key,
+    const std::shared_ptr<CrossTensor> &value,
+    double dropout_p,
+    bool is_causal,
+    double scale,
+    bool has_scale);
+
+TensorList aten_native_multi_head_attention(
+    const std::shared_ptr<CrossTensor> &query,
+    const std::shared_ptr<CrossTensor> &key,
+    const std::shared_ptr<CrossTensor> &value,
+    int64_t embed_dim,
+    int64_t num_head,
+    const std::shared_ptr<CrossTensor> &qkv_weight,
+    const std::shared_ptr<CrossTensor> &qkv_bias,
+    const std::shared_ptr<CrossTensor> &proj_weight,
+    const std::shared_ptr<CrossTensor> &proj_bias,
+    bool need_weights,
+    bool average_attn_weights);
+
+// ============================================================================
+// Direct ATen functional ops (Phase B): conv, norm, pool
+//
+// These replace the per-call torch::nn::Module construction in the
+// interpreter. Optional tensors are passed via a TensorList of 0 or 1
+// elements (size 0 = nullopt). Spatial args (stride/padding/dilation/etc.)
+// are passed as Vec<i64> for per-axis support.
+// ============================================================================
+
+std::shared_ptr<CrossTensor> aten_conv2d(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &weight,
+    TensorList bias_opt,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> dilation,
+    int64_t groups);
+
+std::shared_ptr<CrossTensor> aten_conv1d(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &weight,
+    TensorList bias_opt,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> dilation,
+    int64_t groups);
+
+std::shared_ptr<CrossTensor> aten_conv3d(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &weight,
+    TensorList bias_opt,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> dilation,
+    int64_t groups);
+
+std::shared_ptr<CrossTensor> aten_convolution(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &weight,
+    TensorList bias_opt,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> dilation,
+    bool transposed,
+    rust::Vec<int64_t> output_padding,
+    int64_t groups);
+
+std::shared_ptr<CrossTensor> aten_conv_transpose2d(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &weight,
+    TensorList bias_opt,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> output_padding,
+    int64_t groups,
+    rust::Vec<int64_t> dilation);
+
+std::shared_ptr<CrossTensor> aten_batch_norm(
+    const std::shared_ptr<CrossTensor> &input,
+    TensorList weight_opt,
+    TensorList bias_opt,
+    TensorList running_mean_opt,
+    TensorList running_var_opt,
+    bool training,
+    double momentum,
+    double eps);
+
+std::shared_ptr<CrossTensor> aten_layer_norm(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> normalized_shape,
+    TensorList weight_opt,
+    TensorList bias_opt,
+    double eps);
+
+std::shared_ptr<CrossTensor> aten_group_norm(
+    const std::shared_ptr<CrossTensor> &input,
+    int64_t num_groups,
+    TensorList weight_opt,
+    TensorList bias_opt,
+    double eps);
+
+std::shared_ptr<CrossTensor> aten_max_pool2d(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> kernel_size,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> dilation,
+    bool ceil_mode);
+
+std::shared_ptr<CrossTensor> aten_avg_pool2d(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> kernel_size,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> padding,
+    bool ceil_mode,
+    bool count_include_pad);
+
+std::shared_ptr<CrossTensor> aten_adaptive_avg_pool2d(
+    const std::shared_ptr<CrossTensor> &input,
+    rust::Vec<int64_t> output_size);
+
+// Thread pool inspection / control
+int64_t aten_get_num_threads();
+void aten_set_num_threads(int64_t n);
+int64_t aten_get_num_interop_threads();
+void aten_set_num_interop_threads(int64_t n);
+bool aten_mkldnn_is_available();
+
+// Identity (used to measure pure NIF marshaling overhead vs op kernel time)
+std::shared_ptr<CrossTensor> aten_noop(const std::shared_ptr<CrossTensor> &t);
+
+// Backend / context introspection
+rust::String aten_backend_info();
+
+// Global grad-enabled flag (PyTorch calls this torch::GradMode).
+// When false, autograd skips tracking entirely and MKLDNN dispatch can
+// pick inference-mode primitives. Setting this process-wide avoids
+// per-call NoGradGuard overhead in the hot op path.
+bool aten_is_grad_enabled();
+void aten_set_grad_enabled(bool enabled);
+
+// Clear the current OS thread's CPU affinity mask so OpenMP workers
+// spawned by libtorch can use all cores. BEAM scheduler threads are
+// typically bound to specific cores, and nested OpenMP workers inherit
+// that mask — causing oversubscription on one core.
+bool aten_clear_cpu_affinity();
+
+// MKLDNN weight pre-packing: reorder an NCHW conv weight into the
+// MKLDNN blocked format that oneDNN prefers, once at load time, so
+// the per-call reorder cost disappears from every forward pass.
+std::shared_ptr<CrossTensor> aten_mkldnn_reorder_conv2d_weight(
+    const std::shared_ptr<CrossTensor> &weight,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> dilation,
+    int64_t groups);
+
+// Run a convolution using an MKLDNN pre-packed weight. Skips the
+// at::conv2d dispatch overhead and the per-call weight reorder.
+std::shared_ptr<CrossTensor> aten_mkldnn_convolution(
+    const std::shared_ptr<CrossTensor> &input,
+    const std::shared_ptr<CrossTensor> &packed_weight,
+    TensorList bias_opt,
+    rust::Vec<int64_t> padding,
+    rust::Vec<int64_t> stride,
+    rust::Vec<int64_t> dilation,
+    int64_t groups);
