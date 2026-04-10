@@ -55,6 +55,7 @@ defmodule ExTorch.AOTI do
   """
   @spec load(String.t(), keyword()) :: Model.t()
   def load(path, opts \\ []) do
+    ensure_libtorch_loaded()
     model_name = Keyword.get(opts, :model_name, "model")
     device_index = Keyword.get(opts, :device_index, -1)
     ExTorch.Native.aoti_load(path, model_name, device_index)
@@ -99,5 +100,46 @@ defmodule ExTorch.AOTI do
   @spec constant_names(Model.t()) :: [String.t()]
   def constant_names(%Model{} = model) do
     ExTorch.Native.aoti_get_constant_fqns(model)
+  end
+
+  @libtorch_loaded_key {__MODULE__, :libtorch_loaded}
+
+  # AOTI-compiled .so files inside .pt2 packages link against libtorch.so
+  # but don't have rpath set (they're compiled by torch.inductor). Pre-load
+  # the libtorch shared libraries with RTLD_GLOBAL so dlopen finds them.
+  defp ensure_libtorch_loaded do
+    case :persistent_term.get(@libtorch_loaded_key, false) do
+      true -> :ok
+      false ->
+        lib_dir = libtorch_lib_dir()
+        for lib <- ["libc10.so", "libtorch_cpu.so", "libtorch.so"] do
+          path = Path.join(lib_dir, lib)
+          if File.exists?(path) do
+            try do
+              ExTorch.Native.load_torch_library(path)
+            rescue
+              _ -> :ok
+            end
+          end
+        end
+        # Also load CUDA libs if available
+        for lib <- ["libc10_cuda.so", "libtorch_cuda.so"] do
+          path = Path.join(lib_dir, lib)
+          if File.exists?(path) do
+            try do
+              ExTorch.Native.load_torch_library(path)
+            rescue
+              _ -> :ok
+            end
+          end
+        end
+        :persistent_term.put(@libtorch_loaded_key, true)
+        :ok
+    end
+  end
+
+  defp libtorch_lib_dir do
+    priv = :code.priv_dir(:extorch) |> to_string()
+    Path.join([priv, "native", "libtorch", "lib"])
   end
 end
