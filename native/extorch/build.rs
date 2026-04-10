@@ -304,6 +304,45 @@ fn main() {
                   CUDA_HOME to your CUDA SDK root (e.g. /usr/local/cuda).");
     }
 
+    // Limit parallel C++ compilation jobs. With CUDA headers in the
+    // include path, each cc1plus instance compiling a wrapper .cc file
+    // can use 5–10 GB of RAM (CUDA SDK headers are massive template-
+    // heavy code).
+    //
+    // The `cc` crate has two parallelism modes:
+    //   1. Inherited jobserver (from Cargo via CARGO_MAKEFLAGS) — ignores NUM_JOBS
+    //   2. In-process jobserver (fallback) — reads NUM_JOBS
+    // Since build.rs always runs under Cargo, mode 1 is always active and
+    // NUM_JOBS alone has no effect. We must remove the inherited jobserver
+    // env vars so `cc` falls back to mode 2, which respects NUM_JOBS.
+    //
+    // Cap parallel C++ jobs at 2 (~10–20 GB peak) as a safe default.
+    // Cargo sets NUM_JOBS to num_cpus by default, so we must override it
+    // unconditionally. Users can set EXTORCH_CC_JOBS to bypass this cap.
+    let max_jobs: usize = env::var("EXTORCH_CC_JOBS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(2);
+    let current_jobs: usize = env::var("NUM_JOBS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(max_jobs);
+    let jobs = current_jobs.min(max_jobs);
+    env::set_var("NUM_JOBS", jobs.to_string());
+    println!(
+        "cargo:warning=extorch: capping C++ compile parallelism to {} jobs \
+         (override with EXTORCH_CC_JOBS env var)",
+        jobs
+    );
+
+    // Remove the Cargo-inherited jobserver so the `cc` crate falls back to
+    // its in-process jobserver that actually reads NUM_JOBS. Save and
+    // restore afterwards so the rest of the build is unaffected.
+    let saved_cargo_makeflags = env::var_os("CARGO_MAKEFLAGS");
+    let saved_makeflags = env::var_os("MAKEFLAGS");
+    env::remove_var("CARGO_MAKEFLAGS");
+    env::remove_var("MAKEFLAGS");
+
     cxx_build::bridge("src/native.rs")
         .file("src/csrc/wrapper.cc")
         .file("src/csrc/utils.cc")
@@ -324,6 +363,14 @@ fn main() {
         .warnings(false)
         .extra_warnings(false)
         .compile("torch-wrapper");
+
+    // Restore jobserver env vars.
+    if let Some(val) = saved_cargo_makeflags {
+        env::set_var("CARGO_MAKEFLAGS", val);
+    }
+    if let Some(val) = saved_makeflags {
+        env::set_var("MAKEFLAGS", val);
+    }
 
     // TODO: See why Cargo is not linking against libtorch directly
     println!("cargo:rustc-link-lib=dylib=torch");

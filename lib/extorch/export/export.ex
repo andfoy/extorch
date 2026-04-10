@@ -54,11 +54,12 @@ defmodule ExTorch.Export do
             param_inputs: [String.t()],
             user_inputs: [String.t()],
             compiled_graph: [{[String.t()], (map() -> any())}],
-            initial_values: map()
+            initial_values: map(),
+            device: atom() | {atom(), non_neg_integer()}
           }
 
     defstruct [:schema, :weights, :param_inputs, :user_inputs,
-               :compiled_graph, :initial_values]
+               :compiled_graph, :initial_values, device: :cpu]
   end
 
   @doc """
@@ -124,7 +125,7 @@ defmodule ExTorch.Export do
     # `build_runner/2` on the "torch.ops.aten.conv2d.default" branch).
     # Non-hot ops fall through to a generic closure that
     # dispatches via the legacy execute_node/2 path.
-    compiled_graph = Enum.map(schema.graph, &compile_node(&1, initial_values))
+    compiled_graph = Enum.map(schema.graph, &compile_node(&1, initial_values, device))
 
     %Model{
       schema: schema,
@@ -132,7 +133,8 @@ defmodule ExTorch.Export do
       param_inputs: param_inputs,
       user_inputs: user_inputs,
       compiled_graph: compiled_graph,
-      initial_values: initial_values
+      initial_values: initial_values,
+      device: device
     }
   end
 
@@ -256,8 +258,8 @@ defmodule ExTorch.Export do
   # specialized.
   # ============================================================================
 
-  defp compile_node(node, initial_values) do
-    {node.outputs, build_runner(node, initial_values)}
+  defp compile_node(node, initial_values, device) do
+    {node.outputs, build_runner(node, initial_values, device)}
   end
 
   # Helpers used at compile time to extract tensor refs from node.inputs
@@ -299,11 +301,11 @@ defmodule ExTorch.Export do
   end
 
   # Close over a fallback that invokes the legacy dynamic dispatch.
-  defp fallback_runner(node) do
-    fn values -> execute_node(node, values) end
+  defp fallback_runner(node, device) do
+    fn values -> execute_node(node, values, device) end
   end
 
-  defp build_runner(node, initial_values) do
+  defp build_runner(node, initial_values, device) do
     i = node.inputs
     case node.target do
       # ======== Convolution ========
@@ -596,7 +598,7 @@ defmodule ExTorch.Export do
       # ======== Everything else: fall back to legacy dynamic dispatch ========
       _ ->
         _ = initial_values
-        fallback_runner(node)
+        fallback_runner(node, device)
     end
   end
 
@@ -610,12 +612,12 @@ defmodule ExTorch.Export do
       {"other", {:float, val}} ->
         fn v ->
           s = Map.fetch!(v, self_ref)
-          op.(s, ExTorch.full(s.size, val))
+          op.(s, ExTorch.full(s.size, val, device: s.device))
         end
       {"other", {:int, val}} ->
         fn v ->
           s = Map.fetch!(v, self_ref)
-          op.(s, ExTorch.full(s.size, val))
+          op.(s, ExTorch.full(s.size, val, device: s.device))
         end
       _ -> raise "Missing 'other' input for binary op"
     end
@@ -655,7 +657,7 @@ defmodule ExTorch.Export do
   # Graph interpreter: ATen op dispatch
   # ============================================================================
 
-  defp execute_node(node, values) do
+  defp execute_node(node, values, device) do
     i = node.inputs
     case node.target do
       # ==== Linear algebra ====
@@ -717,10 +719,14 @@ defmodule ExTorch.Export do
       "torch.ops.aten.exp.default" -> ExTorch.tensor_exp(resolve(i, "self", values))
       "torch.ops.aten.log.default" -> ExTorch.tensor_log(resolve(i, "self", values))
       "torch.ops.aten.sqrt.default" -> ExTorch.tensor_sqrt(resolve(i, "self", values))
-      "torch.ops.aten.rsqrt.default" -> ExTorch.tensor_div(ExTorch.ones(resolve(i, "self", values).size), ExTorch.tensor_sqrt(resolve(i, "self", values)))
+      "torch.ops.aten.rsqrt.default" ->
+        s = resolve(i, "self", values)
+        ExTorch.tensor_div(ExTorch.ones(s.size, device: s.device), ExTorch.tensor_sqrt(s))
       "torch.ops.aten.sin.default" -> ExTorch.tensor_sin(resolve(i, "self", values))
       "torch.ops.aten.cos.default" -> ExTorch.tensor_cos(resolve(i, "self", values))
-      "torch.ops.aten.reciprocal.default" -> ExTorch.tensor_div(ExTorch.ones(resolve(i, "self", values).size), resolve(i, "self", values))
+      "torch.ops.aten.reciprocal.default" ->
+        s = resolve(i, "self", values)
+        ExTorch.tensor_div(ExTorch.ones(s.size, device: s.device), s)
 
       # ==== Clamping ====
       "torch.ops.aten.clamp.default" ->
@@ -797,7 +803,7 @@ defmodule ExTorch.Export do
       # ==== Tensor creation / manipulation ====
       "torch.ops.aten.zeros.default" ->
         size = resolve_int_list_flex(i, "size", [1])
-        ExTorch.zeros(List.to_tuple(size))
+        ExTorch.zeros(List.to_tuple(size), device: device)
       "torch.ops.aten.clone.default" -> ExTorch.clone(resolve(i, "self", values))
       "torch.ops.aten._to_copy.default" -> ExTorch.clone(resolve(i, "self", values))
       "torch.ops.aten.alias.default" -> resolve(i, "self", values)
@@ -1119,8 +1125,8 @@ defmodule ExTorch.Export do
   defp resolve_tensor_or_scalar(inputs, name, values, ref_tensor) do
     case List.keyfind(inputs, name, 0) do
       {^name, {:tensor, ref}} -> Map.fetch!(values, ref)
-      {^name, {:float, val}} -> ExTorch.full(ref_tensor.size, val)
-      {^name, {:int, val}} -> ExTorch.full(ref_tensor.size, val)
+      {^name, {:float, val}} -> ExTorch.full(ref_tensor.size, val, device: ref_tensor.device)
+      {^name, {:int, val}} -> ExTorch.full(ref_tensor.size, val, device: ref_tensor.device)
       _ -> raise "Missing input '#{name}'"
     end
   end
