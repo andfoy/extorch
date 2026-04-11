@@ -132,7 +132,7 @@ defmodule ExTorch.Export do
     # This resolves all op schemas and converts string refs to integer
     # indices at load time, eliminating per-op overhead at inference time.
     all_names = Map.keys(initial_values) ++ user_inputs
-    instructions = compile_graph_instructions(schema.graph)
+    instructions = compile_graph_instructions(schema.graph, device)
 
     native_compiled = try do
       ExTorch.Native.compile_graph(instructions, all_names, schema.outputs)
@@ -265,7 +265,7 @@ defmodule ExTorch.Export do
         inputs
 
     # Compile the graph into a flat instruction stream
-    instructions = compile_graph_instructions(model.schema.graph)
+    instructions = compile_graph_instructions(model.schema.graph, model.device)
 
     # Validate instructions before passing to NIF (recursive for lists)
     validate_instructions(instructions)
@@ -286,7 +286,7 @@ defmodule ExTorch.Export do
   end
 
   # Compile schema graph nodes into a flat instruction stream for execute_graph.
-  defp compile_graph_instructions(graph_nodes) do
+  defp compile_graph_instructions(graph_nodes, device \\ :cpu) do
     Enum.flat_map(graph_nodes, fn node ->
       {op_name, overload} = parse_op_target(node.target)
       num_args = length(node.inputs)
@@ -299,7 +299,7 @@ defmodule ExTorch.Export do
       outputs = Enum.map(node.outputs, &{:output, &1})
 
       args = Enum.flat_map(node.inputs, fn {name, value} ->
-        [{:arg_name, name} | encode_arg(value)]
+        [{:arg_name, name} | encode_arg(value, device)]
       end)
 
       header ++ outputs ++ args
@@ -318,53 +318,49 @@ defmodule ExTorch.Export do
     end
   end
 
-  defp encode_arg({:tensor, ref}), do: [{:ref, ref}]
-  defp encode_arg({:int, v}), do: [{:int, v}]
-  defp encode_arg({:float, v}), do: [{:float, v}]
-  defp encode_arg({:bool, v}), do: [{:bool, v}]
-  defp encode_arg(:none), do: [:none]
-  defp encode_arg({:raw, %{"as_ints" => ints}}) do
-    items = Enum.map(ints, &{:int, &1})
-    [{:list, items}]
+  defp encode_arg(val, device \\ :cpu)
+  defp encode_arg({:tensor, ref}, _device), do: [{:ref, ref}]
+  defp encode_arg({:int, v}, _device), do: [{:int, v}]
+  defp encode_arg({:float, v}, _device), do: [{:float, v}]
+  defp encode_arg({:bool, v}, _device), do: [{:bool, v}]
+  defp encode_arg(:none, _device), do: [:none]
+  defp encode_arg({:raw, %{"as_ints" => ints}}, _device) do
+    [{:list, Enum.map(ints, &{:int, &1})}]
   end
-  defp encode_arg({:raw, %{"as_floats" => floats}}) do
-    items = Enum.map(floats, &{:float, &1})
-    [{:list, items}]
+  defp encode_arg({:raw, %{"as_floats" => floats}}, _device) do
+    [{:list, Enum.map(floats, &{:float, &1})}]
   end
-  defp encode_arg({:raw, %{"as_tensors" => tensors}}) do
-    items = Enum.map(tensors, fn %{"name" => name} -> {:ref, name} end)
-    [{:list, items}]
+  defp encode_arg({:raw, %{"as_tensors" => tensors}}, _device) do
+    [{:list, Enum.map(tensors, fn %{"name" => name} -> {:ref, name} end)}]
   end
   # torch.export JSON uses a different ScalarType encoding than the C++ enum.
-  # Map export JSON values to C++ at::ScalarType enum values.
   @export_to_cpp_scalar_type %{
-    0 => 0,   # uint8
-    1 => 1,   # int8
-    2 => 2,   # int16
-    3 => 3,   # int32
-    4 => 4,   # int64
-    5 => 5,   # float16
+    0 => 0, 1 => 1, 2 => 2, 3 => 3, 4 => 4, 5 => 5,
     6 => 6,   # float32
     7 => 6,   # float32 (export format: 7 = torch.float = float32)
     8 => 7,   # float64
-    9 => 8,   # complex32
-    10 => 9,  # complex64
-    11 => 10, # complex128
-    12 => 11, # bool
-    15 => 15  # bfloat16
+    9 => 8, 10 => 9, 11 => 10, 12 => 11, 15 => 15
   }
-  defp encode_arg({:raw, %{"as_scalar_type" => dtype}}) do
-    cpp_dtype = Map.get(@export_to_cpp_scalar_type, dtype, dtype)
-    [{:int, cpp_dtype}]
+  defp encode_arg({:raw, %{"as_scalar_type" => dtype}}, _device) do
+    [{:int, Map.get(@export_to_cpp_scalar_type, dtype, dtype)}]
   end
-  defp encode_arg({:raw, %{"as_device" => %{"type" => type, "index" => idx}}}) do
-    if idx, do: [{:device, {type, idx}}], else: [{:device, type}]
+  # Device arg: override with the target device from load/2.
+  # The export graph hardcodes device: "cpu" but the model may be
+  # loaded on CUDA — all tensor creation must use the target device.
+  defp encode_arg({:raw, %{"as_device" => _}}, :cpu) do
+    [{:device, "cpu"}]
   end
-  defp encode_arg({:raw, nil}), do: [:none]
-  defp encode_arg({:raw, v}) when is_integer(v), do: [{:int, v}]
-  defp encode_arg({:raw, v}) when is_float(v), do: [{:float, v}]
-  defp encode_arg({:raw, v}) when is_boolean(v), do: [{:bool, v}]
-  defp encode_arg({:raw, _}), do: [:none]
+  defp encode_arg({:raw, %{"as_device" => _}}, :cuda) do
+    [{:device, {"cuda", 0}}]
+  end
+  defp encode_arg({:raw, %{"as_device" => _}}, {:cuda, idx}) do
+    [{:device, {"cuda", idx}}]
+  end
+  defp encode_arg({:raw, nil}, _device), do: [:none]
+  defp encode_arg({:raw, v}, _device) when is_integer(v), do: [{:int, v}]
+  defp encode_arg({:raw, v}, _device) when is_float(v), do: [{:float, v}]
+  defp encode_arg({:raw, v}, _device) when is_boolean(v), do: [{:bool, v}]
+  defp encode_arg({:raw, _}, _device), do: [:none]
 
   defp validate_instructions(instructions) do
     Enum.each(instructions, fn
