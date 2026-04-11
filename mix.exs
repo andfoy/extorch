@@ -4,7 +4,7 @@ defmodule ExTorch.MixProject do
   def project do
     [
       app: :extorch,
-      version: "0.3.0",
+      version: "0.4.0",
       elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -57,7 +57,7 @@ defmodule ExTorch.MixProject do
   end
 
   defp description do
-    "Production ML model serving on the BEAM. Load TorchScript models, define neural networks with an Elixir DSL, and monitor serving performance with telemetry."
+    "Production ML model serving on the BEAM. Serve PyTorch models faster than Python with pre-compiled graph execution, AOTI compiled inference, and OTP fault tolerance."
   end
 
   defp package do
@@ -65,7 +65,7 @@ defmodule ExTorch.MixProject do
       # This option is only needed when you don't want to use the OTP application name
       name: "extorch",
       # These are the default files included in the package
-      files: ~w(lib priv native .formatter.exs mix.exs README* LICENSE*),
+      files: ~w(lib priv native .formatter.exs mix.exs README* LICENSE* CHANGELOG* CLAUDE.md),
       exclude_patterns: [
         "native/extorch/target",
         "native/extorch/.cargo",
