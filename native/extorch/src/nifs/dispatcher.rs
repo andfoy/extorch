@@ -16,6 +16,10 @@ mod atoms {
         nil,
         device,
         string,
+        begin_op,
+        overload,
+        output,
+        ref_tag = "ref",
     }
 }
 
@@ -159,6 +163,141 @@ pub fn list_registered_ops(ns_prefix: String) -> NifResult<Vec<String>> {
     Ok(ops.into_iter().map(|s| s.to_string()).collect())
 }
 
+/// Execute an entire computation graph in a single NIF call.
+///
+/// Eliminates per-node NIF boundary crossings by running the full graph
+/// loop in C++. The graph is encoded as a flat instruction stream.
+///
+/// Args:
+///   graph: list of tagged instructions (see build_graph_instructions)
+///   initial_names: list of value map keys
+///   initial_tensors: list of tensors for those keys
+///   output_names: which values to return
+#[rustler::nif(schedule = "DirtyCpu")]
+pub fn execute_graph<'a>(
+    env: Env<'a>,
+    graph: Vec<Term<'a>>,
+    initial_names: Vec<String>,
+    initial_tensors: Vec<TensorStruct<'a>>,
+    output_names: Vec<String>,
+) -> NifResult<Term<'a>> {
+    // Build the instruction stream
+    let mut instructions: Vec<torch::IValueNode> = Vec::new();
+    for term in &graph {
+        decode_graph_instruction(env, *term, &mut instructions)?;
+    }
+
+    // Build tensor list for initial values
+    let tensor_list = make_tensor_list(&initial_tensors);
+
+    let result = torch::execute_graph(
+        instructions,
+        initial_names,
+        tensor_list,
+        output_names,
+    ).map_err(cxx_err_to_nif)?;
+
+    Ok(ivalue_flat_to_term(env, &result))
+}
+
+/// Build a TensorList from a slice of TensorStructs.
+fn make_tensor_list(inputs: &[TensorStruct]) -> torch::TensorList {
+    let values: Vec<torch::TensorOut> = inputs
+        .iter()
+        .map(|t| torch::TensorOut {
+            tensor: t.resource.tensor.clone(),
+            used: true,
+        })
+        .collect();
+    torch::TensorList { values, used: true }
+}
+
+/// Decode a graph instruction term into IValueNode entries.
+///
+/// Instruction formats:
+///   {:begin_op, target, num_args}
+///   {:overload, name}
+///   {:output, name}
+///   {:ref, name}            — tensor reference (look up in values)
+///   {:tensor, tensor_struct} — inline tensor
+///   {:int, value}
+///   {:float, value}
+///   {:bool, value}
+///   :none
+///   {:list, [items]}
+///   {:device, dev}
+fn decode_graph_instruction<'a>(
+    env: Env<'a>,
+    term: Term<'a>,
+    nodes: &mut Vec<torch::IValueNode>,
+) -> NifResult<()> {
+    // Try 3-tuple first: {:begin_op, target, num_args}
+    if let Ok((tag, target, num_args)) = term.decode::<(Atom, String, i64)>() {
+        if tag == atoms::begin_op() {
+            nodes.push(torch::IValueNode {
+                tag: 20,
+                tensor: SharedPtr::null(),
+                int_val: 0,
+                float_val: 0.0,
+                bool_val: false,
+                string_val: target,
+                parent_idx: -1,
+                child_count: num_args,
+            });
+            return Ok(());
+        }
+    }
+
+    // Try 2-tuple tagged values
+    if let Ok((tag, value)) = term.decode::<(Atom, Term<'a>)>() {
+        if tag == atoms::overload() {
+            let name: String = value.decode()?;
+            nodes.push(torch::IValueNode {
+                tag: 22,
+                tensor: SharedPtr::null(),
+                int_val: 0,
+                float_val: 0.0,
+                bool_val: false,
+                string_val: name,
+                parent_idx: -1,
+                child_count: 0,
+            });
+        } else if tag == atoms::output() {
+            let name: String = value.decode()?;
+            nodes.push(torch::IValueNode {
+                tag: 21,
+                tensor: SharedPtr::null(),
+                int_val: 0,
+                float_val: 0.0,
+                bool_val: false,
+                string_val: name,
+                parent_idx: -1,
+                child_count: 0,
+            });
+        } else if tag == atoms::ref_tag() {
+            let name: String = value.decode()?;
+            nodes.push(torch::IValueNode {
+                tag: 10,
+                tensor: SharedPtr::null(),
+                int_val: 0,
+                float_val: 0.0,
+                bool_val: false,
+                string_val: name,
+                parent_idx: -1,
+                child_count: 0,
+            });
+        } else {
+            // Delegate to the regular arg decoder for tensor/int/float/bool/list/device
+            decode_arg_to_nodes(env, term, nodes)?;
+        }
+        return Ok(());
+    }
+
+    // Bare atom (:none)
+    decode_arg_to_nodes(env, term, nodes)?;
+    Ok(())
+}
+
 /// Recursively convert Elixir tagged arg terms into IValueNode entries.
 fn build_ivalue_nodes<'a>(
     env: Env<'a>,
@@ -214,6 +353,19 @@ fn decode_arg_to_nodes<'a>(
                 float_val: 0.0,
                 bool_val: false,
                 string_val: v,
+                parent_idx: -1,
+                child_count: 0,
+            });
+        } else if tag == atoms::ref_tag() {
+            // Tensor reference — used inside list args in execute_graph
+            let name: String = value.decode()?;
+            nodes.push(torch::IValueNode {
+                tag: 10,
+                tensor: SharedPtr::null(),
+                int_val: 0,
+                float_val: 0.0,
+                bool_val: false,
+                string_val: name,
                 parent_idx: -1,
                 child_count: 0,
             });

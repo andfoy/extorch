@@ -13,3 +13,11 @@ fn dispatch_op(
 
 /// List ops registered with the dispatcher matching a namespace prefix.
 fn list_registered_ops(ns_prefix: String) -> Result<Vec<String>>;
+
+/// Execute an entire computation graph in a single C++ call.
+fn execute_graph(
+    graph: Vec<IValueNode>,
+    initial_names: Vec<String>,
+    initial_tensors: TensorList,
+    output_names: Vec<String>,
+) -> Result<IValueFlat>;

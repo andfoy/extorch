@@ -189,6 +189,143 @@ defmodule ExTorch.Export do
   end
 
   @doc """
+  Run inference using the native graph executor.
+
+  Compiles the schema graph into an instruction stream and executes the
+  entire graph in a single NIF call via `execute_graph`, eliminating
+  per-node NIF boundary crossings. This is significantly faster than
+  `forward/2` for high-node-count models (e.g., ViT with 430 nodes)
+  while still supporting all ops through the `c10::Dispatcher`.
+
+  Falls back gracefully for ops registered via `ExTorch.Export.OpRegistry`
+  since those are also dispatched through the same C++ dispatcher.
+
+      model = ExTorch.Export.load("vit_b_16.pt2", device: :cuda)
+      input = ExTorch.Tensor.to(input, device: :cuda)
+      output = ExTorch.Export.forward_native(model, [input])
+  """
+  @spec forward_native(Model.t(), [ExTorch.Tensor.t()]) ::
+          ExTorch.Tensor.t() | [ExTorch.Tensor.t()]
+  def forward_native(%Model{} = model, inputs) when is_list(inputs) do
+    # Build the values map: param names -> tensors
+    all_names =
+      Map.keys(model.initial_values) ++ model.user_inputs
+
+    all_tensors =
+      Enum.map(Map.keys(model.initial_values), &Map.fetch!(model.initial_values, &1)) ++
+        inputs
+
+    # Compile the graph into a flat instruction stream
+    instructions = compile_graph_instructions(model.schema.graph)
+
+    # Validate instructions before passing to NIF (recursive for lists)
+    validate_instructions(instructions)
+
+    result = ExTorch.Native.execute_graph(
+      instructions,
+      all_names,
+      all_tensors,
+      model.schema.outputs
+    )
+
+    case result do
+      {single} when is_struct(single) -> single
+      single when is_struct(single) -> single
+      multiple when is_tuple(multiple) -> Tuple.to_list(multiple)
+      other -> other
+    end
+  end
+
+  # Compile schema graph nodes into a flat instruction stream for execute_graph.
+  defp compile_graph_instructions(graph_nodes) do
+    Enum.flat_map(graph_nodes, fn node ->
+      {op_name, overload} = parse_op_target(node.target)
+      num_args = length(node.inputs)
+
+      header = [
+        {:begin_op, op_name, num_args},
+        {:overload, overload}
+      ]
+
+      outputs = Enum.map(node.outputs, &{:output, &1})
+
+      args = Enum.map(node.inputs, fn {_name, value} ->
+        encode_arg(value)
+      end) |> List.flatten()
+
+      header ++ outputs ++ args
+    end)
+  end
+
+  defp parse_op_target(target) do
+    # "torch.ops.aten.conv2d.default" -> {"aten::conv2d", "default"}
+    case String.split(target, ".") do
+      ["torch", "ops", ns, op, overload] -> {"#{ns}::#{op}", overload}
+      ["torch", "ops", ns, op] -> {"#{ns}::#{op}", ""}
+      # torchvision or other namespaces
+      [ns, op, overload] -> {"#{ns}::#{op}", overload}
+      [ns, op] -> {"#{ns}::#{op}", ""}
+      _ -> {target, ""}
+    end
+  end
+
+  defp encode_arg({:tensor, ref}), do: [{:ref, ref}]
+  defp encode_arg({:int, v}), do: [{:int, v}]
+  defp encode_arg({:float, v}), do: [{:float, v}]
+  defp encode_arg({:bool, v}), do: [{:bool, v}]
+  defp encode_arg(:none), do: [:none]
+  defp encode_arg({:raw, %{"as_ints" => ints}}) do
+    items = Enum.map(ints, &{:int, &1})
+    [{:list, items}]
+  end
+  defp encode_arg({:raw, %{"as_floats" => floats}}) do
+    items = Enum.map(floats, &{:float, &1})
+    [{:list, items}]
+  end
+  defp encode_arg({:raw, %{"as_tensors" => tensors}}) do
+    items = Enum.map(tensors, fn %{"name" => name} -> {:ref, name} end)
+    [{:list, items}]
+  end
+  defp encode_arg({:raw, %{"as_scalar_type" => dtype}}) do
+    [{:int, dtype}]
+  end
+  defp encode_arg({:raw, %{"as_device" => %{"type" => type, "index" => idx}}}) do
+    if idx, do: [{:device, {type, idx}}], else: [{:device, type}]
+  end
+  defp encode_arg({:raw, nil}), do: [:none]
+  defp encode_arg({:raw, v}) when is_integer(v), do: [{:int, v}]
+  defp encode_arg({:raw, v}) when is_float(v), do: [{:float, v}]
+  defp encode_arg({:raw, v}) when is_boolean(v), do: [{:bool, v}]
+  defp encode_arg({:raw, _}), do: [:none]
+
+  defp validate_instructions(instructions) do
+    Enum.each(instructions, fn
+      {:list, items} ->
+        Enum.each(items, fn
+          {:ref, _} -> :ok
+          {:int, _} -> :ok
+          {:float, _} -> :ok
+          {:bool, _} -> :ok
+          {:tensor, _} -> :ok
+          :none -> :ok
+          other -> raise "forward_native: unexpected list item #{inspect(other)}"
+        end)
+      {:begin_op, _, _} -> :ok
+      {:overload, _} -> :ok
+      {:output, _} -> :ok
+      {:ref, _} -> :ok
+      {:tensor, _} -> :ok
+      {:int, _} -> :ok
+      {:float, _} -> :ok
+      {:bool, _} -> :ok
+      {:device, _} -> :ok
+      {:string, _} -> :ok
+      :none -> :ok
+      other -> raise "forward_native: unexpected instruction #{inspect(other)}"
+    end)
+  end
+
+  @doc """
   Run `forward/2` with per-node timing instrumentation. Returns
   `{output, %{op_target => %{count: N, total_us: T}}}`, aggregated by op
   target so you can see which ops dominate inference time.
