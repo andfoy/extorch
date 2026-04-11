@@ -100,6 +100,13 @@ pub struct AOTIModelStruct<'a> {
 }
 
 #[derive(NifStruct)]
+#[module = "ExTorch.Export.CompiledGraph"]
+pub struct CompiledGraphStruct<'a> {
+    pub resource: ResourceArc<torch::CrossCompiledGraphRef>,
+    pub reference: Reference<'a>,
+}
+
+#[derive(NifStruct)]
 #[module = "ExTorch.NN.Layer"]
 pub struct NNModuleStruct<'a> {
     pub resource: ResourceArc<torch::CrossNNModuleRef>,

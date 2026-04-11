@@ -27,6 +27,35 @@ IValueFlat dispatch_op(
 /// namespace prefix (e.g. "torchvision"). Returns fully-qualified names.
 rust::Vec<rust::String> list_registered_ops(rust::String ns_prefix);
 
+// ============================================================================
+// Compiled Graph — pre-resolved ops + integer-indexed values
+// ============================================================================
+
+/// Compile a graph instruction stream into an optimized C++ representation.
+///
+/// Pre-resolves all operator schemas, converts string refs to integer
+/// indices, and pre-builds argument templates. The returned object
+/// holds everything needed for forward passes with zero per-op overhead.
+///
+/// `graph` is the same instruction stream as execute_graph.
+/// `value_names` are all tensor names that will be in the values map
+///   (parameter names + user input names), in the order they will be
+///   passed to run_compiled_graph.
+/// `output_names` specifies which values to return after execution.
+std::shared_ptr<CrossCompiledGraph> compile_graph(
+    rust::Vec<IValueNode> graph,
+    rust::Vec<rust::String> value_names,
+    rust::Vec<rust::String> output_names);
+
+/// Run a pre-compiled graph. Only passes tensors — all op resolution,
+/// arg templates, and index mapping were done at compile time.
+///
+/// `tensors` must be in the same order as `value_names` passed to
+/// compile_graph.
+TensorList run_compiled_graph(
+    const std::shared_ptr<CrossCompiledGraph> &compiled,
+    TensorList tensors);
+
 /// Execute an entire computation graph in a single C++ call.
 ///
 /// The graph is encoded as a flat instruction stream using IValueNode with

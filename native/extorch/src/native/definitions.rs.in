@@ -97,6 +97,11 @@ struct CrossNNModuleRef {
     module: SharedPtr<CrossNNModule>,
 }
 
+/// Shared interface to a compiled graph executor in memory.
+struct CrossCompiledGraphRef {
+    graph: SharedPtr<CrossCompiledGraph>,
+}
+
 /// A named tensor (name + tensor pointer), used for parameters/buffers.
 struct NamedTensor {
     name: String,

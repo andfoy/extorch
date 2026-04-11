@@ -14,6 +14,19 @@ fn dispatch_op(
 /// List ops registered with the dispatcher matching a namespace prefix.
 fn list_registered_ops(ns_prefix: String) -> Result<Vec<String>>;
 
+/// Compile a graph into a pre-optimized C++ representation.
+fn compile_graph(
+    graph: Vec<IValueNode>,
+    value_names: Vec<String>,
+    output_names: Vec<String>,
+) -> Result<SharedPtr<CrossCompiledGraph>>;
+
+/// Run a pre-compiled graph (tensors in, tensors out).
+fn run_compiled_graph(
+    compiled: &SharedPtr<CrossCompiledGraph>,
+    tensors: TensorList,
+) -> Result<TensorList>;
+
 /// Execute an entire computation graph in a single C++ call.
 fn execute_graph(
     graph: Vec<IValueNode>,

@@ -27,3 +27,5 @@ struct CrossNNModuleImpl;
 using CrossNNModule = CrossNNModuleImpl;
 struct CrossAOTILoaderImpl;
 using CrossAOTILoader = CrossAOTILoaderImpl;
+struct CrossCompiledGraphImpl;
+using CrossCompiledGraph = CrossCompiledGraphImpl;

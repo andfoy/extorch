@@ -1,6 +1,6 @@
 use crate::encoding::jit::ivalue_flat_to_term;
 use crate::native::torch;
-use crate::shared_types::TensorStruct;
+use crate::shared_types::{TensorStruct, CompiledGraphStruct, Reference};
 
 use cxx::SharedPtr;
 use rustler::{Atom, Env, Error, NifResult, Term};
@@ -161,6 +161,47 @@ pub fn dispatch_op<'a>(
 pub fn list_registered_ops(ns_prefix: String) -> NifResult<Vec<String>> {
     let ops = torch::list_registered_ops(ns_prefix).map_err(cxx_err_to_nif)?;
     Ok(ops.into_iter().map(|s| s.to_string()).collect())
+}
+
+/// Compile a graph into a pre-optimized C++ representation.
+/// All op schemas are resolved, string refs converted to slot indices.
+#[rustler::nif]
+pub fn compile_graph<'a>(
+    env: Env<'a>,
+    graph: Vec<Term<'a>>,
+    value_names: Vec<String>,
+    output_names: Vec<String>,
+) -> NifResult<CompiledGraphStruct<'a>> {
+    let mut instructions: Vec<torch::IValueNode> = Vec::new();
+    for term in &graph {
+        decode_graph_instruction(env, *term, &mut instructions)?;
+    }
+
+    let compiled = torch::compile_graph(instructions, value_names, output_names)
+        .map_err(cxx_err_to_nif)?;
+
+    let wrapped = torch::CrossCompiledGraphRef { graph: compiled };
+    let resource = rustler::ResourceArc::new(wrapped);
+    Ok(CompiledGraphStruct {
+        resource,
+        reference: Reference::new(),
+    })
+}
+
+/// Run a pre-compiled graph. Tensors in, tensors out — no encoding overhead.
+#[rustler::nif(schedule = "DirtyCpu")]
+pub fn run_compiled_graph<'a>(
+    compiled: CompiledGraphStruct<'a>,
+    tensors: Vec<TensorStruct<'a>>,
+) -> NifResult<Vec<TensorStruct<'a>>> {
+    let tensor_list = make_tensor_list(&tensors);
+    let result = torch::run_compiled_graph(&compiled.resource.graph, tensor_list)
+        .map_err(cxx_err_to_nif)?;
+
+    Ok(result.values.into_iter()
+        .filter(|t| t.used)
+        .map(|t| t.tensor.into())
+        .collect())
 }
 
 /// Execute an entire computation graph in a single NIF call.

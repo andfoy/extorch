@@ -24,6 +24,9 @@ pub mod torch {
         /// Reference to an AOTI model loader in memory
         type CrossAOTILoader;
 
+        /// Reference to a compiled graph executor in memory
+        type CrossCompiledGraph;
+
         // Tensor attribute access
         // ----------------------------------------------------------------
         {% include "tensor/info.rs.in" %}
@@ -81,3 +84,6 @@ unsafe impl std::marker::Sync for torch::CrossNNModuleRef {}
 
 unsafe impl std::marker::Send for torch::CrossAOTILoaderRef {}
 unsafe impl std::marker::Sync for torch::CrossAOTILoaderRef {}
+
+unsafe impl std::marker::Send for torch::CrossCompiledGraphRef {}
+unsafe impl std::marker::Sync for torch::CrossCompiledGraphRef {}

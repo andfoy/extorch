@@ -55,11 +55,12 @@ defmodule ExTorch.Export do
             user_inputs: [String.t()],
             compiled_graph: [{[String.t()], (map() -> any())}],
             initial_values: map(),
-            device: atom() | {atom(), non_neg_integer()}
+            device: atom() | {atom(), non_neg_integer()},
+            native_compiled: ExTorch.Export.CompiledGraph.t() | nil
           }
 
     defstruct [:schema, :weights, :param_inputs, :user_inputs,
-               :compiled_graph, :initial_values, device: :cpu]
+               :compiled_graph, :initial_values, :native_compiled, device: :cpu]
   end
 
   @doc """
@@ -127,6 +128,18 @@ defmodule ExTorch.Export do
     # dispatches via the legacy execute_node/2 path.
     compiled_graph = Enum.map(schema.graph, &compile_node(&1, initial_values, device))
 
+    # Pre-compile the native C++ graph executor for forward_compiled/2.
+    # This resolves all op schemas and converts string refs to integer
+    # indices at load time, eliminating per-op overhead at inference time.
+    all_names = Map.keys(initial_values) ++ user_inputs
+    instructions = compile_graph_instructions(schema.graph)
+
+    native_compiled = try do
+      ExTorch.Native.compile_graph(instructions, all_names, schema.outputs)
+    rescue
+      _ -> nil  # Fall back to forward_native if compilation fails
+    end
+
     %Model{
       schema: schema,
       weights: weights,
@@ -134,7 +147,8 @@ defmodule ExTorch.Export do
       user_inputs: user_inputs,
       compiled_graph: compiled_graph,
       initial_values: initial_values,
-      device: device
+      device: device,
+      native_compiled: native_compiled
     }
   end
 
@@ -183,6 +197,41 @@ defmodule ExTorch.Export do
     outputs = Enum.map(model.schema.outputs, &Map.fetch!(values, &1))
 
     case outputs do
+      [single] -> single
+      multiple -> multiple
+    end
+  end
+
+  @doc """
+  Run inference using the pre-compiled graph executor.
+
+  The fastest Export inference path. All op schemas were resolved and
+  argument templates pre-built at `load/2` time. This function only
+  passes tensors to C++ and gets tensors back — zero encoding overhead.
+
+  Falls back to `forward_native/2` if the graph couldn't be pre-compiled.
+
+      model = ExTorch.Export.load("model.pt2", device: :cuda)
+      output = ExTorch.Export.forward_compiled(model, [input])
+  """
+  @spec forward_compiled(Model.t(), [ExTorch.Tensor.t()]) ::
+          ExTorch.Tensor.t() | [ExTorch.Tensor.t()]
+  def forward_compiled(%Model{native_compiled: nil} = model, inputs) do
+    # Fallback if pre-compilation failed
+    forward_native(model, inputs)
+  end
+
+  def forward_compiled(%Model{native_compiled: compiled} = model, inputs)
+      when is_list(inputs) do
+    # Build tensor list in the same order as value_names at compile time:
+    # initial_values keys (sorted) ++ user_inputs
+    all_tensors =
+      Enum.map(Map.keys(model.initial_values), &Map.fetch!(model.initial_values, &1)) ++
+        inputs
+
+    result = ExTorch.Native.run_compiled_graph(compiled, all_tensors)
+
+    case result do
       [single] -> single
       multiple -> multiple
     end

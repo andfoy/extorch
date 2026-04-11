@@ -462,3 +462,270 @@ IValueFlat execute_graph(
     }
     return result;
 }
+
+// ============================================================================
+// Compiled Graph — pre-resolved ops with integer-indexed arguments
+// ============================================================================
+
+// An argument descriptor: either a slot index (tensor ref), a literal
+// constant, or a typed list.
+struct ArgDesc {
+    enum Kind { SLOT, LITERAL, TENSOR_LIST_SLOTS, INT_LIST_LITERAL,
+                FLOAT_LIST_LITERAL, BOOL_LIST_LITERAL };
+    Kind kind;
+    size_t slot;                        // for SLOT
+    c10::IValue literal;                // for LITERAL
+    std::vector<size_t> slot_list;      // for TENSOR_LIST_SLOTS
+    std::vector<int64_t> int_list;      // for INT_LIST_LITERAL
+    std::vector<double> float_list;     // for FLOAT_LIST_LITERAL
+    std::vector<bool> bool_list;        // for BOOL_LIST_LITERAL
+
+    ArgDesc() : kind(LITERAL), slot(0) {}
+};
+
+struct CompiledOp {
+    c10::OperatorHandle handle;
+    std::vector<ArgDesc> args;
+    std::vector<size_t> output_slots;
+    size_t num_schema_args;
+};
+
+struct CrossCompiledGraphImpl {
+    std::vector<CompiledOp> ops;
+    size_t num_slots;
+    std::vector<size_t> output_slots;
+
+    std::vector<CrossTensor> run(std::vector<CrossTensor> initial_tensors) const {
+        std::vector<c10::IValue> values(num_slots);
+        for (size_t i = 0; i < initial_tensors.size(); i++) {
+            values[i] = c10::IValue(std::move(initial_tensors[i]));
+        }
+
+        for (const auto &op : ops) {
+            std::vector<c10::IValue> args;
+            args.reserve(op.args.size());
+            for (const auto &desc : op.args) {
+                switch (desc.kind) {
+                case ArgDesc::SLOT:
+                    args.push_back(values[desc.slot]);
+                    break;
+                case ArgDesc::LITERAL:
+                    args.push_back(desc.literal);
+                    break;
+                case ArgDesc::TENSOR_LIST_SLOTS: {
+                    c10::List<at::Tensor> tlist;
+                    tlist.reserve(desc.slot_list.size());
+                    for (auto s : desc.slot_list)
+                        tlist.push_back(values[s].toTensor());
+                    args.push_back(c10::IValue(std::move(tlist)));
+                    break;
+                }
+                case ArgDesc::INT_LIST_LITERAL:
+                    args.push_back(c10::IValue(desc.int_list));
+                    break;
+                case ArgDesc::FLOAT_LIST_LITERAL: {
+                    c10::List<double> flist;
+                    for (auto v : desc.float_list) flist.push_back(v);
+                    args.push_back(c10::IValue(std::move(flist)));
+                    break;
+                }
+                case ArgDesc::BOOL_LIST_LITERAL: {
+                    c10::List<bool> blist;
+                    for (auto v : desc.bool_list) blist.push_back(v);
+                    args.push_back(c10::IValue(std::move(blist)));
+                    break;
+                }
+                }
+            }
+
+            // Fill schema defaults
+            const auto &schema_args = op.handle.schema().arguments();
+            while (args.size() < op.num_schema_args) {
+                size_t idx = args.size();
+                if (idx < schema_args.size() &&
+                    schema_args[idx].default_value().has_value()) {
+                    args.push_back(schema_args[idx].default_value().value());
+                } else {
+                    break;
+                }
+            }
+
+            op.handle.callBoxed(&args);
+
+            // Store results by slot index
+            if (args.size() == 1 && op.output_slots.size() == 1) {
+                values[op.output_slots[0]] = std::move(args[0]);
+            } else if (args.size() == 1 && args[0].isTuple()) {
+                auto tuple = args[0].toTuple();
+                for (size_t i = 0; i < op.output_slots.size() &&
+                     i < tuple->elements().size(); i++) {
+                    values[op.output_slots[i]] = tuple->elements()[i];
+                }
+            } else {
+                for (size_t i = 0; i < op.output_slots.size() &&
+                     i < args.size(); i++) {
+                    values[op.output_slots[i]] = std::move(args[i]);
+                }
+            }
+        }
+
+        std::vector<CrossTensor> result;
+        result.reserve(output_slots.size());
+        for (auto s : output_slots)
+            result.push_back(values[s].toTensor());
+        return result;
+    }
+};
+
+static c10::OperatorHandle resolve_schema(
+    c10::Dispatcher &dispatcher,
+    const std::string &target,
+    const std::string &overload)
+{
+    auto schema = dispatcher.findSchema({target.c_str(), overload.c_str()});
+    if (!schema.has_value() && overload == "default") {
+        schema = dispatcher.findSchema({target.c_str(), ""});
+    }
+    if (!schema.has_value()) {
+        throw std::runtime_error("compile_graph: no schema for " + target + "." + overload);
+    }
+    return *schema;
+}
+
+std::shared_ptr<CrossCompiledGraph> compile_graph(
+    rust::Vec<IValueNode> graph,
+    rust::Vec<rust::String> value_names,
+    rust::Vec<rust::String> output_names)
+{
+    auto compiled = std::make_shared<CrossCompiledGraphImpl>();
+
+    std::unordered_map<std::string, size_t> name_to_slot;
+    for (size_t i = 0; i < value_names.size(); i++) {
+        name_to_slot[std::string(value_names[i])] = i;
+    }
+    size_t next_slot = value_names.size();
+
+    auto &dispatcher = c10::Dispatcher::singleton();
+    size_t pc = 0;
+
+    while (pc < graph.size()) {
+        if (graph[pc].tag != 20)
+            throw std::runtime_error("compile_graph: expected BEGIN_OP at pc=" + std::to_string(pc));
+
+        std::string target(graph[pc].string_val);
+        int64_t num_args = graph[pc].child_count;
+        pc++;
+
+        std::string overload;
+        if (pc < graph.size() && graph[pc].tag == 22) {
+            overload = std::string(graph[pc].string_val);
+            pc++;
+        }
+
+        std::vector<size_t> out_slots;
+        while (pc < graph.size() && graph[pc].tag == 21) {
+            std::string oname(graph[pc].string_val);
+            size_t slot = next_slot++;
+            name_to_slot[oname] = slot;
+            out_slots.push_back(slot);
+            pc++;
+        }
+
+        auto handle = resolve_schema(dispatcher, target, overload);
+
+        std::vector<ArgDesc> arg_descs;
+        for (int64_t i = 0; i < num_args; i++) {
+            ArgDesc desc;
+            const auto &node = graph[pc];
+
+            switch (node.tag) {
+            case 10: { // ref
+                std::string ref(node.string_val);
+                auto it = name_to_slot.find(ref);
+                if (it == name_to_slot.end())
+                    throw std::runtime_error("compile_graph: unknown ref '" + ref + "'");
+                desc.kind = ArgDesc::SLOT;
+                desc.slot = it->second;
+                pc++;
+                break;
+            }
+            case 0: desc.kind = ArgDesc::LITERAL; desc.literal = c10::IValue(*node.tensor); pc++; break;
+            case 1: desc.kind = ArgDesc::LITERAL; desc.literal = c10::IValue(node.int_val); pc++; break;
+            case 2: desc.kind = ArgDesc::LITERAL; desc.literal = c10::IValue(node.float_val); pc++; break;
+            case 3: desc.kind = ArgDesc::LITERAL; desc.literal = c10::IValue(node.bool_val); pc++; break;
+            case 4: desc.kind = ArgDesc::LITERAL; desc.literal = c10::IValue(std::string(node.string_val)); pc++; break;
+            case 5: desc.kind = ArgDesc::LITERAL; desc.literal = c10::IValue(); pc++; break;
+            case 9: {
+                std::string dev(node.string_val);
+                desc.kind = ArgDesc::LITERAL;
+                desc.literal = (node.int_val >= 0)
+                    ? c10::IValue(c10::Device(dev + ":" + std::to_string(node.int_val)))
+                    : c10::IValue(c10::Device(dev));
+                pc++;
+                break;
+            }
+            case 7: { // list
+                int64_t count = node.child_count;
+                pc++;
+
+                if (count == 0) { desc.kind = ArgDesc::INT_LIST_LITERAL; break; }
+
+                int64_t first_tag = graph[pc].tag;
+                bool homo = true;
+                for (int64_t j = 1; j < count && homo; j++)
+                    if (graph[pc + j].tag != first_tag) homo = false;
+
+                if (homo && first_tag == 10) {
+                    desc.kind = ArgDesc::TENSOR_LIST_SLOTS;
+                    for (int64_t j = 0; j < count; j++) {
+                        std::string ref(graph[pc].string_val);
+                        desc.slot_list.push_back(name_to_slot.at(ref));
+                        pc++;
+                    }
+                } else if (homo && first_tag == 1) {
+                    desc.kind = ArgDesc::INT_LIST_LITERAL;
+                    for (int64_t j = 0; j < count; j++) { desc.int_list.push_back(graph[pc].int_val); pc++; }
+                } else if (homo && first_tag == 2) {
+                    desc.kind = ArgDesc::FLOAT_LIST_LITERAL;
+                    for (int64_t j = 0; j < count; j++) { desc.float_list.push_back(graph[pc].float_val); pc++; }
+                } else if (homo && first_tag == 3) {
+                    desc.kind = ArgDesc::BOOL_LIST_LITERAL;
+                    for (int64_t j = 0; j < count; j++) { desc.bool_list.push_back(graph[pc].bool_val); pc++; }
+                } else {
+                    // Fallback: GenericList literal
+                    auto glist = c10::impl::GenericList(c10::AnyType::get());
+                    for (int64_t j = 0; j < count; j++) { glist.emplace_back(graph[pc].int_val); pc++; }
+                    desc.kind = ArgDesc::LITERAL;
+                    desc.literal = c10::IValue(std::move(glist));
+                }
+                break;
+            }
+            default:
+                throw std::runtime_error("compile_graph: unknown arg tag " + std::to_string(node.tag));
+            }
+            arg_descs.push_back(std::move(desc));
+        }
+
+        compiled->ops.push_back(CompiledOp{
+            handle, std::move(arg_descs), std::move(out_slots),
+            handle.schema().arguments().size()
+        });
+    }
+
+    for (const auto &name : output_names) {
+        auto it = name_to_slot.find(std::string(name));
+        if (it != name_to_slot.end())
+            compiled->output_slots.push_back(it->second);
+    }
+    compiled->num_slots = next_slot;
+    return compiled;
+}
+
+TensorList run_compiled_graph(
+    const std::shared_ptr<CrossCompiledGraph> &compiled,
+    TensorList tensors)
+{
+    auto input_tensors = unpack_tensor_list(std::move(tensors));
+    auto output_tensors = compiled->run(std::move(input_tensors));
+    return pack_tensor_list(output_tensors);
+}

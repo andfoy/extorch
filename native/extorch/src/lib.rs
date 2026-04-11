@@ -31,12 +31,14 @@ impl rustler::Resource for torch::CrossTensorRef {}
 impl rustler::Resource for torch::CrossModuleRef {}
 impl rustler::Resource for torch::CrossNNModuleRef {}
 impl rustler::Resource for torch::CrossAOTILoaderRef {}
+impl rustler::Resource for torch::CrossCompiledGraphRef {}
 
 fn load(env: Env, _: Term) -> bool {
     env.register::<torch::CrossTensorRef>().is_ok()
         && env.register::<torch::CrossModuleRef>().is_ok()
         && env.register::<torch::CrossNNModuleRef>().is_ok()
         && env.register::<torch::CrossAOTILoaderRef>().is_ok()
+        && env.register::<torch::CrossCompiledGraphRef>().is_ok()
 }
 
 rustler::init!("Elixir.ExTorch.Native", load = load);
