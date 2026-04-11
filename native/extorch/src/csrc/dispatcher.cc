@@ -402,11 +402,29 @@ IValueFlat execute_graph(
                 "execute_graph: no schema for " + target + "." + overload);
         }
 
-        // Fill in missing arguments with schema defaults.
-        // The export graph only includes non-default args, but boxed
-        // dispatch requires all positional args.
+        // Type coercion: adapt IValue types to match the schema.
         const auto &fn_schema = schema->schema();
         const auto &schema_args = fn_schema.arguments();
+        for (size_t ai = 0; ai < args.size() && ai < schema_args.size(); ai++) {
+            const auto &expected = schema_args[ai].type();
+            if (expected->isSubtypeOf(*c10::TensorType::get())) {
+                if (args[ai].isDouble()) {
+                    args[ai] = c10::IValue(at::scalar_to_tensor(args[ai].toDouble()));
+                } else if (args[ai].isInt()) {
+                    args[ai] = c10::IValue(at::scalar_to_tensor(args[ai].toInt()));
+                } else if (args[ai].isBool()) {
+                    args[ai] = c10::IValue(at::scalar_to_tensor(args[ai].toBool()));
+                }
+            }
+            if (expected->kind() == c10::TypeKind::OptionalType) {
+                auto inner = expected->expectRef<c10::OptionalType>().getElementType();
+                if (inner->isSubtypeOf(*c10::DeviceObjType::get()) && args[ai].isDevice()) {
+                    args[ai] = c10::IValue(args[ai].toDevice());
+                }
+            }
+        }
+
+        // Fill in missing arguments with schema defaults.
         while (args.size() < schema_args.size()) {
             size_t idx = args.size();
             const auto &arg = schema_args[idx];
@@ -538,8 +556,35 @@ struct CrossCompiledGraphImpl {
                 }
             }
 
-            // Fill schema defaults
+            // Type coercion: adapt IValue types to match the schema.
             const auto &schema_args = op.handle.schema().arguments();
+            for (size_t ai = 0; ai < args.size() && ai < schema_args.size(); ai++) {
+                const auto &expected = schema_args[ai].type();
+                // Scalar→Tensor for ops like aten::mul.Tensor
+                if (expected->isSubtypeOf(*c10::TensorType::get())) {
+                    if (args[ai].isDouble()) {
+                        args[ai] = c10::IValue(at::scalar_to_tensor(args[ai].toDouble()));
+                    } else if (args[ai].isInt()) {
+                        args[ai] = c10::IValue(at::scalar_to_tensor(args[ai].toInt()));
+                    } else if (args[ai].isBool()) {
+                        args[ai] = c10::IValue(at::scalar_to_tensor(args[ai].toBool()));
+                    }
+                }
+                // Wrap non-optional in Optional where schema expects it
+                if (expected->kind() == c10::TypeKind::OptionalType) {
+                    auto inner = expected->expectRef<c10::OptionalType>().getElementType();
+                    // Device → Optional<Device>
+                    if (inner->isSubtypeOf(*c10::DeviceObjType::get()) && args[ai].isDevice()) {
+                        args[ai] = c10::IValue(args[ai].toDevice());
+                    }
+                    // Int → Optional<ScalarType> (ScalarType is enum-backed by int)
+                    if (inner->isSubtypeOf(*c10::IntType::get()) && args[ai].isInt()) {
+                        // Already correct — int matches Optional<int>
+                    }
+                }
+            }
+
+            // Fill schema defaults
             while (args.size() < op.num_schema_args) {
                 size_t idx = args.size();
                 if (idx < schema_args.size() &&
