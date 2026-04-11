@@ -2,24 +2,58 @@
 
 Elixir bindings for [libtorch](https://pytorch.org/cppdocs/) -- production ML model serving on the BEAM.
 
-ExTorch lets you load TorchScript models, run inference with OTP fault tolerance, define neural network architectures with an Elixir DSL, and monitor serving performance through telemetry and LiveDashboard.
+Train in Python, serve from Elixir. ExTorch runs PyTorch models with OTP fault tolerance, beating Python's own inference performance by 1.35x on average.
+
+## Why ExTorch?
+
+**Faster than Python.** The pre-compiled graph executor beats Python's FX interpreter on every tested model -- 1.35x faster on average, bit-for-bit identical outputs.
+
+| Model | Python Export | ExTorch Compiled | Speedup |
+|---|---:|---:|---:|
+| ResNet50 | 7.21ms | 4.96ms | **1.45x** |
+| MobileNetV2 | 6.56ms | 4.07ms | **1.61x** |
+| ViT-B/16 | 9.53ms | 9.46ms | **1.01x** |
+| SqueezeNet | 2.77ms | 1.98ms | **1.40x** |
+| DistilBERT | 0.78ms | 0.59ms | **1.32x** |
+
+*RTX 3060, median latency, 30 iterations. Full results for 12 models in [examples/models](examples/models).*
+
+**Four inference paths** for every use case:
+
+| Path | Use case | ViT-B/16 latency |
+|---|---|---:|
+| `forward/2` | Debug, profile, op-by-op introspection | 54.9ms |
+| `forward_native/2` | Production, single NIF call | 11.9ms |
+| `forward_compiled/2` | Pre-compiled, fastest Export path | 9.5ms |
+| `ExTorch.AOTI` | Compiled kernels, maximum throughput | 8.8ms |
+
+**Production-ready serving.** GenServer model pools, telemetry events, ETS-backed metrics, zero-downtime hot model reload -- not bolted on, designed in.
+
+**Extensible op ecosystem.** The generic `c10::Dispatcher` bridge lets pure-Elixir packages register new ops without C++ code. [ExTorch.Vision](https://github.com/andfoy/extorch_vision) adds torchvision ops (NMS, ROI Align, deformable conv, image I/O) this way.
+
+**Zero-copy with Nx.** Share tensor memory between ExTorch and Nx/Torchx via raw pointer exchange -- no data copying.
+
+**Bit-for-bit accurate.** All inference paths produce identical outputs to Python (verified across 11 models, 3 paths each, max absolute error = 0.0).
 
 ## Features
 
-- **JIT Model Serving** -- Load `.pt` models, run inference with full IValue support (tensors, tuples, dicts, scalars), and serve behind GenServer with process isolation.
+- **torch.export Inference** -- Load `.pt2` files from `torch.export.save` and run inference through a compiled C++ graph executor (89+ ATen ops). Tested with AlexNet, ResNet, VGG, MobileNet, ViT, EfficientNet, DeepLab, DistilBERT, Whisper, LSTM, and more.
 - **AOTI Compiled Models** -- Load AOTInductor `.pt2` packages for optimized inference with fused kernels.
-- **torch.export Reader & Interpreter** -- Pure Elixir reader for `torch.export.save` `.pt2` archives with a built-in ATen graph interpreter (60+ ops). Load and run inference on exported models directly -- tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, and transformers.
-- **Neural Network DSL** -- Define PyTorch-compatible layers declaratively in Elixir with `deflayer`, backed by libtorch's C++ nn modules.
-- **JIT IR Introspection** -- Extract model architecture, parameters, and computation graphs from any TorchScript model. Generate Elixir DSL source code from `.pt` files.
-- **Zero-Copy Tensor Exchange** -- Share tensor memory with Nx/Torchx via raw pointer exchange (`data_ptr`/`from_blob`), no copies.
-- **Telemetry & Observability** -- `:telemetry` events for load/inference, ETS-backed metrics (latency, throughput, errors), optional LiveDashboard page.
-- **Tensor Operations** -- 200+ wrapped libtorch ops for tensor creation, manipulation, pointwise math, comparison, reduction, and indexing.
+- **JIT Model Serving** -- Load `.pt` TorchScript models with full IValue support (tensors, tuples, dicts, scalars).
+- **Generic c10 Dispatcher** -- Call any PyTorch op by name through `dispatch_op/3`. Load external op libraries (torchvision, torchaudio) via `load_torch_library/1`.
+- **Op Extension System** -- `ExTorch.Export.OpHandler` behaviour + `OpRegistry` for registering custom ops from external packages.
+- **Neural Network DSL** -- Define PyTorch-compatible layers in Elixir with `deflayer`, backed by libtorch's C++ nn modules (35 layer types).
+- **Zero-Copy Tensor Exchange** -- Share tensor memory with Nx/Torchx via `data_ptr`/`from_blob`.
+- **Telemetry & Observability** -- `:telemetry` events for load/inference, ETS-backed metrics, optional LiveDashboard page.
+- **Tensor Operations** -- 200+ wrapped libtorch ops for creation, manipulation, math, comparison, reduction, and indexing.
 
 ## Requirements
 
-- Elixir >= 1.14
+- Elixir >= 1.16
 - Rust (stable toolchain)
 - libtorch (automatically downloaded, or use a local PyTorch installation)
+- CMake (for ExTorch.Vision)
+- CUDA toolkit (optional, for GPU support)
 
 ## Installation
 
@@ -33,7 +67,7 @@ def deps do
 end
 ```
 
-ExTorch will download libtorch automatically on first compile. To use a local installation, configure in `config/config.exs`:
+ExTorch downloads libtorch automatically on first compile. To use a local installation:
 
 ```elixir
 config :extorch, libtorch: [
@@ -44,224 +78,121 @@ config :extorch, libtorch: [
 
 ## Quick Start
 
-### Loading and Serving a TorchScript Model
+### Train in Python, Serve from Elixir
 
-```elixir
-# Load a model exported from Python with torch.jit.script() or torch.jit.trace()
-model = ExTorch.JIT.load("model.pt")
-ExTorch.JIT.eval(model)
-
-# Run inference
-input = ExTorch.randn({1, 3, 224, 224})
-output = ExTorch.JIT.forward(model, [input])
-
-# Models returning tuples/dicts work naturally
-{logits, features} = ExTorch.JIT.forward(multi_output_model, [input])
+```python
+# Python: export your model
+import torch
+model = torchvision.models.resnet50(pretrained=True).eval()
+exported = torch.export.export(model, (torch.randn(1, 3, 224, 224),))
+torch.export.save(exported, "resnet50.pt2")
 ```
 
-### GenServer-based Model Server
+```elixir
+# Elixir: load and serve
+model = ExTorch.Export.load("resnet50.pt2", device: :cuda)
+input = ExTorch.Tensor.to(ExTorch.randn({1, 3, 224, 224}), device: :cuda)
+
+# Fastest path — pre-compiled graph, zero per-op overhead
+output = ExTorch.Export.forward_compiled(model, [input])
+
+# Or use AOTI for maximum throughput (requires pre-compilation in Python)
+aoti_model = ExTorch.AOTI.load("resnet50_aoti.pt2", device_index: 0)
+[output] = ExTorch.AOTI.forward(aoti_model, [input])
+```
+
+### Production Serving with GenServer
 
 ```elixir
-# Start a supervised model server
-{:ok, _pid} = ExTorch.JIT.Server.start_link(
-  path: "model.pt",
-  device: :cpu,
-  name: MyModel
+# Supervised model server with telemetry
+{:ok, _} = ExTorch.Export.Server.start_link(
+  path: "resnet50.pt2",
+  device: :cuda,
+  name: :resnet
 )
 
-# Run inference (thread-safe, serialized through GenServer)
-output = ExTorch.JIT.Server.predict(MyModel, [input])
+# Thread-safe inference
+{:ok, output} = ExTorch.Export.Server.predict(:resnet, [input])
 
-# Check server stats
-ExTorch.JIT.Server.info(MyModel)
-# => %{path: "model.pt", device: :cpu, inference_count: 42, error_count: 0, uptime_ms: 15000}
+# Monitor performance
+ExTorch.Metrics.setup()
+ExTorch.Metrics.get("resnet50.pt2")
+# => %{inference_count: 1500, min_duration_ms: 4.9, max_duration_ms: 12.1, ...}
 ```
 
-### Neural Network DSL
+### Hot Model Reload
 
 ```elixir
-defmodule MyMLP do
-  use ExTorch.NN.Module
-
-  deflayer :fc1, ExTorch.NN.Linear, in_features: 784, out_features: 128
-  deflayer :relu, ExTorch.NN.ReLU
-  deflayer :dropout, ExTorch.NN.Dropout, p: 0.5
-  deflayer :fc2, ExTorch.NN.Linear, in_features: 128, out_features: 10
-
-  def forward(model, x) do
-    x
-    |> layer(model, :fc1)
-    |> layer(model, :relu)
-    |> layer(model, :dropout)
-    |> layer(model, :fc2)
-  end
-end
-
-model = MyMLP.new()
-input = ExTorch.randn({32, 784})
-output = MyMLP.forward(model, input)
-# => %ExTorch.Tensor{size: {32, 10}, ...}
-
-# Inspect parameters
-MyMLP.parameters(model)
-# => [{"fc1.weight", #Tensor<[128, 784]>}, {"fc1.bias", #Tensor<[128]>}, ...]
+# Swap models without dropping requests
+# See examples/serving/hot_reload.exs for the full pattern
+GenServer.cast(:resnet, {:reload, "resnet50_v2.pt2"})
+# In-flight requests complete on old model, new requests use new model
 ```
 
-Available layers: `Linear`, `Conv1d`, `Conv2d`, `Conv3d`, `ConvTranspose1d`, `ConvTranspose2d`, `MaxPool1d`, `MaxPool2d`, `AvgPool1d`, `AvgPool2d`, `AdaptiveAvgPool1d`, `AdaptiveAvgPool2d`, `BatchNorm1d`, `BatchNorm2d`, `LayerNorm`, `GroupNorm`, `InstanceNorm1d`, `InstanceNorm2d`, `Dropout`, `Embedding`, `LSTM`, `GRU`, `MultiheadAttention`, `Flatten`, `Unflatten`, `ReLU`, `LeakyReLU`, `GELU`, `ELU`, `SiLU`, `Mish`, `PReLU`, `Sigmoid`, `Tanh`, `Softmax`, `LogSoftmax`.
-
-### Loading Pre-trained Weights
-
-There are two ways to use a trained model from Python with a DSL-defined module:
-
-**Option A: `from_jit/1`** -- Use the JIT model's forward directly (simplest):
+### Extending with Custom Ops
 
 ```elixir
-# The JIT model's forward() runs the computation with pre-trained weights.
-# The DSL definition is validated against the .pt file's submodules.
-model = MyMLP.from_jit("trained_model.pt")
-output = MyMLP.predict(model, [input])
-```
+# Load torchvision ops (NMS, ROI Align, etc.)
+ExTorch.Native.load_torch_library("/path/to/libtorchvision.so")
 
-**Option B: `load_weights/1`** -- Copy weights into Elixir-defined layers:
+# Call any registered op by name
+keep = ExTorch.Native.dispatch_op("torchvision::nms", "", [
+  {:tensor, boxes}, {:tensor, scores}, {:float, 0.5}
+])
 
-```elixir
-# Creates DSL layers, then copies matching parameter tensors from the .pt file.
-# The result is a regular DSL model that runs through your forward/2 function.
-model = MyMLP.load_weights("trained_model.pt")
-output = MyMLP.forward(model, input)
-```
-
-Both produce identical outputs. Use `from_jit` when you want the exact Python forward logic. Use `load_weights` when your Elixir `forward/2` differs (e.g., different dropout, custom post-processing) but you want the same trained parameters.
-
-### JIT Model Introspection
-
-```elixir
-model = ExTorch.JIT.load("resnet18.pt")
-
-# Extract structured schema
-schema = ExTorch.NN.Introspect.schema(model)
-schema.submodules
-# => [%{name: "conv1", type_name: "...Conv2d", parameters: [%{name: "weight", shape: [64, 3, 7, 7], ...}]}, ...]
-
-# View the computation graph
-IO.puts(ExTorch.NN.Introspect.graph(model))
-
-# Generate Elixir DSL source code from any .pt model
-IO.puts(ExTorch.NN.Introspect.to_elixir(model, "ResNet18"))
-```
-
-### torch.export Inference (JIT-free)
-
-ExTorch reads `.pt2` files from `torch.export.save` and runs inference
-through a built-in ATen graph interpreter -- no Python, no JIT, no C++
-ExportedProgram support needed:
-
-```python
-# Python: export and save
-exported = torch.export.export(model, (example_input,))
-torch.export.save(exported, "model.pt2")
-```
-
-```elixir
-# Elixir: load and run inference directly
-model = ExTorch.Export.load("model.pt2")
-output = ExTorch.Export.forward(model, [input])
-
-# Or read weights and generate DSL
-weights = ExTorch.Export.read_weights("model.pt2")
-IO.puts(ExTorch.Export.to_elixir("model.pt2", "MyModel"))
-
-# Or load weights into a DSL module
-model = MyModel.load_weights_from_export("model.pt2")
-output = MyModel.forward(model, input)
-```
-
-Tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers,
-and autoencoders. The interpreter supports 60+ ATen operations. The DSL
-generator performs data flow analysis to correctly emit skip connections and
-branching architectures (e.g., ResNet residual blocks).
-
-### AOTI Compiled Models
-
-For maximum inference throughput, load AOTInductor-compiled `.pt2` packages:
-
-```python
-# Python: compile and package
-from torch._inductor import aoti_compile_and_package
-exported = torch.export.export(model, (example_input,))
-aoti_compile_and_package(exported, package_path="model.pt2")
-```
-
-```elixir
-# Elixir: load and run
-model = ExTorch.AOTI.load("model.pt2")
-[output] = ExTorch.AOTI.forward(model, [input])
-
-# Inspect metadata
-ExTorch.AOTI.metadata(model)
-# => %{"AOTI_DEVICE_KEY" => "cpu", "AOTI_CPU_ISA" => "AVX2", ...}
+# Or use ExTorch.Vision for a clean API
+ExTorch.Vision.nms(boxes, scores, 0.5)
+ExTorch.Vision.roi_align(features, rois, 1.0, 7, 7)
 ```
 
 ### Zero-Copy Tensor Exchange with Nx
 
 ```elixir
-# ExTorch tensor -> raw pointer (for passing to Torchx/Nx)
+# ExTorch → Nx (via Torchx): share memory, no copy
 blob = ExTorch.Tensor.Blob.to_blob(tensor)
-# => %Blob{ptr: 140234567890, shape: {3, 224, 224}, strides: [...], dtype: :float, ...}
+# => %Blob{ptr: 140234567890, shape: {3, 224, 224}, dtype: :float, ...}
 
-# Foreign pointer -> ExTorch tensor (zero-copy, no data movement)
+# Nx → ExTorch: wrap foreign memory
 view = ExTorch.Tensor.Blob.from_blob(
-  %{ptr: foreign_ptr, shape: {3, 224, 224}, dtype: :float32},
-  owner: source_tensor  # prevents GC of source memory
+  %{ptr: torchx_ptr, shape: {3, 224, 224}, dtype: :float32},
+  owner: nx_tensor
 )
-view.tensor  # => %ExTorch.Tensor{...}
-```
-
-### Telemetry & Metrics
-
-```elixir
-# Enable metrics collection (call in your Application.start)
-ExTorch.Metrics.setup()
-
-# Metrics are automatically collected from JIT.Server telemetry events
-ExTorch.Metrics.get("model.pt")
-# => %{inference_count: 1500, error_count: 2, total_duration_ms: 4523.1,
-#      min_duration_ms: 1.2, max_duration_ms: 89.2, load_duration_ms: 340.5, ...}
-
-# Attach your own handlers to telemetry events
-:telemetry.attach("my-handler", [:extorch, :jit, :forward, :stop], &handle_event/4, nil)
-```
-
-**LiveDashboard** (optional): Add `{:phoenix_live_dashboard, "~> 0.8"}` to your deps and configure:
-
-```elixir
-live_dashboard "/dashboard",
-  additional_pages: [
-    extorch: {ExTorch.Observer.Dashboard, []}
-  ]
 ```
 
 ### CUDA Support
 
 ```elixir
-ExTorch.Native.cuda_is_available()   # => true/false
-ExTorch.Native.cuda_device_count()   # => 2
+ExTorch.Native.cuda_is_available()    # => true
+ExTorch.Native.cuda_device_count()    # => 2
 
-# Load model on GPU
-model = ExTorch.JIT.load("model.pt", device: {:cuda, 0})
-
-# Monitor GPU memory
-ExTorch.Native.cuda_memory_allocated(0)   # bytes currently allocated
-ExTorch.Native.cuda_memory_reserved(0)    # bytes reserved by caching allocator
+model = ExTorch.Export.load("model.pt2", device: :cuda)
+ExTorch.Native.cuda_memory_allocated(0)  # bytes on GPU 0
 ```
+
+## Deployment Examples
+
+See [examples/serving/](examples/serving/) for production patterns:
+
+- **basic_inference.exs** -- Three inference paths side-by-side with benchmarks
+- **genserver_pool.exs** -- Supervised model pool with concurrent inference and p50/p95/p99 reporting
+- **hot_reload.exs** -- Zero-downtime model swapping
+- **telemetry_dashboard.exs** -- Live metrics and monitoring
+
+See [examples/models/](examples/models/) for real-world model deployment:
+
+- 8 production models: CLIP, DistilBERT, MobileNetV3, EfficientNet, ResNet50, ViT-B/16, DeepLabV3, Whisper
+- Export script, multi-model benchmark, full image classification pipeline
 
 ## Architecture
 
-ExTorch uses a three-layer architecture:
+Three-layer design: C++ (libtorch wrapper) → Rust (cxx bridge + Rustler NIFs) → Elixir (macro-generated API).
 
-1. **C++** -- Wraps libtorch APIs (`torch::jit`, `torch::nn`, tensor ops) behind shared pointer types
-2. **Rust** -- Bridges C++ to Erlang NIFs via [cxx](https://cxx.rs) and [Rustler](https://github.com/rusterlium/rustler), with type-safe encoding/decoding
-3. **Elixir** -- Macro-generated API with `defbinding`/`nif_impl!` for tensor ops, hand-written modules for JIT/NN/telemetry
+- **C++ sources**: `native/extorch/src/csrc/*.cc` + `native/extorch/include/*.h`
+- **Rust bridge**: `native/extorch/src/native/*.rs.in` (Tera templates rendered by `build.rs`)
+- **Rust NIFs**: `native/extorch/src/nifs/*.rs`
+- **Elixir API**: `lib/extorch/`
+
+The generic `c10::Dispatcher` NIF bridge (`dispatch_op`, `execute_graph`, `compile_graph`) enables calling any PyTorch op without per-op C++ wrappers, and the `OpHandler` behaviour allows external packages to extend the Export interpreter.
 
 ## License
 
