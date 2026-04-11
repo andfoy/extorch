@@ -383,16 +383,22 @@ IValueFlat execute_graph(
             pc++;
         }
 
-        // Read arguments from instruction stream
-        std::vector<c10::IValue> args;
-        args.reserve(static_cast<size_t>(num_args));
+        // Read arguments from instruction stream.
+        // Args may be preceded by ARG_NAME (tag=23) for schema-aware
+        // positional reordering.
+        constexpr int64_t TAG_ARG_NAME = 23;
+        std::vector<std::pair<std::string, c10::IValue>> named_args;
+        named_args.reserve(static_cast<size_t>(num_args));
         for (int64_t i = 0; i < num_args; i++) {
-            args.push_back(read_arg(graph, pc, values));
+            std::string arg_name;
+            if (pc < graph.size() && graph[pc].tag == TAG_ARG_NAME) {
+                arg_name = std::string(graph[pc].string_val);
+                pc++;
+            }
+            named_args.push_back({arg_name, read_arg(graph, pc, values)});
         }
 
-        // Dispatch the op. Try the given overload first; if not found and
-        // overload is "default", retry with empty overload (torch.export
-        // uses ".default" but the dispatcher often registers with no overload).
+        // Resolve schema for arg reordering and dispatch.
         auto schema = dispatcher.findSchema({target.c_str(), overload.c_str()});
         if (!schema.has_value() && overload == "default") {
             schema = dispatcher.findSchema({target.c_str(), ""});
@@ -402,9 +408,47 @@ IValueFlat execute_graph(
                 "execute_graph: no schema for " + target + "." + overload);
         }
 
+        // Reorder args to match schema parameter positions.
+        const auto &schema_params = schema->schema().arguments();
+        std::vector<c10::IValue> args;
+        args.reserve(schema_params.size());
+
+        size_t named_idx = 0;
+        for (size_t si = 0; si < schema_params.size(); si++) {
+            const auto &param = schema_params[si];
+            // Try to match by name
+            bool found = false;
+            if (named_idx < named_args.size()) {
+                if (named_args[named_idx].first.empty() ||
+                    named_args[named_idx].first == param.name()) {
+                    args.push_back(std::move(named_args[named_idx].second));
+                    named_idx++;
+                    found = true;
+                } else {
+                    // Names don't match — look for this param in remaining named args
+                    for (size_t ni = named_idx; ni < named_args.size(); ni++) {
+                        if (named_args[ni].first == param.name()) {
+                            args.push_back(std::move(named_args[ni].second));
+                            // Shift remaining
+                            named_args.erase(named_args.begin() + ni);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!found) {
+                // Use schema default
+                if (param.default_value().has_value()) {
+                    args.push_back(param.default_value().value());
+                }
+                // else: skip (will fail at dispatch if required)
+            }
+        }
+
         // Type coercion: adapt IValue types to match the schema.
-        const auto &fn_schema = schema->schema();
-        const auto &schema_args = fn_schema.arguments();
+        const auto &schema_args = schema->schema().arguments();
+
         for (size_t ai = 0; ai < args.size() && ai < schema_args.size(); ai++) {
             const auto &expected = schema_args[ai].type();
             if (expected->isSubtypeOf(*c10::TensorType::get())) {
@@ -417,7 +461,7 @@ IValueFlat execute_graph(
                 }
             }
             if (expected->kind() == c10::TypeKind::OptionalType) {
-                auto inner = expected->expectRef<c10::OptionalType>().getElementType();
+                auto inner = expected->cast<c10::OptionalType>()->getElementType();
                 if (inner->isSubtypeOf(*c10::DeviceObjType::get()) && args[ai].isDevice()) {
                     args[ai] = c10::IValue(args[ai].toDevice());
                 }
@@ -572,7 +616,7 @@ struct CrossCompiledGraphImpl {
                 }
                 // Wrap non-optional in Optional where schema expects it
                 if (expected->kind() == c10::TypeKind::OptionalType) {
-                    auto inner = expected->expectRef<c10::OptionalType>().getElementType();
+                    auto inner = expected->cast<c10::OptionalType>()->getElementType();
                     // Device → Optional<Device>
                     if (inner->isSubtypeOf(*c10::DeviceObjType::get()) && args[ai].isDevice()) {
                         args[ai] = c10::IValue(args[ai].toDevice());
@@ -678,8 +722,15 @@ std::shared_ptr<CrossCompiledGraph> compile_graph(
 
         auto handle = resolve_schema(dispatcher, target, overload);
 
-        std::vector<ArgDesc> arg_descs;
+        // Read named args from instruction stream
+        constexpr int64_t TAG_ARG_NAME_COMPILE = 23;
+        std::vector<std::pair<std::string, ArgDesc>> named_descs;
         for (int64_t i = 0; i < num_args; i++) {
+            std::string aname;
+            if (pc < graph.size() && graph[pc].tag == TAG_ARG_NAME_COMPILE) {
+                aname = std::string(graph[pc].string_val);
+                pc++;
+            }
             ArgDesc desc;
             const auto &node = graph[pc];
 
@@ -748,7 +799,47 @@ std::shared_ptr<CrossCompiledGraph> compile_graph(
             default:
                 throw std::runtime_error("compile_graph: unknown arg tag " + std::to_string(node.tag));
             }
-            arg_descs.push_back(std::move(desc));
+            named_descs.push_back({aname, std::move(desc)});
+        }
+
+        // Reorder args to match schema parameter positions at compile time.
+        // This handles cases where the export graph omits optional args
+        // (e.g., layout in zeros.default) that sit between other args.
+        const auto &schema_params = handle.schema().arguments();
+        std::vector<ArgDesc> arg_descs;
+        arg_descs.reserve(schema_params.size());
+
+        size_t ni = 0;
+        for (size_t si = 0; si < schema_params.size(); si++) {
+            const auto &param = schema_params[si];
+            bool found = false;
+
+            if (ni < named_descs.size()) {
+                if (named_descs[ni].first.empty() ||
+                    named_descs[ni].first == param.name()) {
+                    arg_descs.push_back(std::move(named_descs[ni].second));
+                    ni++;
+                    found = true;
+                } else {
+                    // Search by name in remaining args
+                    for (size_t nj = ni; nj < named_descs.size(); nj++) {
+                        if (named_descs[nj].first == param.name()) {
+                            arg_descs.push_back(std::move(named_descs[nj].second));
+                            named_descs.erase(named_descs.begin() + nj);
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!found && param.default_value().has_value()) {
+                // Insert schema default as a literal
+                ArgDesc def_desc;
+                def_desc.kind = ArgDesc::LITERAL;
+                def_desc.literal = param.default_value().value();
+                arg_descs.push_back(std::move(def_desc));
+            }
         }
 
         compiled->ops.push_back(CompiledOp{

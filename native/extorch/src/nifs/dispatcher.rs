@@ -20,6 +20,7 @@ mod atoms {
         overload,
         output,
         ref_tag = "ref",
+        arg_name,
     }
 }
 
@@ -319,6 +320,19 @@ fn decode_graph_instruction<'a>(
             let name: String = value.decode()?;
             nodes.push(torch::IValueNode {
                 tag: 10,
+                tensor: SharedPtr::null(),
+                int_val: 0,
+                float_val: 0.0,
+                bool_val: false,
+                string_val: name,
+                parent_idx: -1,
+                child_count: 0,
+            });
+        } else if tag == atoms::arg_name() {
+            // Tag 23: argument name for schema-aware reordering
+            let name: String = value.decode()?;
+            nodes.push(torch::IValueNode {
+                tag: 23,
                 tensor: SharedPtr::null(),
                 int_val: 0,
                 float_val: 0.0,

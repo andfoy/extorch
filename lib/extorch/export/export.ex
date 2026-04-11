@@ -298,9 +298,9 @@ defmodule ExTorch.Export do
 
       outputs = Enum.map(node.outputs, &{:output, &1})
 
-      args = Enum.map(node.inputs, fn {_name, value} ->
-        encode_arg(value)
-      end) |> List.flatten()
+      args = Enum.flat_map(node.inputs, fn {name, value} ->
+        [{:arg_name, name} | encode_arg(value)]
+      end)
 
       header ++ outputs ++ args
     end)
@@ -362,6 +362,7 @@ defmodule ExTorch.Export do
       {:begin_op, _, _} -> :ok
       {:overload, _} -> :ok
       {:output, _} -> :ok
+      {:arg_name, _} -> :ok
       {:ref, _} -> :ok
       {:tensor, _} -> :ok
       {:int, _} -> :ok
