@@ -56,3 +56,4 @@ target/
 /test/fixtures/*.pt2
 /test/fixtures/*.bin
 
+examples/models/fixtures/
