@@ -335,8 +335,27 @@ defmodule ExTorch.Export do
     items = Enum.map(tensors, fn %{"name" => name} -> {:ref, name} end)
     [{:list, items}]
   end
+  # torch.export JSON uses a different ScalarType encoding than the C++ enum.
+  # Map export JSON values to C++ at::ScalarType enum values.
+  @export_to_cpp_scalar_type %{
+    0 => 0,   # uint8
+    1 => 1,   # int8
+    2 => 2,   # int16
+    3 => 3,   # int32
+    4 => 4,   # int64
+    5 => 5,   # float16
+    6 => 6,   # float32
+    7 => 6,   # float32 (export format: 7 = torch.float = float32)
+    8 => 7,   # float64
+    9 => 8,   # complex32
+    10 => 9,  # complex64
+    11 => 10, # complex128
+    12 => 11, # bool
+    15 => 15  # bfloat16
+  }
   defp encode_arg({:raw, %{"as_scalar_type" => dtype}}) do
-    [{:int, dtype}]
+    cpp_dtype = Map.get(@export_to_cpp_scalar_type, dtype, dtype)
+    [{:int, cpp_dtype}]
   end
   defp encode_arg({:raw, %{"as_device" => %{"type" => type, "index" => idx}}}) do
     if idx, do: [{:device, {type, idx}}], else: [{:device, type}]

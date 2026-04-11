@@ -292,16 +292,16 @@ static c10::IValue read_arg(
             }
             return c10::IValue(std::move(tlist));
         } else if (homogeneous && first_tag == 1) {
-            // Read raw int values and construct IntList via explicit
-            // c10::impl::GenericList with IntType element type.
-            auto ilist = c10::impl::GenericList(c10::IntType::get());
-            ilist.reserve(static_cast<size_t>(node.child_count));
+            // Read raw int values directly into a vector, then move
+            // into IValue. This produces a proper IntList tag.
+            std::vector<int64_t> ivec;
+            ivec.reserve(static_cast<size_t>(node.child_count));
             for (int64_t i = 0; i < node.child_count; i++) {
                 const auto &child = graph[pc];
                 pc++;
-                ilist.emplace_back(child.int_val);
+                ivec.push_back(child.int_val);
             }
-            return c10::IValue(std::move(ilist));
+            return c10::IValue(std::move(ivec));
         } else if (homogeneous && first_tag == 2) {
             c10::List<double> flist;
             flist.reserve(static_cast<size_t>(node.child_count));
