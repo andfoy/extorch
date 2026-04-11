@@ -335,6 +335,21 @@ fn main() {
         jobs
     );
 
+    // Use ccache/sccache if available to speed up repeated C++ compilations.
+    // The cc crate reads CC/CXX env vars for the compiler command.
+    if env::var("CXX").is_err() {
+        for wrapper in &["sccache", "ccache"] {
+            if Command::new("which").arg(wrapper).output()
+                .map(|o| o.status.success()).unwrap_or(false)
+            {
+                let cxx_cmd = format!("{} c++", wrapper);
+                env::set_var("CXX", &cxx_cmd);
+                println!("cargo:warning=extorch: using {} for C++ compilation cache", wrapper);
+                break;
+            }
+        }
+    }
+
     // Remove the Cargo-inherited jobserver so the `cc` crate falls back to
     // its in-process jobserver that actually reads NUM_JOBS. Save and
     // restore afterwards so the rest of the build is unaffected.
