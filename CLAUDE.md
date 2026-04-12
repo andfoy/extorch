@@ -39,5 +39,5 @@ Adding a new function touches: `.h` header → `.cc` implementation → `.rs.in`
 - `ExTorch.NN.Module` -- DSL for defining models (`deflayer`, `load_weights`)
 - `ExTorch.Tensor.Blob` -- Zero-copy tensor exchange via data_ptr/from_blob
 - `ExTorch.AOTI` -- Load and run AOTInductor .pt2 compiled models
-- `ExTorch.Export` -- Pure Elixir reader + ATen interpreter for torch.export.save .pt2 archives (load, forward, graph introspection, weight extraction, DSL generation). Tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers.
+- `ExTorch.Export` -- Pure Elixir reader + ATen interpreter for torch.export.save .pt2 archives (load, forward, graph introspection, weight extraction, DSL generation). Tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers. Dynamic batch / HW dims work across all three inference paths (see test/export/dynamic_batch_test.exs); data-dependent shapes (NMS, nonzero with downstream arithmetic) are the remaining gap.
 - `ExTorch.Metrics` -- Optional telemetry handlers that populate ETS counters for inference events. Use or ignore.

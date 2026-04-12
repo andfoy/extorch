@@ -100,6 +100,46 @@ aoti_model = ExTorch.AOTI.load("resnet50_aoti.pt2", device_index: 0)
 [output] = ExTorch.AOTI.forward(aoti_model, [input])
 ```
 
+### Dynamic batch size (and other dynamic dims)
+
+Export with a symbolic dim and run at any batch size that fits the
+constraint — no re-export needed:
+
+```python
+# Python: export once with dynamic batch
+from torch.export import Dim
+batch = Dim("batch", min=1, max=64)
+exported = torch.export.export(
+    model,
+    (torch.randn(2, 3, 224, 224),),     # example input
+    dynamic_shapes={"x": {0: batch}},    # 0th dim is dynamic
+)
+torch.export.save(exported, "resnet.pt2")
+```
+
+```elixir
+# Elixir: load once, call at any batch
+model = ExTorch.Export.load("resnet.pt2")
+
+ExTorch.Export.forward(model, [ExTorch.randn({1, 3, 224, 224})])   # bs=1
+ExTorch.Export.forward(model, [ExTorch.randn({4, 3, 224, 224})])   # bs=4
+ExTorch.Export.forward(model, [ExTorch.randn({16, 3, 224, 224})])  # bs=16
+```
+
+Works across all three Export inference paths (`forward/2`,
+`forward_native/2`, `forward_compiled/2`) and with any dimension that
+`torch.export`'s tracer can express symbolically — batch size,
+variable H/W on convolutional models, variable sequence length on
+transformer classifiers. See
+[`test/export/dynamic_batch_test.exs`](test/export/dynamic_batch_test.exs)
+for verified coverage (MLP, ConvNet, ResNet18 at multiple batch sizes).
+
+**Limitation — data-dependent shapes.** Ops whose output shape depends
+on input *values* (e.g. `nonzero`, `torchvision::nms`) are not yet
+supported when the graph performs downstream arithmetic on the
+variable-length output. This affects detection models like Mask R-CNN.
+Non-data-dependent dynamic dims (batch, H/W) work today.
+
 ### Customize around the model
 
 Because there's no built-in server, you compose inference with whatever your app already uses. A minimal supervised model behind a mailbox:
