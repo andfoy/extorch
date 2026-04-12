@@ -1,6 +1,6 @@
 # ExTorch
 
-Elixir bindings for libtorch -- production ML model serving on the BEAM.
+PyTorch bindings for Elixir. Load and execute serialized PyTorch models (`.pt2` AOTInductor, `.pt2` torch.export) directly from the BEAM, with a customization surface built on normal OTP primitives.
 
 ## Build
 
@@ -35,12 +35,9 @@ Adding a new function touches: `.h` header → `.cc` implementation → `.rs.in`
 
 ## Key modules
 
-- `ExTorch.JIT` -- Load/serve TorchScript models
-- `ExTorch.JIT.Server` -- GenServer model serving with telemetry
 - `ExTorch.NN` -- Neural network layer creation (35 layer types)
-- `ExTorch.NN.Module` -- DSL for defining models (`deflayer`, `from_jit`, `load_weights`)
-- `ExTorch.NN.Introspect` -- Extract model architecture from .pt files
+- `ExTorch.NN.Module` -- DSL for defining models (`deflayer`, `load_weights`)
 - `ExTorch.Tensor.Blob` -- Zero-copy tensor exchange via data_ptr/from_blob
 - `ExTorch.AOTI` -- Load and run AOTInductor .pt2 compiled models
 - `ExTorch.Export` -- Pure Elixir reader + ATen interpreter for torch.export.save .pt2 archives (load, forward, graph introspection, weight extraction, DSL generation). Tested with AlexNet, ResNet18, MobileNetV2, VGG11, SqueezeNet, transformers.
-- `ExTorch.Metrics` -- ETS-backed serving metrics from telemetry events
+- `ExTorch.Metrics` -- Optional telemetry handlers that populate ETS counters for inference events. Use or ignore.

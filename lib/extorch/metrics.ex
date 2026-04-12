@@ -1,27 +1,34 @@
 defmodule ExTorch.Metrics do
   @moduledoc """
-  ETS-backed metrics collection for ExTorch model serving.
+  Optional telemetry handlers that populate an ETS table with per-model
+  inference counters.
 
-  Automatically attaches to telemetry events emitted by `ExTorch.JIT.Server`
-  and maintains per-model inference statistics.
+  Attaches to the `:telemetry` events emitted by the `ExTorch.Export.Server`
+  and `ExTorch.AOTI.Server` convenience wrappers and maintains simple
+  aggregates (count, duration min/max/total, error count, last timestamp)
+  keyed by model path.
+
+  This is a convenience for apps that want a zero-config counter on top
+  of the events ExTorch already emits. It's entirely optional: if you
+  prefer to handle the telemetry events yourself (Prometheus exporter,
+  LiveDashboard, StatsD, custom aggregation), ignore this module and
+  attach your own handlers.
 
   ## Setup
-
-  Call `ExTorch.Metrics.setup/0` in your application start to begin collecting:
 
       def start(_type, _args) do
         ExTorch.Metrics.setup()
         # ...
       end
 
-  ## Querying Metrics
+  ## Querying
 
-      ExTorch.Metrics.get("model.pt")
+      ExTorch.Metrics.get("model.pt2")
       # => %{inference_count: 150, error_count: 2, total_duration_ms: 4523.1,
       #      min_duration_ms: 12.3, max_duration_ms: 89.2, last_inference_at: ~U[...]}
 
       ExTorch.Metrics.all()
-      # => [{"model.pt", %{...}}, {"other.pt", %{...}}]
+      # => [{"model.pt2", %{...}}, {"other.pt2", %{...}}]
 
   """
 

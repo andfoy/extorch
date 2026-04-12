@@ -1,10 +1,18 @@
 defmodule ExTorch.JIT.Server do
   @moduledoc """
-  A GenServer that wraps a loaded TorchScript model for concurrent serving.
+  > ### Deprecated — TorchScript is legacy {: .warning}
+  >
+  > TorchScript (`torch.jit`) is deprecated upstream in PyTorch. New code
+  > should use `torch.export` (`ExTorch.Export.Server`) or AOTInductor
+  > (`ExTorch.AOTI.Server`) instead. This module continues to work for
+  > existing `.pt` files but is not recommended for new work.
 
-  Provides process isolation, fault tolerance, and serialized access to model
-  inference. Forward calls are serialized through the GenServer to ensure
-  thread safety for models with mutable state (e.g., BatchNorm, Dropout).
+  Optional GenServer wrapper around a loaded TorchScript model. Useful
+  when you want a model behind a process mailbox — serialized access,
+  supervision, lifecycle tied to a PID. For throughput-oriented serving,
+  build your own pipeline (Phoenix, Broadway, raw `Task`s) around
+  `ExTorch.JIT.forward/2` directly; the GenServer's single mailbox
+  serializes requests and is not the right shape for concurrent load.
 
   ## Telemetry Events
 

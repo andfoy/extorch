@@ -1,5 +1,13 @@
 defmodule ExTorch.JIT do
   @moduledoc """
+  > ### Deprecated — TorchScript is legacy {: .warning}
+  >
+  > TorchScript (`torch.jit`) is deprecated upstream in PyTorch. New code
+  > should use `ExTorch.Export` (for `torch.export` `.pt2` files) or
+  > `ExTorch.AOTI` (for AOTInductor `.pt2` packages). This module
+  > continues to work for existing `.pt` files but is not recommended
+  > for new work.
+
   TorchScript model loading, inference, and management.
 
   This module provides functions to load pre-trained TorchScript (`.pt`) models,

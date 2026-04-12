@@ -57,7 +57,7 @@ defmodule ExTorch.MixProject do
   end
 
   defp description do
-    "Production ML model serving on the BEAM. Serve PyTorch models faster than Python with pre-compiled graph execution, AOTI compiled inference, and OTP fault tolerance."
+    "PyTorch bindings for Elixir. Load and execute serialized PyTorch models (.pt2 AOTInductor, .pt2 torch.export) directly from the BEAM, with a customization surface built on normal OTP primitives. Matches Python inference performance."
   end
 
   defp package do
