@@ -185,11 +185,14 @@ defmodule ExTorch.Export do
     # which tensor inputs to look up and what scalar config to use.
     values =
       Enum.reduce(model.compiled_graph, values, fn {out_names, run}, acc ->
-        case run.(acc) do
-          tensors when is_list(tensors) ->
+        case {out_names, run.(acc)} do
+          # Ops that produce no bindings (runtime assertions, etc.)
+          {[], _} ->
+            acc
+          {_, tensors} when is_list(tensors) ->
             Enum.zip(out_names, tensors)
             |> Enum.reduce(acc, fn {name, t}, m -> Map.put(m, name, t) end)
-          tensor ->
+          {_, tensor} ->
             Map.put(acc, hd(out_names), tensor)
         end
       end)
@@ -894,6 +897,19 @@ defmodule ExTorch.Export do
       "torch.ops.aten.sigmoid.default" -> ExTorch.NN.forward(resolve(i, "self", values), ExTorch.NN.sigmoid())
       "torch.ops.aten.tanh.default" -> ExTorch.NN.forward(resolve(i, "self", values), ExTorch.NN.tanh())
       "torch.ops.aten.silu.default" -> ExTorch.NN.forward(resolve(i, "self", values), ExTorch.NN.silu())
+      "torch.ops.aten.silu_.default" -> ExTorch.NN.forward(resolve(i, "self", values), ExTorch.NN.silu())
+
+      t when t in [
+        "torch.ops.aten.hardsigmoid.default",
+        "torch.ops.aten.hardsigmoid_.default"
+      ] ->
+        ExTorch.Native.dispatch_op("aten::hardsigmoid", "", [{:tensor, resolve(i, "self", values)}])
+
+      t when t in [
+        "torch.ops.aten.hardswish.default",
+        "torch.ops.aten.hardswish_.default"
+      ] ->
+        ExTorch.Native.dispatch_op("aten::hardswish", "", [{:tensor, resolve(i, "self", values)}])
 
       "torch.ops.aten.elu.default" ->
         ExTorch.NN.forward(resolve(i, "self", values),
@@ -929,6 +945,9 @@ defmodule ExTorch.Export do
       "torch.ops.aten.exp.default" -> ExTorch.tensor_exp(resolve(i, "self", values))
       "torch.ops.aten.log.default" -> ExTorch.tensor_log(resolve(i, "self", values))
       "torch.ops.aten.sqrt.default" -> ExTorch.tensor_sqrt(resolve(i, "self", values))
+      "torch.ops.aten.square.default" ->
+        x = resolve(i, "self", values)
+        ExTorch.mul(x, x)
       "torch.ops.aten.rsqrt.default" ->
         s = resolve(i, "self", values)
         ExTorch.tensor_div(ExTorch.ones(s.size, device: s.device), ExTorch.tensor_sqrt(s))
@@ -953,6 +972,9 @@ defmodule ExTorch.Export do
       "torch.ops.aten.le.Tensor" -> ExTorch.le(resolve(i, "self", values), resolve(i, "other", values))
 
       # ==== Reductions ====
+      "torch.ops.aten.sum.default" ->
+        # aten::sum(Tensor self, *, ScalarType? dtype=None) — reduce all dims
+        ExTorch.sum(resolve(i, "self", values))
       "torch.ops.aten.sum.dim_IntList" ->
         ExTorch.sum(resolve(i, "self", values), resolve_int(i, "dim", 0), resolve_int(i, "keepdim", 0) == 1)
       "torch.ops.aten.mean.dim" ->
@@ -972,6 +994,69 @@ defmodule ExTorch.Export do
         ExTorch.argmax(resolve(i, "self", values))
       "torch.ops.aten.argmin.default" ->
         ExTorch.argmin(resolve(i, "self", values))
+
+      "torch.ops.aten.linalg_vector_norm.default" ->
+        # aten::linalg_vector_norm(Tensor self, Scalar ord=2, int[]? dim=None, bool keepdim=False, *, ScalarType? dtype=None)
+        self_t = resolve(i, "self", values)
+        ord =
+          case List.keyfind(i, "ord", 0) do
+            {"ord", {:float, v}} -> v
+            {"ord", {:int, v}} -> v * 1.0
+            _ -> 2.0
+          end
+        dim =
+          case List.keyfind(i, "dim", 0) do
+            {"dim", {:raw, %{"as_ints" => v}}} when is_list(v) -> v
+            {"dim", {:raw, v}} when is_list(v) -> Enum.map(v, fn %{"as_int" => x} -> x end)
+            _ -> nil
+          end
+        keepdim =
+          case List.keyfind(i, "keepdim", 0) do
+            {"keepdim", {:bool, v}} -> v
+            {"keepdim", {:int, v}} -> v == 1
+            _ -> false
+          end
+
+        if ord == 2.0 do
+          # Inline L2: sqrt(sum(x^2, dim, keepdim)). Sidesteps Scalar-overload
+          # resolution in dispatch_op; covers CSPNeXt / RTMPose GAU usage.
+          squared = ExTorch.mul(self_t, self_t)
+          summed =
+            case dim do
+              nil -> ExTorch.sum(squared)
+              [d] -> ExTorch.sum(squared, d, keepdim)
+              dims ->
+                Enum.reduce(Enum.sort(dims, :desc), squared, fn d, acc ->
+                  ExTorch.sum(acc, d, keepdim)
+                end)
+            end
+          ExTorch.tensor_sqrt(summed)
+        else
+          raise "linalg_vector_norm ord=#{ord} not implemented; only L2 is supported"
+        end
+
+      # ==== Splits ====
+      "torch.ops.aten.unbind.int" ->
+        # aten::unbind.int(Tensor self, int dim=0) -> Tensor[]
+        # Returns size_of_dim tensors, one per index along `dim`, each with
+        # `dim` removed (select semantics).
+        self_t = resolve(i, "self", values)
+        dim = resolve_int(i, "dim", 0)
+        n = elem(self_t.size, if(dim < 0, do: tuple_size(self_t.size) + dim, else: dim))
+        Enum.map(0..(n - 1), fn idx -> ExTorch.select(self_t, dim, idx) end)
+
+      "torch.ops.aten.split_with_sizes.default" ->
+        # aten::split_with_sizes(Tensor self, int[] split_sizes, int dim=0) -> Tensor[]
+        # Returns a list — the interpreter binds each element to the node's
+        # corresponding output name.
+        self_t = resolve(i, "self", values)
+        split_sizes = resolve_int_list_flex(i, "split_sizes", [])
+        dim = resolve_int(i, "dim", 0)
+        {chunks, _} =
+          Enum.map_reduce(split_sizes, 0, fn size, start ->
+            {ExTorch.narrow(self_t, dim, start, size), start + size}
+          end)
+        chunks
 
       # ==== Conditional / masking ====
       "torch.ops.aten.where.self" ->
@@ -999,6 +1084,18 @@ defmodule ExTorch.Export do
       "torch.ops.aten.cat.default" ->
         tensors = resolve_tensor_list(i, "tensors", values)
         ExTorch.cat(tensors, resolve_int(i, "dim", 0))
+
+      "torch.ops.aten.concat.default" ->
+        # concat is an alias for cat in PyTorch.
+        tensors = resolve_tensor_list(i, "tensors", values)
+        ExTorch.cat(tensors, resolve_int(i, "dim", 0))
+
+      "torch.ops.aten.stack.default" ->
+        tensors = resolve_tensor_list(i, "tensors", values)
+        ExTorch.stack(tensors, resolve_int(i, "dim", 0))
+
+      "torch.ops.aten.matmul.default" ->
+        ExTorch.matmul(resolve(i, "self", values), resolve(i, "other", values))
       "torch.ops.aten.unflatten.int" ->
         input = resolve(i, "self", values)
         dim = resolve_int(i, "dim", 0)
@@ -1010,15 +1107,78 @@ defmodule ExTorch.Export do
         ExTorch.NN.forward(resolve(i, "self", values),
           ExTorch.NN.flatten(start_dim: resolve_int(i, "start_dim", 1), end_dim: resolve_int(i, "end_dim", -1)))
 
+      "torch.ops.aten.slice.Tensor" ->
+        # aten::slice.Tensor(Tensor self, int dim=0, SymInt? start=None,
+        #   SymInt? end=None, SymInt step=1) -> Tensor
+        # Routes through the c10 dispatcher rather than building an
+        # ExTorch.Index.Slice — schema-faithful and handles the
+        # int_max sentinel torch.export emits for an open-ended end.
+        self_t = resolve(i, "self", values)
+        ExTorch.Native.dispatch_op("aten::slice", "Tensor", [
+          {:tensor, self_t},
+          {:int, resolve_int(i, "dim", 0)},
+          {:int, resolve_int(i, "start", 0)},
+          {:int, resolve_int(i, "end", 9_223_372_036_854_775_807)},
+          {:int, resolve_int(i, "step", 1)}
+        ])
+
+      "torch.ops.aten.upsample_bicubic2d.vec" ->
+        # aten::upsample_bicubic2d.vec(Tensor input, SymInt[]? output_size,
+        #   bool align_corners, float[]? scale_factors) -> Tensor
+        input = resolve(i, "input", values)
+        output_size = resolve_int_list_flex(i, "output_size", [])
+
+        size_arg =
+          if output_size == [] do
+            :none
+          else
+            {:list, Enum.map(output_size, &{:int, &1})}
+          end
+
+        scale_factors_arg =
+          case List.keyfind(i, "scale_factors", 0) do
+            {"scale_factors", {:raw, %{"as_floats" => floats}}} when is_list(floats) ->
+              {:list, Enum.map(floats, &{:float, &1 / 1})}
+            _ ->
+              :none
+          end
+
+        ExTorch.Native.dispatch_op("aten::upsample_bicubic2d", "vec", [
+          {:tensor, input},
+          size_arg,
+          {:bool, resolve_bool(i, "align_corners", false)},
+          scale_factors_arg
+        ])
+
       # ==== Tensor creation / manipulation ====
       "torch.ops.aten.zeros.default" ->
         size = resolve_int_list_flex(i, "size", [1])
         ExTorch.zeros(List.to_tuple(size), device: device)
+      "torch.ops.aten.ones.default" ->
+        size = resolve_int_list_flex(i, "size", [1])
+        ExTorch.ones(List.to_tuple(size), device: device)
+      "torch.ops.aten.arange.default" ->
+        # aten::arange(Scalar end, *, ScalarType? dtype=None,
+        #   Layout? layout=None, Device? device=None, bool? pin_memory=None)
+        end_v = resolve_int(i, "end", 0)
+        ExTorch.arange(end_v, device: device)
+      "torch.ops.aten.to.dtype" ->
+        # aten::to.dtype(Tensor self, ScalarType dtype, bool non_blocking=False,
+        #   bool copy=False, MemoryFormat? memory_format=None) -> Tensor
+        self_t = resolve(i, "self", values)
+        dtype = resolve_dtype(i, "dtype", :float32)
+        ExTorch.Tensor.to(self_t, dtype: dtype)
       "torch.ops.aten.clone.default" -> ExTorch.clone(resolve(i, "self", values))
       "torch.ops.aten._to_copy.default" -> ExTorch.clone(resolve(i, "self", values))
       "torch.ops.aten.alias.default" -> resolve(i, "self", values)
       "torch.ops.aten.contiguous.default" -> ExTorch.contiguous(resolve(i, "self", values))
       "torch.ops.aten.detach.default" -> ExTorch.detach(resolve(i, "self", values))
+
+      # Runtime assertions — torch.export emits these to validate shape or
+      # dtype invariants. For inference we've already committed to a path;
+      # skip the guard and return nothing (no output bindings).
+      "torch.ops.aten._assert_tensor_metadata.default" -> nil
+      "torch.ops.aten._assert_scalar.default" -> nil
 
       # ==== Convolution (generic) ====
       "torch.ops.aten.convolution.default" ->
@@ -1427,6 +1587,17 @@ defmodule ExTorch.Export do
     15 => :bfloat16
   }
 
+  defp resolve_dtype(inputs, name, default) do
+    case List.keyfind(inputs, name, 0) do
+      {^name, {:raw, %{"as_scalar_type" => code}}} ->
+        Map.get(@dtype_map, code, default)
+      {^name, {:int, code}} ->
+        Map.get(@dtype_map, code, default)
+      _ ->
+        default
+    end
+  end
+
   @doc """
   Read the model schema from an exported `.pt2` archive.
 
@@ -1595,10 +1766,20 @@ defmodule ExTorch.Export do
   end
 
   defp parse_node_outputs(outputs) do
-    Enum.map(outputs, fn output ->
+    Enum.flat_map(outputs, fn output ->
       cond do
-        output["as_tensor"] -> output["as_tensor"]["name"]
-        true -> "unknown"
+        output["as_tensor"] ->
+          [output["as_tensor"]["name"]]
+
+        # Multi-tensor outputs (e.g. aten::split_with_sizes) come back as
+        # `{"as_tensors": [{"name": "getitem"}, {"name": "getitem_1"}, ...]}`.
+        # Flatten into one slot per element so the binder zips correctly
+        # against the list the op returns.
+        is_list(output["as_tensors"]) ->
+          Enum.map(output["as_tensors"], fn t -> t["name"] || "unknown" end)
+
+        true ->
+          ["unknown"]
       end
     end)
   end
